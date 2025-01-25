@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!--Edited by Max Van Dorn -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog - MUDBUG</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <script src="../script.js" defer></script>
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">
+                <img src="images/logoblk.png" alt="MUDBUG logo" class="logo-image">
+                <span class="logo-text">MUDBUG</span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="blog.html">Blog</a></li>
+                <!-- <li><a href="about.html">About Us</a></li> -->
+                <li><a href="contact.html">Contact & Team</a></li>
+            </ul>
+            <div class="burger">
+                <div class="line1"></div>
+                <div class="line2"></div>
+                <div class="line3"></div>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section id="hero">
+            <div class="hero-overlay">
+                <h1>MUDBUG Blog</h1>
+                <p>Insights on soil health, sustainable farming, and agri-tech innovations.</p>
+                <div class="blog-navigation">
+                    <button class="cta-button" onclick="scrollToSection('tech-updates')">Technology Updates</button>
+                    <button class="cta-button" onclick="scrollToSection('soil-science')">Soil Science Insights</button>
+                    <button class="cta-button" onclick="scrollToSection('sustainable-farming')">Sustainable Farming</button>
+                </div>
+            </div>
+        </section>
+
+        <section id="content">
+            <div id="tech-updates" class="container">
+                <h2>Technology Updates</h2>
+                <div class="blog-post">
+                    <h4>PCB Has Arrived!</h4>
+                    <p class="post-meta">Posted on September 5, 2024 by Manhim Liu</p>
+                    
+                    <figure class="expanded-image" style="width: 60%; margin: 0 auto;">
+                        <img src="../images/PCBphys.jpeg" alt="PCB" style="width: 100%;">
+                        <figcaption>Our First PCB. Speaks for itself.</figcaption>
+                    </figure>  
+                    
+
+                </div>
+                
+                
+                <div class="blog-post">
+                    <h4>App Updates: Data Viewing and Mapping Functionality</h4>
+                    <p class="post-meta">Posted on September 4, 2024 by Burt Kim</p>
+                    <p>We're thrilled to share the latest updates on our application! We've added two key features that enhance usability and functionality: a data viewing screen and a mapping functionality to log and view the placement of each module in the garden.</p>
+                    
+                    <div class="more-content" style="display: none;">
+                        <div style="display: flex; justify-content: space-between;">
+                            <figure class="expanded-image" style="width: 48%;">
+                                <img src="../images/app1.jpeg" alt="Data Viewing Screen" style="width: 100%;">
+                                <figcaption>Data viewing screen with options to choose device number, date, and soil metric</figcaption>
+                            </figure>
+                            <figure class="expanded-image" style="width: 48%;">
+                                <img src="../images/app2.jpeg" alt="Mapping Functionality" style="width: 100%;">
+                                <figcaption>Mapping functionality to log and view module placements</figcaption>
+                            </figure>
+                        </div>
+                        <p>The data viewing screen allows users to select the device number, date, and soil metric to view specific data points. This makes it easier to track and analyze soil health over time. Additionally, the mapping feature provides a visual interface for manually logging and viewing the exact placement of each module in the garden.</p>
+                        <p> Stay tuned for more updates as we continue to improve the application!</p>
+                    </div>
+                    
+                    <a href="#" class="read-more" onclick="toggleContent(this); return false;">See More</a>
+                </div>
+                
+                <div class="blog-post">
+                    <h4>Enclosure Advancements</h4>
+                    <p class="post-meta">Posted on August 31, 2024 by Spencer Kirsch</p>
+                    <p>We're making steady progress on the enclosure front! We've created a frame to streamline soldering and compact our prototype. Additionally, we've developed a prebend fixture to efficiently connect wires between the Lora chip and ESP32 and refined the enclosure cap to fit our o-ring line perfectly. Next, we'll focus on finalizing the stake and enclosure design for the PCB, ensuring everything is robust and ready for deployment.</p>
+                    
+
+                    <div class="more-content" style="display: none;">
+                        <figure class="expanded-image">
+                            <img src="../images/encfixture.jpeg" alt="Enclosure fixture">
+                            <figcaption>Enclosure frame</figcaption>
+                        </figure>
+            
+                        <figure class="expanded-image">
+                            <img src="../images/oring.jpeg" alt="Newest o-ring update">
+                            <figcaption>Newest o-ring update + semi-automated wire bending fixture</figcaption>
+                        </figure>
+                    </div>
+                    
+                    <a href="#" class="read-more" onclick="toggleContent(this); return false;">See More</a>
+                </div>
+        
+                <div class="blog-post">
+                    <h4>PCB: Design Complete and Components Ordered</h4>
+                    <p class="post-meta">Posted on August 29, 2024 by Manhim Liu</p>
+                    <p>We're excited to announce a significant step forward in our project: our custom PCB (Printed Circuit Board) has been designed and ordered, along with all the necessary components. This marks a crucial milestone in the development of our urban gardening modules, bringing us closer to a more integrated and efficient system.</p>
+                    
+                    <div class="more-content" style="display: none;">
+                        <div style="display: flex; justify-content: space-between;">
+                            <figure class="expanded-image" style="width: 48%;">
+                                <img src="../images/pcb1.jpeg" alt="PCB without components" style="width: 100%;">
+                                <figcaption>PCB without components</figcaption>
+                            </figure>
+                            <figure class="expanded-image" style="width: 48%;">
+                                <img src="../images/pcb2.jpeg" alt="PCB with components" style="width: 100%;">
+                                <figcaption>PCB with components</figcaption>
+                            </figure>
+                        </div>
+                        <p>The new PCB design integrates all the necessary circuitry for our sensor modules, power management, and communication systems. We anticipate that this custom board will significantly enhance the reliability and efficiency of our urban garden monitoring system.</p>
+                        <p>Stay tuned for updates as we begin assembly and testing of the new PCBs!</p>
+                    </div>
+                    
+                    <a href="#" class="read-more" onclick="toggleContent(this); return false;">See More</a>
+                </div>
+                <div class="blog-post">
+                    <h4>Our Urban Garden Experiment at the Loisaida Center</h4>
+                    <p class="post-meta">Posted on August 26, 2024 by Isaac Amar</p>
+                    <p>We've been hard at work at Loisaida setting up our garden modules. During the setup, we identified a few areas for improvement: upgrading the mothership's power supply and enhancing LoRa connectivity, particularly given the challenges of an urban environment. We're also considering stronger antennas to boost signal strength and ensure stable data collection. Progress continues as we refine our setup for optimal performance.</p>
+                    
+
+                    <div class="more-content" style="display: none;">
+                    <figure class="expanded-image">
+                        <img src="../images/loisaida1.jpeg" alt="2nd iteration of our module at Loisaida">
+                        <figcaption>2nd iteration of our module at Loisaida</figcaption>
+                    </figure>
+                    
+                    <figure class="expanded-image">
+                        <img src="../images/loisaida2mthshp.jpeg" alt="Current mothership at Loisaida">
+                        <figcaption>Current mothership at Loisaida</figcaption>
+                    </figure>
+                    
+                    </div>
+                    
+                    <a href="#" class="read-more" onclick="toggleContent(this); return false;">See More</a>
+                </div>
+                
+
+                <hr class="divider">
+            </div>
+            <div id="soil-science" class="container">
+                <h2>Soil Science Insights</h2>
+                <div class="blog-post">
+                    <h4>Understanding Soil Microbiomes</h4>
+                    <p class="post-meta">Posted on April 15, 2024 by Jane Smith</p>
+                    <p>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+                    <a href="#" class="read-more">Read More</a>
+                </div>
+                <hr class="divider">
+            </div>
+
+            <div id="sustainable-farming" class="container">
+                <h2>Sustainable Farming Practices</h2>
+                <div class="blog-post">
+                    <h4>Implementing Crop Rotation for Soil Health</h4>
+                    <p class="post-meta">Posted on March 30, 2024 by Mike Johnson</p>
+                    <p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.</p>
+                    <a href="#" class="read-more">Read More</a>
+                </div>
+                <hr class="divider">
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="social-links">
+            <!-- Add social media links here -->
+        </div>
+        <p>&copy; 2024 MUDBUG. All rights reserved.</p>
+    </footer>
+
+    <script>
+        function scrollToSection(sectionId) {
+            document.getElementById(sectionId).scrollIntoView({
+                behavior: 'smooth'
+            });
+        }
+    </script>
+</body>
+</html>

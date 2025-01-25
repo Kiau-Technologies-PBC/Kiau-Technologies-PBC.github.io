@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!--Edited by Max Van Dorn -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap" rel="stylesheet">
+    <title>MUDBUG Nodes</title>
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <style>
+        /*TODO:
+          - Add in roots growing off of nodes
+          - Develop more fleshed out content for pages
+          - Add photographical data
+          - Create a log in page
+          - Connect to a DB using sql
+          - More...
+        */
+       
+        body {
+            font-family: "Roboto Mono", Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        svg {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            background-color: #90c37a;
+        }
+        .node circle {
+            fill: brown;
+            stroke: white;
+            stroke-width: 10px;
+        }
+        .node text {
+            font-size: 12px;
+            fill: #333333;
+        }
+        .link {
+            stroke-opacity: 0.6;
+        }
+        /* .tooltip {
+            position: absolute;
+            text-align: center;
+            width: 100px;
+            padding: 4px;
+            font: 13px sans-serif;
+            background: lightgray;
+            border: 1px solid grey;
+            border-radius: 4px;
+            pointer-events: none;
+            opacity: 0;
+        } */
+
+        .fpsCounter {
+            position: absolute;
+            top: 10px;
+            left:10px;
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            padding: 5px;
+            border-radius: 5px;
+            font-size: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="fpsCounter" id="fpsCounter">FPS: 0</div>
+    <svg></svg>
+    <div class="tooltip" id="tooltip"></div>
+    <script src="nodes.js"></script>
+    <script src="fps.js"></script>
+</body>
+</html>
