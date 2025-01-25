@@ -141,27 +141,27 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
   }
 
   function drag(simulation) {
-      function dragstarted(d) {
-          if (!d3.event.active) simulation.alphaTarget(0.3).restart();
-          d.fx = d.x;
-          d.fy = d.y;
-      }
-      
-      function dragged(d) {
-          d.fx = d3.event.x;
-          d.fy = d3.event.y;
-      }
-      
-      function dragended(d) {
-          if (!d3.event.active) simulation.alphaTarget(0);
-          d.fx = null;
-          d.fy = null;
-      }
-      
-      return d3.drag()
-          .on("start", dragstarted)
-          .on("drag", dragged)
-          .on("end", dragended);
-  }
+    function dragstarted(d) {
+        if (!d3.event.active) simulation.alphaTarget(0.3).restart();
+        d.fx = d.x;
+        d.fy = d.y;
+    }
+
+    function dragged(d) {
+        d.fx = Math.max(0, Math.min(width, d3.event.x));  // Constrain x within [0, width]
+        d.fy = Math.max(0, Math.min(height, d3.event.y)); // Constrain y within [0, height]
+    }
+
+    function dragended(d) {
+        if (!d3.event.active) simulation.alphaTarget(0);
+        d.fx = Math.max(0, Math.min(width, d3.event.x));  // Constrain x within [0, width]
+        d.fy = Math.max(0, Math.min(height, d3.event.y)); // Constrain y within [0, height]
+    }
+
+    return d3.drag()
+        .on("start", dragstarted)
+        .on("drag", dragged)
+        .on("end", dragended);
+}
   window.addEventListener('resize', resize);
 });
