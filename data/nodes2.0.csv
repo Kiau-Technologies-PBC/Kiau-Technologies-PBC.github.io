@@ -1,0 +1,14 @@
+source,target,type
+Kiau Technologies,Soil Health Monitoring,null
+Kiau Technologies,Waste Mitigation,null
+Kiau Technologies,Mycomaterials,null
+Soil Health Monitoring,Myco-sensors,null
+Soil Health Monitoring,Soil Remediation,null
+Myco-sensors,Mycomaterials,null
+Mycomaterials,Soil Remediation,null
+Polymer Research,Soil Remediation,null
+Waste Mitigation,Small-Scale Biochar Reactors,null
+Waste Mitigation,Polymer Research,null
+Small-Scale Biochar Reactors,Polymer Research,null
+Soil Remediation,Composting Tech,null
+Waste Mitigation,Composting Tech,null
