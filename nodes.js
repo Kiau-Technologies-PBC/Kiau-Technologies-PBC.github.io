@@ -1,6 +1,6 @@
 d3.csv("data/nodes2.0.csv").then(function(data) {
-  const width = window.innerWidth;
-  const height = window.innerHeight;
+  const width = 1920;
+  const height = 1080;
   const nodes = Array.from(new Set(data.flatMap(d => [d.source, d.target]))).map(id => ({ id: String(id), name: String(id) }));
   const links = data.map(d => ({ source: String(d.source), target: String(d.target), type: d.type }));
 
