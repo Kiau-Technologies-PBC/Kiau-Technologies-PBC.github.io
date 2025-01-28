@@ -9,6 +9,15 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
 
   const tooltip = d3.select("#tooltip");
   
+  const glowFilter = `<filter id="glow" height="200%" width="200%" x="-50%" y="-50%">
+  <feGaussianBlur stdDeviation="5.5" result="coloredBlur"/>
+  <feMerge>
+    <feMergeNode in="coloredBlur"/>
+    <feMergeNode in="SourceGraphic"/>
+  </feMerge>
+</filter>`;
+  d3.select("svg").append("defs").html(glowFilter);
+  
   const simulation = d3.forceSimulation(nodes)
       .force("link", d3.forceLink(links).id(d => d.id).distance(550))
       .force("charge", d3.forceManyBody().strength(-200))
@@ -28,8 +37,8 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
 
   // Preset colors
   const nodeColor = '#2C3E17'; 
-  const linkColor = '#3c2717'; 
-  const textStrokeColor = '#c3f8cf'; // Black outline
+  const linkColor = '#595c31'; 
+  const textStrokeColor = '#c3f8cf'; // Green outline
 
   // Per-type markers, as they don't inherit styles.
   svg.append("defs").selectAll("marker")
@@ -85,9 +94,9 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
 
   // Conditionally append text with hyperlinks for a specific node
   node.each(function(d) {
-    if (d.id === 'Soil Health Monitoring') { // Replace with specific node id
+    if (d.id === 'Soil Health Monitoring') { // specific node id
       d3.select(this).append("a")
-        .attr("xlink:href", "about.html") // Replace with URL
+        .attr("xlink:href", "about.html") // URL
         .attr("target", "") // Open link in a new tab
       .append("text")
         .attr("x", 8)
@@ -98,6 +107,20 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
         .attr("stroke", textStrokeColor)
         .attr("stroke-width", 7)
         .attr("stroke-linejoin", "round");
+    } else if (d.id === 'Mycomaterials') {
+      d3.select(this).append("a")
+        .attr("xlink:href", "about.html")
+        .attr("target", "")
+      .append("text")
+        .attr("x", 8)
+        .attr("y", "0.20em")
+        .attr("font-size", "15px")
+        .text(d.id)
+      .clone(true).lower() // Add outline to text
+        .attr("stroke", textStrokeColor)
+        .attr("stroke-width", 7)
+        .attr("stroke-linejoin", "round")
+        .attr("filter", "url(#glow)");
     } else {
       d3.select(this).append("a")
         .attr("xlink:href", "example.html")
@@ -163,5 +186,5 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
         .on("drag", dragged)
         .on("end", dragended);
 }
-  window.addEventListener('resize', resize);
+
 });
