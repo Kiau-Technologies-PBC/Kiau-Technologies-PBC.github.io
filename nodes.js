@@ -57,7 +57,7 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
 
   const link = svg.append("g")
       .attr("fill", "none")
-      .attr("stroke-width", 2)
+      .attr("stroke-width", 3)
     .selectAll("path")
     .data(links)
     .enter().append("path")
@@ -101,7 +101,7 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
       .append("text")
         .attr("x", 8)
         .attr("y", "0.31em")
-        .attr("font-size", "20px") // Change font size here
+        .attr("font-size", "25px") // Change font size here
         .text(d.id)
       .clone(true).lower() // Add outline to text
         .attr("stroke", textStrokeColor)
@@ -114,7 +114,7 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
       .append("text")
         .attr("x", 8)
         .attr("y", "0.20em")
-        .attr("font-size", "15px")
+        .attr("font-size", "20px")
         .text(d.id)
       .clone(true).lower() // Add outline to text
         .attr("stroke", textStrokeColor)
@@ -128,7 +128,7 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
       .append("text")
         .attr("x", 8)
         .attr("y", "0.31em")
-        .attr("font-size", "16px") // Change font size here
+        .attr("font-size", "20px") // Change font size here
         .text(d.id)
       .clone(true).lower() // Add outline to text
         .attr("stroke", textStrokeColor)
