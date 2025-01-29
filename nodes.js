@@ -163,8 +163,8 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
 
     function dragended(d) {
         if (!d3.event.active) simulation.alphaTarget(0);
-        d.fx = Math.max(0, Math.min(width, d3.event.x));  // Constrain x within [0, width]
-        d.fy = Math.max(0, Math.min(height, d3.event.y)); // Constrain y within [0, height]
+        d.fx = null; // Math.max(0, Math.min(width, d3.event.x));  // Constrain x within [0, width]
+        d.fy = null; //Math.max(0, Math.min(height, d3.event.y)); // Constrain y within [0, height]
     }
 
     return d3.drag()
