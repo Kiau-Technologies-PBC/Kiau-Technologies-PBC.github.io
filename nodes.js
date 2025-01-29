@@ -107,20 +107,6 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
         .attr("stroke", textStrokeColor)
         .attr("stroke-width", 7)
         .attr("stroke-linejoin", "round");
-    } else if (d.id === 'Mycomaterials') {
-      d3.select(this).append("a")
-        .attr("xlink:href", "about.html")
-        .attr("target", "")
-      .append("text")
-        .attr("x", 8)
-        .attr("y", "0.20em")
-        .attr("font-size", "20px")
-        .text(d.id)
-      .clone(true).lower() // Add outline to text
-        .attr("stroke", textStrokeColor)
-        .attr("stroke-width", 7)
-        .attr("stroke-linejoin", "round")
-        .attr("filter", "url(#glow)");
     } else {
       d3.select(this).append("a")
         .attr("xlink:href", "example.html")
