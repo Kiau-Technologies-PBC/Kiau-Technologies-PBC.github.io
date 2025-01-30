@@ -33,7 +33,7 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
       .attr("viewBox", [0, 0, width, height])
       .attr("width", width)
       .attr("height", height)
-      .attr("style", "max-width: 100%; height: auto; font: 18px Roboto Mono; shadow: 15;");
+      .attr("style", "max-width: auto; height: auto; font: 18px Roboto Mono; shadow: 15;");
 
   // Preset colors
   const nodeColor = '#2C3E17'; 
