@@ -1,14 +1,35 @@
 d3.csv("data/nodes2.0.csv").then(function(data) {
   const width = 1920;
   const height = 1080;
-  const nodes = Array.from(new Set(data.flatMap(d => [d.source, d.target]))).map(id => ({ id: String(id), name: String(id) }));
-  const links = data.map(d => ({ source: String(d.source), target: String(d.target), type: d.type }));
+
+  function shuffle(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+  }
+
+  const nodeIds = Array.from(new Set(data.flatMap(d => [d.source, d.target])));
+  shuffle(nodeIds);
+  const nodes = nodeIds.map(id => ({ id: String(id), name: String(id) }));
+
+
+  const nodeMap = new Map(nodes.map((node, index) => [node.id, index]));
+
+  const links = data.map(d => ({
+    source: nodes[nodeMap.get(String(d.source))],
+    target: nodes[nodeMap.get(String(d.target))],
+    type: d.type
+  }));
+  //const nodes = Array.from(new Set(data.flatMap(d => [d.source, d.target]))).map(id => ({ id: String(id), name: String(id) }));
+  //const links = data.map(d => ({ source: String(d.source), target: String(d.target), type: d.type }));
 
   console.log("Nodes:", nodes);
   console.log("Links:", links);
 
   const tooltip = d3.select("#tooltip");
-  
+  const root = document.documentElement;
+
   const glowFilter = `<filter id="glow" height="200%" width="200%" x="-50%" y="-50%">
   <feGaussianBlur stdDeviation="5.5" result="coloredBlur"/>
   <feMerge>
