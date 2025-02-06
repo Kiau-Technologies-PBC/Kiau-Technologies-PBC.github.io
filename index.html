@@ -16,28 +16,80 @@
           - Connect to a DB using sql
           - More...
         */
+        :root {
+            --color-1: #90c37a; /* R:27 G:46 B:67 */
+            --color-2: #90c37a; /* R:23 G:41 B:64 */
+            --color-3: #333333; /* R:44 G:62 B:23 */
+            --color-4: #3C2717; /* R:60 G:39 B:23 */
+            --color-5: #271405; /* R:39 G:20 B:5 */
+
+            --node-color-night: #ad9280w; 
+            --link-color-night: #9fb38d; 
+            --text-stroke-color-night:#75756f;
+
+
+            --text-color: var(--color-3); /* Set text color to --color-3 */
+            --background-color: var(--color-1);
+            --night-background: #020f08;
+            --day-background: #90c37a;
+            --night-node: ;
+            --day-node: #2c3e17 ;
+            --night-stroke: ;
+            --day-stroke: #595c31;
+            --night-text: ;
+            --day-text: ;
+
+        }
        
-        body {
+        .night-mode {
             font-family: "Roboto Mono", Arial, sans-serif;
-            background-color: #90c37a;
+            background-color: var(--night-background);
             margin: 0;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
         }
-        svg {
+
+        .day-mode {
+            font-family: "Roboto Mono", Arial, sans-serif;
+            background-color: var(--day-background);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+
+
+        .day-mode svg {
             border-radius: 8px;
             background-color: #90c37a;
         }
-        .node circle {
+
+        .night-mode svg {
+        
+        border-radius: 8px;
+        background-color: var(--night-background);
+        }
+
+        .night-mode .node circle {
             fill: brown;
             stroke: white;
             stroke-width: 10px;
         }
+
+        .day-mode .node circle {
+            fill: brown;
+            stroke: white;
+            stroke-width: 10px;
+        }
+
+
         .node text {
             font-size: 12px;
-            fill: #333333;
+            fill: white;
         }
         .link {
             stroke-opacity: 0.6;
@@ -55,7 +107,7 @@
             opacity: 0;
         } */
 
-        .fpsCounter {
+        .day-mode .fpsCounter {
             position: absolute;
             top: 10px;
             left:10px;
@@ -65,13 +117,63 @@
             border-radius: 5px;
             font-size: 10px;
         }
+
+        .night-mode .fpsCounter {
+            position: absolute;
+            top: 10px;
+            left:10px;
+            background: rgba(110, 99, 89, 0.5);
+            color: '#6e6359';
+            padding: 5px;
+            border-radius: 5px;
+            font-size: 10px;
+        }
     </style>
+
+
+
+
 </head>
 <body>
     <div class="fpsCounter" id="fpsCounter">FPS: 0</div>
     <svg></svg>
     <div class="tooltip" id="tooltip"></div>
-    <script src="nodes.js"></script>
+    
     <script src="fps.js"></script>
+    <script>
+        function timeMode() {
+            const hour = new Date().getHours();
+
+            const body = document.body;
+            
+            let scriptSource;
+
+            if (hour >= 6 && hour < 18) {
+
+                body.classList.add('day-mode');
+
+                body.classList.remove('night-mode');
+
+                scriptSource = "nodesLight.js";
+            } else {
+                body.classList.add('night-mode');
+
+                body.classList.remove('day-mode');
+
+                scriptSource = "nodesDark.js";
+            }
+
+            const scriptElement = document.createElement('script');
+
+            scriptElement.src = scriptSource;
+
+            document.body.appendChild(scriptElement);
+        }
+    
+        // Apply mode on page load
+        window.onload = timeMode;
+        
+    </script>
+    
 </body>
 </html>
