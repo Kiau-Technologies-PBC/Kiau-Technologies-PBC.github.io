@@ -17,20 +17,24 @@
           - More...
         */
         :root {
-            --color-1: #90c37a; /* R:27 G:46 B:67 */
-            --color-2: #90c37a; /* R:23 G:41 B:64 */
-            --color-3: #333333; /* R:44 G:62 B:23 */
-            --color-4: #3C2717; /* R:60 G:39 B:23 */
-            --color-5: #271405; /* R:39 G:20 B:5 */
+            --color-1: #90c37a; 
+            --color-2: #90c37a; 
+            --color-3: #333333; 
+            --color-4: #3C2717; 
+            --color-5: #271405; 
 
-            --node-color-night: #ad9280w; 
+            --node-color-night: #47313b; 
             --link-color-night: #9fb38d; 
-            --text-stroke-color-night:#75756f;
+            --text-stroke-color-night:#9fb38d;
+
+            --node-color-day: #2C3E17;
+            --link-color-day: #595c31;
+            --text-stroke-color-day: #c3f8cf;
 
 
             --text-color: var(--color-3); /* Set text color to --color-3 */
             --background-color: var(--color-1);
-            --night-background: #050200;
+            --night-background: #020f08;
             --day-background: #90c37a;
             --night-node: ;
             --day-node: #2c3e17 ;
@@ -130,50 +134,31 @@
         }
     </style>
 
-
-
-
 </head>
 <body>
     <div class="fpsCounter" id="fpsCounter">FPS: 0</div>
     <svg></svg>
     <div class="tooltip" id="tooltip"></div>
-    
     <script src="fps.js"></script>
     <script>
         function timeMode() {
             const hour = new Date().getHours();
-
             const body = document.body;
-            
-            let scriptSource;
+            const isDayMode = (hour >= 6 && hour < 18);
 
-            if (hour >= 6 && hour < 18) {
-
+            if (isDayMode) {
                 body.classList.add('day-mode');
-
                 body.classList.remove('night-mode');
-
-                scriptSource = "nodesLight.js";
             } else {
                 body.classList.add('night-mode');
-
                 body.classList.remove('day-mode');
-
-                scriptSource = "nodesDark.js";
             }
-
             const scriptElement = document.createElement('script');
-
-            scriptElement.src = scriptSource;
-
+            scriptElement.src = "nodes.js";
             document.body.appendChild(scriptElement);
         }
-    
         // Apply mode on page load
         window.onload = timeMode;
-        
     </script>
-    
 </body>
 </html>
