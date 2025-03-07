@@ -300,7 +300,6 @@ nav {
 a:link {
     color:rgb(0, 51, 0);
     background-color: transparent;
-    text-decoration: underline;
     text-transform: uppercase;
 }
 
