@@ -297,6 +297,12 @@ nav {
 .nav-links li {
     margin-left: 2rem;
 }
+a:link {
+    color:rgb(0, 51, 0);
+    background-color: transparent;
+    text-decoration: underline;
+    text-transform: uppercase;
+}
 
 .nav-links a {
     text-decoration: none;
@@ -415,9 +421,4 @@ figcaption {
     text-align: center; /* Centers the caption text */
     margin-top: 5px; /* Adds a little space above the caption */
 }
-a:link {
-    color:rgb(0, 51, 0);
-    background-color: transparent;
-    text-decoration: underline;
-    text-transform: uppercase;
-}
+
