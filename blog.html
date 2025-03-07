@@ -1,12 +1,12 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!--Edited by Max Van Dorn -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Blog - MUDBUG</title>
     <link rel="stylesheet" href="css/styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <script src="../script.js" defer></script>
 </head>
@@ -14,13 +14,13 @@
     <header>
         <nav>
             <div class="logo">
-                <img src="images/logoblk.png" alt="MUDBUG logo" class="logo-image">
+                <img src="../images/logoblk.png" alt="MUDBUG logo" class="logo-image">
                 <span class="logo-text">MUDBUG</span>
             </div>
             <ul class="nav-links">
-                <li><a href="index.html">Home</a></li>
+                <li><a href="../index.html">Home</a></li>
                 <li><a href="blog.html">Blog</a></li>
-                <!-- <li><a href="about.html">About Us</a></li> -->
+                <li><a href="about.html">About Us</a></li>
                 <li><a href="contact.html">Contact & Team</a></li>
             </ul>
             <div class="burger">
@@ -35,7 +35,7 @@
         <section id="hero">
             <div class="hero-overlay">
                 <h1>MUDBUG Blog</h1>
-                <p>Insights on soil health, sustainable farming, and agri-tech innovations.</p>
+                <p>Insights on soil health, sustainable farming, and agri-tech innovations</p>
                 <div class="blog-navigation">
                     <button class="cta-button" onclick="scrollToSection('tech-updates')">Technology Updates</button>
                     <button class="cta-button" onclick="scrollToSection('soil-science')">Soil Science Insights</button>
@@ -47,6 +47,22 @@
         <section id="content">
             <div id="tech-updates" class="container">
                 <h2>Technology Updates</h2>
+                <div class="blog-post">
+                    <h4>PCB for the Mothership – MPCB v1.0</h4>
+                    <p class="post-meta">Posted on January 30th, 2025 by Burt Kim</p>
+                    <p>
+                        Burt Kim has initiated the design of MPCB v1.0, a custom PCB for the Mothership, integrating ESP32, an RFM9x LoRa chip, and a microSD card holder. 
+                        This redesign aims to enhance affordability and efficiency compared to the current Mothership architecture, which relies on ESP32 or Arduino Uno, an RFM9x chip, and a Raspberry Pi. 
+                    </p>
+                    <div class="more-content" style="display: none;">
+                        <p>
+                            The new PCB will streamline data collection and storage by leveraging LoRaWAN communication. Incoming data from the RFM9x chip will be processed by the ESP32, and instead of relying on a Raspberry Pi for storage, the processed data will be stored directly on a microSD card. 
+                            Additionally, the Mothership will continue uploading data to Firebase, ensuring cloud accessibility and real-time monitoring. 
+                            By consolidating components and optimizing the data pipeline, MPCB v1.0 aims to create a cost-effective and scalable solution for efficient long-range data communication.
+                        </p>
+                    </div>
+                    <a href="#" class="read-more" onclick="toggleContent(this); return false;">See More</a>
+                </div>
                 <div class="blog-post">
                     <h4>PCB Has Arrived!</h4>
                     <p class="post-meta">Posted on September 5, 2024 by Manhim Liu</p>
