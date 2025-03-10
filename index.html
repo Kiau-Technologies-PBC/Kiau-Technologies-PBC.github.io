@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -132,13 +133,26 @@
             border-radius: 5px;
             font-size: 10px;
         }
+
+        .sr-only {
+            position: absolute;
+        width: 1px;
+        height: 1px;
+        margin: -1px;
+        padding: 0;
+        border: 0;
+        clip: rect(0, 0, 0, 0);
+        overflow: hidden;
+        }
     </style>
 
 </head>
 <body>
-    <div class="fpsCounter" id="fpsCounter">FPS: 0</div>
+    <div id="screenReaderMessage" class = "sr-only" role = "status" aria-live = "polite" role = "alert">
+        Welcome to the Kiau Technologies website, this text is only read by screen readers. Use tab to navigate through the options of the menu. Each item is a link to a website and will be read twice, please bare with us while we fix this problem. Press enter when you hear the desired option. 
+    </div>
+    <div class="fpsCounter" id="fpsCounter" aria-hidden="true">FPS: 0</div>
     <svg></svg>
-    <div class="tooltip" id="tooltip"></div>
     <script src="fps.js"></script>
     <script>
         function timeMode() {
@@ -156,9 +170,12 @@
             const scriptElement = document.createElement('script');
             scriptElement.src = "nodes.js";
             document.body.appendChild(scriptElement);
-        }
+        };
         // Apply mode on page load
-        window.onload = timeMode;
+        
+        window.onload = function() {
+            timeMode();
+        };
     </script>
 </body>
 </html>
