@@ -1,5 +1,5 @@
 d3.csv("data/nodes2.0.csv").then(function(data) {
-  const width = 1900;
+  const width = 1920;
   const height = 1080;
 
   // Shuffle function for randomizing node order
@@ -62,7 +62,7 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
   const specialNode = nodes.find(node => node.id === 'Kiau Technologies');
   if (specialNode) {
     specialNode.fx = width / 2;
-    specialNode.fy = 200;
+    specialNode.fy = height / 2;
   }
 
   // Determine day/night mode based on time
@@ -94,7 +94,7 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
     .selectAll("path")
     .data(links)
     .enter().append("path")
-    .attr("stroke", linkColor)
+    .attr("stroke", linkColor) // Apply preset link color
     .attr("filter", isDayMode ? null : "url(#glow)");
 
   // Create node groups with circles and text
@@ -119,14 +119,15 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
     node.each(function(d) {
     const nodeText = d3.select(this).append("a")
       .attr("xlink:href", d.id === 'Soil Health Monitoring' ? "about.html" : "example.html")
-      .attr("role", "link") 
-      .attr("tabindex", 0)  
+      .attr("role", "link")  // Make the text a link
+      .attr("tabindex", 0)  // Make the link focusable
       .attr("aria-hidden", "true")
       .append("text")
       .attr("filter", isDayMode ? null : "url(#glow)")
       .attr("x", 8)
       .attr("y", "0.31em")
       .attr("font-size", d.id === 'Soil Health Monitoring' ? "25px" : "20px")
+      .attr("font-size", d.id === 'Kiau Technologies' ? "25px" : "20px")
       .text(d.id);
 
       nodeText.attr("aria-label", d.id)
@@ -141,8 +142,14 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
   // Update link and node positions during simulation ticks
   simulation.on("tick", () => {
     link.attr("d", linkArc);
-    node.attr("transform", d => `translate(${d.x},${d.y})`);
+    node.attr("transform", d => {
+      // Ensure nodes stay within the SVG boundaries
+      d.x = Math.max(50, Math.min(width - 50, d.x));
+      d.y = Math.max(50, Math.min(height - 100, d.y));
+      return `translate(${d.x},${d.y})`;
+    });
   });
+  
 
   // Link arc function for curved links
   function linkArc(d) {
