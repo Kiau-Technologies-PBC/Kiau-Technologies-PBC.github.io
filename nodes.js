@@ -127,7 +127,7 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
       .attr("x", 8)
       .attr("y", "0.31em")
       .attr("font-size", d.id === 'Soil Health Monitoring' ? "25px" : "20px")
-      .attr("font-size", d.id === 'Kiau Technologies' ? "25px" : "20px")
+      .attr("font-size", d.id === 'Kiau Technologies' ? "30px" : "20px")
       .text(d.id);
 
       nodeText.attr("aria-label", d.id)
