@@ -38,7 +38,8 @@
                 <div class="blog-navigation">
                     <button class="cta-button" onclick="scrollToSection('tech-updates')">Technology Updates</button>
                     <button class="cta-button" onclick="scrollToSection('soil-science')">Soil Science Insights</button>
-                    <button class="cta-button" onclick="scrollToSection('sustainable-farming')">Sustainable Farming</button>
+                    <button class="cta-button" onclick="scrollToSection('regen-agriculture')">Regenerative Agriculture</button>
+                    <button class="cta-button" onclick="scrollToSection('sustainable-practices')"><del>Waste</del></button>
                 </div>
             </div>
         </section>
@@ -101,7 +102,9 @@
                 <div class="blog-post">
                     <h4>Enclosure Advancements</h4>
                     <p class="post-meta">Posted on August 31, 2024 by Spencer Kirsch</p>
-                    <p>We're making steady progress on the enclosure front! We've created a frame to streamline soldering and compact our prototype. Additionally, we've developed a prebend fixture to efficiently connect wires between the Lora chip and ESP32 and refined the enclosure cap to fit our o-ring line perfectly. Next, we'll focus on finalizing the stake and enclosure design for the PCB, ensuring everything is robust and ready for deployment.</p>
+                    <p>We're making steady progress on the enclosure front! We've created a frame to streamline soldering and compact our prototype. 
+                        Additionally, we've developed a prebend fixture to efficiently connect wires between the Lora chip and ESP32 and refined the enclosure cap to fit our o-ring line perfectly.
+                        Next, we'll focus on finalizing the stake and enclosure design for the PCB, ensuring everything is robust and ready for deployment.</p>
                     
 
                     <div class="more-content" style="display: none;">
@@ -162,8 +165,23 @@
                     
                     <a href="#" class="read-more" onclick="toggleContent(this); return false;">See More</a>
                 </div>
-                
-
+                <hr class="divider">
+            </div>
+            <div id="sustainable-practices" class="container">
+                <h2>Sustainable practice Insights</h2>
+                <div class="blog-post">
+                    <h4>Disassembly of Vapes</h4>
+                    <p class="post-meta">Posted on March 11, 2025 by Spencer Kirsch | Max Van Dorn</p>
+                    <p>Recently, we began to collect disposable vape pens in the hopes we can utilize the components inside for more than just vaping. There are many resources in these devices that we believe can serve another purpose. These items include the batteries, resistance heaters, the body or container of the vape, the wick and more. Almost all of the components can be reused. The goal, 95% of the devices materials will be recycled. Each part will have a unique function for our projects. The lithium-ion batteries can be reused and charged again for powering portable chargers and hand warmers. The resistance heaters will be helpful for filament joining and hand warmers. The wick or the cotton holding the e-liquid can be used for mycelium substrates. The bodies are made of either aluminum or plastic. The aluminum is good for housing or to conduct heat in hand warmers. And the plastic (composed of ABS) which can be shredded? for 3D printing material. The gaskets on the vapes are good for ingress protection. Mass measurements will be taken to ensure the % we are recycling is accurate. 
+                    <br>
+                    <br>In this video, Spencer demonstrates how to disassemble these devices. Check it out!</p>
+                    <figure style="text-align: center;">
+                        <video width="700" height="400" controls>
+                            <source src="/images/spencerDisassembles.mp4" type="video/mp4">
+                            <figcaption>This is a timelapse video of Spencer disassembling vaping devices</figcaption>
+                        </video>
+                    </figure>
+                </div>
                 <hr class="divider">
             </div>
             <!-- <div id="soil-science" class="container">
@@ -177,7 +195,7 @@
                 <hr class="divider"> 
             </div>
 
-            <div id="sustainable-farming" class="container">
+            <div id="regen-agriculture" class="container">
                 <h2>Sustainable Farming Practices</h2>
                 <div class="blog-post">
                     <h4>Implementing Crop Rotation for Soil Health</h4>
