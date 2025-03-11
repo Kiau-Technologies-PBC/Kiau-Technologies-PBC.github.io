@@ -1,6 +1,6 @@
 d3.csv("data/nodes2.0.csv").then(function(data) {
   const width = 1920;
-  const height = 1080;
+  const height = 900;
 
   // Shuffle function for randomizing node order
   function shuffle(array) {
