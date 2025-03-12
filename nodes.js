@@ -1,6 +1,6 @@
 d3.csv("data/nodes2.0.csv").then(function(data) {
-  const width = 1920;
-  const height = 900;
+  const width = window.innerWidth;
+  const height = window.innerHeight;
 
   // Shuffle function for randomizing node order
   function shuffle(array) {
@@ -134,7 +134,7 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
   
     nodeText.clone(true).lower()
       .attr("stroke", textStrokeColor)
-      .attr("stroke-width", d.id === 'Soil Health Monitoring' ? 7 : 5)
+      .attr("stroke-width",  5)
       .attr("stroke-linejoin", "round");
   });
   
@@ -145,7 +145,7 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
     node.attr("transform", d => {
       // Ensure nodes stay within the SVG boundaries
       d.x = Math.max(50, Math.min(width - 50, d.x));
-      d.y = Math.max(50, Math.min(height - 100, d.y));
+      d.y = Math.max(50, Math.min(height - 50, d.y));
       return `translate(${d.x},${d.y})`;
     });
   });
@@ -196,4 +196,54 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
       .on("drag", dragged)
       .on("end", dragended);
   }
+
+  window.addEventListener('resize', function() {
+    width = window.innerWidth;
+    height = window.innerHeight;
+    svg.attr("viewBox", `0 0 ${width} ${height}`);
+    simulation.force("center", d3.forceCenter(width / 2, height / 2)).alpha(1).restart();
+  });
+
+  const zoom = d3.zoom()
+    .scaleExtent([0.5, 2]) // Set min and max zoom levels (adjust as needed)
+    .on("zoom", function(event) {
+        svg.select("g").attr("transform", event.transform);
+    });
+
+svg.call(zoom);
+
+function adjustNodeSize() {
+  const width = window.innerWidth;
+  const height = window.innerHeight;
+
+  // Dynamically adjust node radius based on screen size
+  const nodeRadius = Math.max(5, Math.min(15, width / 100));  // Example scaling formula
+  
+  // Dynamically adjust link distance
+  const linkDistance = width / 5;
+
+  return { nodeRadius, linkDistance };
+}
+
+function resizeSVG() {
+  const svg = document.querySelector('svg');
+  const width = window.innerWidth;
+  const height = window.innerHeight;
+  const { nodeRadius, linkDistance } = adjustNodeSize();
+
+  svg.setAttribute('width', width);
+  svg.setAttribute('height', height);
+
+  // Update force simulation with dynamic node radius and link distance
+  if (window.simulation) {
+      window.simulation
+          .force("link", d3.forceLink().distance(linkDistance)) // Dynamically set link distance
+          .force("charge", d3.forceManyBody().strength(-nodeRadius * 5)) // Adjust charge strength
+          .alphaTarget(0.3).restart();
+  }
+
+  // Update nodes' radius dynamically
+  svg.selectAll(".node circle")
+      .attr("r", nodeRadius);
+}
 });
