@@ -172,11 +172,36 @@
             scriptElement.src = "nodes.js";
             document.body.appendChild(scriptElement);
         };
+
+        function resizeSVG() {
+            const svg = document.querySelector('svg');
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+    
+    // Update SVG size
+            svg.setAttribute('width', width);
+            svg.setAttribute('height', height);
+
+    // Adjust force simulation (distance and center)
+            if (window.simulation) {
+                window.simulation
+                .force("center", d3.forceCenter(width / 2, height / 2))
+                .force("link", d3.forceLink().distance(width / 5)) // Change link distance dynamically
+                .alphaTarget(0.3).restart();
+                }
+            }
+
         // Apply mode on page load
         
         window.onload = function() {
             timeMode();
+            resizeSVG();
         };
+
+        window.onresize = function() {
+            resizeSVG();
+        }
+
     </script>
 </body>
 </html>
