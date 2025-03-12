@@ -81,7 +81,7 @@
                     <p class="post-meta">Posted on September 4, 2024 by Burt Kim</p>
                     <p>We're thrilled to share the latest updates on our application! We've added two key features that enhance usability and functionality: a data viewing screen and a mapping functionality to log and view the placement of each module in the garden.</p>
                     
-                    <div class="more-content" style="display: none;">
+                    <div class="more-content">
                         <div style="display: flex; justify-content: space-between;">
                             <figure class="expanded-image" style="width: 48%;">
                                 <img src="../images/app1.jpeg" alt="Data Viewing Screen" style="width: 100%;">
@@ -95,7 +95,7 @@
                         <p>The data viewing screen allows users to select the device number, date, and soil metric to view specific data points. This makes it easier to track and analyze soil health over time. Additionally, the mapping feature provides a visual interface for manually logging and viewing the exact placement of each module in the garden.</p>
                         <p> Stay tuned for more updates as we continue to improve the application!</p>
                     </div>
-                    
+                
                     <a href="#" class="read-more" onclick="toggleContent(this); return false;">See More</a>
                 </div>
                 
@@ -221,6 +221,22 @@
                 behavior: 'smooth'
             });
         }
+        function toggleContent(button) {
+        const moreContent = button.previousElementSibling;
+        
+        if (moreContent.style.display === "none" || moreContent.style.display === "") {
+            moreContent.style.display = "block";
+            button.textContent = "See Less"; // Change button text when content is revealed
+        } else {
+            moreContent.style.display = "none";
+            button.textContent = "See More"; // Revert button text when content is hidden
+        }
+    }
     </script>
+    <style>
+        .more-content {
+            display: none; /* Initially hide content */
+        }
+    </style>
 </body>
 </html>
