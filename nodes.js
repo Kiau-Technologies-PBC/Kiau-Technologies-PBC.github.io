@@ -144,7 +144,7 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
     link.attr("d", linkArc);
     node.attr("transform", d => {
       // Ensure nodes stay within the SVG boundaries
-      d.x = Math.max(50, Math.min(width - 50, d.x));
+      d.x = Math.max(50, Math.min(width - 75, d.x));
       d.y = Math.max(50, Math.min(height - 50, d.y));
       return `translate(${d.x},${d.y})`;
     });
