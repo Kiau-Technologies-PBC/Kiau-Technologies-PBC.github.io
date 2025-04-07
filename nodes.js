@@ -144,7 +144,7 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
     link.attr("d", linkArc);
     node.attr("transform", d => {
       // Ensure nodes stay within the SVG boundaries
-      d.x = Math.max(50, Math.min(width - 75, d.x));
+      d.x = Math.max(50, Math.min(width - 250, d.x));
       d.y = Math.max(50, Math.min(height - 50, d.y));
       return `translate(${d.x},${d.y})`;
     });
@@ -154,8 +154,8 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
   // Link arc function for curved links
   function linkArc(d) {
     const r = Math.hypot(d.target.x - d.source.x, d.target.y - d.source.y);
-    const numWaves = 90;
-    const waveAmplitude = 90;
+    const numWaves = 30;
+    const waveAmplitude = 60;
     const points = [];
 
     for (let i = 0; i <= numWaves; i++) {
