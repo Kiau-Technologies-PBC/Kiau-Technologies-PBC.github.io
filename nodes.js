@@ -1,4 +1,24 @@
+function getResponsiveSettings() {
+  const rootStyles = getComputedStyle(document.documentElement);
+  return {
+    linkDistance: parseFloat(rootStyles.getPropertyValue('--link-distance')),
+    nodeRadius: parseFloat(rootStyles.getPropertyValue('--node-radius')),
+    strokeSize: parseFloat(rootStyles.getPropertyValue('--stroke-width')),
+    normalFontSize: rootStyles.getPropertyValue('--font-size-normal').trim(),
+    specialFontSize: rootStyles.getPropertyValue('--font-size-special').trim(),
+    boundPaddingW: parseFloat(rootStyles.getPropertyValue('--boundries-padding-width')),
+    boundPaddingH: parseFloat(rootStyles.getPropertyValue('--boundries-padding-height')),
+    waveCount: parseInt(rootStyles.getPropertyValue('--wave-count')),
+    waveAmp: parseFloat(rootStyles.getPropertyValue('--wave-amp')),
+  };
+}
+
+
 d3.csv("data/nodes2.0.csv").then(function(data) {
+
+  const settings = getResponsiveSettings();
+  console.log("Responsive Settings:", settings);
+
   const width = window.innerWidth;
   const height = window.innerHeight;
 
@@ -47,9 +67,9 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
 
   // Initialize the simulation with forces
   const simulation = d3.forceSimulation(nodes)
-    .force("link", d3.forceLink(links).id(d => d.id).distance(450))
+    .force("link", d3.forceLink(links).id(d => d.id).distance(settings.linkDistance))
     .force("charge", d3.forceManyBody().strength(-100))
-    .force("center", d3.forceCenter(width / 2 + 100, height / 2));
+    .force("center", d3.forceCenter(width / 2, height / 2));
 
   let mouseX = width / 2, mouseY = height / 2;
   svg.on("mousemove", function() {
@@ -90,7 +110,7 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
   // Create link paths
   const link = svg.append("g")
     .attr("fill", "none")
-    .attr("stroke-width", 3)
+    .attr("stroke-width", settings.strokeSize)
     .selectAll("path")
     .data(links)
     .enter().append("path")
@@ -111,7 +131,7 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
     .attr("aria-hidden", "true")
     .attr("stroke", "#c3f8cf")
     .attr("stroke-width", 1.5)
-    .attr("r", 7)
+    .attr("r", settings.nodeRadius)
     .attr("fill", nodeColor)
     .attr("role", "img")
     .attr("aria-label", d => `Node: ${d.name}`)
@@ -126,8 +146,8 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
       .attr("filter", isDayMode ? null : "url(#glow)")
       .attr("x", 8)
       .attr("y", "0.31em")
-      .attr("font-size", d.id === 'Soil Health Monitoring' ? "25px" : "20px")
-      .attr("font-size", d.id === 'Kiau Technologies' ? "30px" : "20px")
+      .attr("font-size", d.id === 'Soil Health Monitoring' ? settings.specialFontSize : settings.normalFontSize)
+      .attr("font-size", d.id === 'Kiau Technologies' ? settings.specialFontSize : settings.normalFontSize)
       .text(d.id);
 
       nodeText.attr("aria-label", d.id)
@@ -144,8 +164,8 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
     link.attr("d", linkArc);
     node.attr("transform", d => {
       // Ensure nodes stay within the SVG boundaries
-      d.x = Math.max(50, Math.min(width - 250, d.x));
-      d.y = Math.max(50, Math.min(height - 50, d.y));
+      d.x = Math.max(settings.boundPaddingW, Math.min(width - settings.boundPaddingW, d.x));
+      d.y = Math.max(settings.boundPaddingH, Math.min(height - settings.boundPaddingH, d.y));
       return `translate(${d.x},${d.y})`;
     });
   });
@@ -154,8 +174,8 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
   // Link arc function for curved links
   function linkArc(d) {
     const r = Math.hypot(d.target.x - d.source.x, d.target.y - d.source.y);
-    const numWaves = 30;
-    const waveAmplitude = 60;
+    const numWaves = settings.waveCount;
+    const waveAmplitude = settings.waveAmp;
     const points = [];
 
     for (let i = 0; i <= numWaves; i++) {
@@ -196,54 +216,4 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
       .on("drag", dragged)
       .on("end", dragended);
   }
-
-  window.addEventListener('resize', function() {
-    width = window.innerWidth;
-    height = window.innerHeight;
-    svg.attr("viewBox", `0 0 ${width} ${height}`);
-    simulation.force("center", d3.forceCenter(width / 2, height / 2)).alpha(1).restart();
-  });
-
-  const zoom = d3.zoom()
-    .scaleExtent([0.5, 2]) // Set min and max zoom levels (adjust as needed)
-    .on("zoom", function(event) {
-        svg.select("g").attr("transform", event.transform);
-    });
-
-svg.call(zoom);
-
-function adjustNodeSize() {
-  const width = window.innerWidth;
-  const height = window.innerHeight;
-
-  // Dynamically adjust node radius based on screen size
-  const nodeRadius = Math.max(5, Math.min(15, width / 100));  // Example scaling formula
-  
-  // Dynamically adjust link distance
-  const linkDistance = width / 5;
-
-  return { nodeRadius, linkDistance };
-}
-
-function resizeSVG() {
-  const svg = document.querySelector('svg');
-  const width = window.innerWidth;
-  const height = window.innerHeight;
-  const { nodeRadius, linkDistance } = adjustNodeSize();
-
-  svg.setAttribute('width', width);
-  svg.setAttribute('height', height);
-
-  // Update force simulation with dynamic node radius and link distance
-  if (window.simulation) {
-      window.simulation
-          .force("link", d3.forceLink().distance(linkDistance)) // Dynamically set link distance
-          .force("charge", d3.forceManyBody().strength(-nodeRadius * 5)) // Adjust charge strength
-          .alphaTarget(0.3).restart();
-  }
-
-  // Update nodes' radius dynamically
-  svg.selectAll(".node circle")
-      .attr("r", nodeRadius);
-}
 });

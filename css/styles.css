@@ -11,6 +11,7 @@
     --color-5: #271405; /* R:39 G:20 B:5 */
     --text-color: var(--color-3); /* Set text color to --color-3 */
     --background-color: var(--color-1);
+ 
 }
 
 * {
