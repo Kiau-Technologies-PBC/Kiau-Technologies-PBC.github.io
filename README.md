@@ -3,6 +3,10 @@ Our website!
 
 
 Change Log:
+04/08/2025
+Max Van Dorn
+Created node positioning attributes such that the nodes text is always opposite from the middle of the screen. 
+
 04/07/2025
 Max Van Dorn
 Added phone compatability via CSS. Created preset numbers and made nodes.js access these variables and update them according to maximum screen width. 

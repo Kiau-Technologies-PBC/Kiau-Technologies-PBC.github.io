@@ -137,26 +137,33 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
     .attr("aria-label", d => `Node: ${d.name}`)
   
     node.each(function(d) {
-    const nodeText = d3.select(this).append("a")
-      .attr("xlink:href", d.id === 'Soil Health Monitoring' ? "about.html" : "example.html")
-      .attr("role", "link")  // Make the text a link
-      .attr("tabindex", 0)  // Make the link focusable
-      .attr("aria-hidden", "true")
-      .append("text")
-      .attr("filter", isDayMode ? null : "url(#glow)")
-      .attr("x", 8)
-      .attr("y", "0.31em")
-      .attr("font-size", d.id === 'Soil Health Monitoring' ? settings.specialFontSize : settings.normalFontSize)
-      .attr("font-size", d.id === 'Kiau Technologies' ? settings.specialFontSize : settings.normalFontSize)
-      .text(d.id);
-
-      nodeText.attr("aria-label", d.id)
-  
-    nodeText.clone(true).lower()
-      .attr("stroke", textStrokeColor)
-      .attr("stroke-width",  5)
-      .attr("stroke-linejoin", "round");
-  });
+      const nodeGroup = d3.select(this);
+    
+      const anchor = nodeGroup.append("a")
+        .attr("xlink:href", d.id === 'Soil Health Monitoring' ? "about.html" : "example.html")
+        .attr("role", "link")
+        .attr("tabindex", 0)
+        .attr("aria-hidden", "true");
+    
+      const text = anchor.append("text")
+        .attr("class", "main-text")
+        .attr("filter", isDayMode ? null : "url(#glow)")
+        .attr("x", d.x < width / 2 ? -8 : 8)
+        .attr("text-anchor", d.x < width / 2 ? "end" : "start")
+        .attr("y", ".31em")
+        .attr("font-size", d.id === 'Soil Health Monitoring' || d.id === 'Kiau Technologies' ? settings.specialFontSize : settings.normalFontSize)
+        .text(d.id);
+    
+      text.attr("aria-label", d.id);
+    
+      // Append the stroke glow clone
+      text.clone(true).lower()
+        .attr("class", "text-glow")
+        .attr("stroke", textStrokeColor)
+        .attr("stroke-width", 5)
+        .attr("stroke-linejoin", "round");
+    });
+    
   
 
   // Update link and node positions during simulation ticks
@@ -168,7 +175,15 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
       d.y = Math.max(settings.boundPaddingH, Math.min(height - settings.boundPaddingH, d.y));
       return `translate(${d.x},${d.y})`;
     });
+
+    node.each(function(d) {
+      const anchor = d3.select(this).select("a");
+      anchor.selectAll("text")
+        .attr("x", d.x < width / 2 ? -8 : 8)
+        .attr("text-anchor", d.x < width / 2 ? "end" : "start");
+    });
   });
+  
   
 
   // Link arc function for curved links
