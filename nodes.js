@@ -21,6 +21,10 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
 
   const width = window.innerWidth;
   const height = window.innerHeight;
+  const isMobile = window.innerWidth < 768;
+  if (isMobile) {
+    console.log("mobile mode");
+  }
 
   // Shuffle function for randomizing node order
   function shuffle(array) {
@@ -69,8 +73,8 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
   const simulation = d3.forceSimulation(nodes)
     .force("link", d3.forceLink(links).id(d => d.id).distance(settings.linkDistance))
     .force("charge", d3.forceManyBody().strength(-100))
-    .force("center", d3.forceCenter(width / 2, height / 2));
-
+    .force("center", d3.forceCenter(width / 2, height / 2))
+    .force("directional", isMobile ? d3.forceX(width / 2).strength(.1) : null);
   let mouseX = width / 2, mouseY = height / 2;
   svg.on("mousemove", function() {
     const [x, y] = d3.mouse(this);
