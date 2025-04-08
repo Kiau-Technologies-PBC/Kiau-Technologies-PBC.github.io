@@ -145,18 +145,23 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
         .attr("tabindex", 0)
         .attr("aria-hidden", "true");
     
+      const offsetX = d.x < width / 2 ? -8 : 8;
+      const offsetY = d.y < height / 2 ? -8 : 8;
+      const textAnchor = d.x < width / 2 ? "end" : "start";
+      const dy = d.y < height / 2 ? "-0.0em" : "0.0em"; // Raise or lower text a bit
+    
       const text = anchor.append("text")
         .attr("class", "main-text")
         .attr("filter", isDayMode ? null : "url(#glow)")
-        .attr("x", d.x < width / 2 ? -8 : 8)
-        .attr("text-anchor", d.x < width / 2 ? "end" : "start")
-        .attr("y", ".31em")
+        .attr("x", offsetX)
+        .attr("y", offsetY)
+        .attr("dy", dy)
+        .attr("text-anchor", textAnchor)
         .attr("font-size", d.id === 'Soil Health Monitoring' || d.id === 'Kiau Technologies' ? settings.specialFontSize : settings.normalFontSize)
         .text(d.id);
     
       text.attr("aria-label", d.id);
     
-      // Append the stroke glow clone
       text.clone(true).lower()
         .attr("class", "text-glow")
         .attr("stroke", textStrokeColor)
@@ -164,25 +169,29 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
         .attr("stroke-linejoin", "round");
     });
     
+    
   
 
   // Update link and node positions during simulation ticks
   simulation.on("tick", () => {
     link.attr("d", linkArc);
     node.attr("transform", d => {
-      // Ensure nodes stay within the SVG boundaries
       d.x = Math.max(settings.boundPaddingW, Math.min(width - settings.boundPaddingW, d.x));
       d.y = Math.max(settings.boundPaddingH, Math.min(height - settings.boundPaddingH, d.y));
       return `translate(${d.x},${d.y})`;
     });
-
+  
     node.each(function(d) {
       const anchor = d3.select(this).select("a");
       anchor.selectAll("text")
+        .transition()
+        .duration(50)
         .attr("x", d.x < width / 2 ? -8 : 8)
+        .attr("y", d => d.y < height / 2 ? -8 : 8)
         .attr("text-anchor", d.x < width / 2 ? "end" : "start");
     });
   });
+  
   
   
 

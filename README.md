@@ -6,6 +6,7 @@ Change Log:
 04/08/2025
 Max Van Dorn
 Created node positioning attributes such that the nodes text is always opposite from the middle of the screen. 
+Then added this to the y axis as well. Then smoothened the transition a little. 
 
 04/07/2025
 Max Van Dorn
