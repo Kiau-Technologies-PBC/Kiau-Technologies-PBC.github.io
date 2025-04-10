@@ -83,6 +83,7 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
     .force("link", d3.forceLink(links).id(d => d.id).distance(settings.linkDistance))
     .force("charge", d3.forceManyBody().strength(-100))
     .force("center", d3.forceCenter(width / 2, height / 2))
+    .force("collision", d3.forceCollide().radius(settings.nodeRadius * 2))
     .force("directional", isMobile ? d3.forceX(width / 2).strength(.1) : null);
   let mouseX = width / 2, mouseY = height / 2;
   svg.on("mousemove", function() {
