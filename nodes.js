@@ -59,15 +59,24 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
     .attr("style", "max-width: 100%; height: auto; font: 18px Roboto Mono;");
 
   // Add filter for glow effect
-  const glowFilter = `
-    <filter id="glow" height="200%" width="200%" x="-50%" y="-50%">
-      <feGaussianBlur stdDeviation="5.5" result="coloredBlur"/>
-      <feMerge>
-        <feMergeNode in="coloredBlur"/>
-        <feMergeNode in="SourceGraphic"/>
-      </feMerge>
-    </filter>`;
-  svg.append("defs").html(glowFilter);
+  const defs = svg.append("defs");
+
+  const glowFilter = defs.append("filter")
+    .attr("id", "glow")
+    .attr("height", "300%")
+    .attr("width", "300%")
+    .attr("x", "-100%")
+    .attr("y", "-100%");
+  
+  const blur = glowFilter.append("feGaussianBlur")
+    .attr("in", "SourceGraphic")
+    .attr("stdDeviation", 5.5)
+    .attr("result", "coloredBlur");
+  
+  const merge = glowFilter.append("feMerge");
+  merge.append("feMergeNode").attr("in", "coloredBlur");
+  merge.append("feMergeNode").attr("in", "SourceGraphic");
+    
 
   // Initialize the simulation with forces
   const simulation = d3.forceSimulation(nodes)
@@ -243,5 +252,14 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
       .on("start", dragstarted)
       .on("drag", dragged)
       .on("end", dragended);
+  }
+  if (!isDayMode) {
+    // Show the slider container
+    document.getElementById("glowSliderContainer").style.display = "block";
+  
+    // Listen to slider input to adjust glow
+    document.getElementById("glowIntensity").addEventListener("input", function() {
+      blur.attr("stdDeviation", this.value);
+    });
   }
 });
