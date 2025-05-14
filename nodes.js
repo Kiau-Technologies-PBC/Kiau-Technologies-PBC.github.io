@@ -264,13 +264,4 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
       .on("drag", dragged)
       .on("end", dragended);
   }
-  if (!isDayMode) {
-    // Show the slider container
-    document.getElementById("glowSliderContainer").style.display = "block";
-  
-    // Listen to slider input to adjust glow
-    document.getElementById("glowIntensity").addEventListener("input", function() {
-      blur.attr("stdDeviation", this.value);
-    });
-  }
 });
