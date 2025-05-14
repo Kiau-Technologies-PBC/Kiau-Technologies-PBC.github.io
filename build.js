@@ -181,6 +181,32 @@ toggleButton.addEventListener('click', () => {
     }
 });
 
+// Function to detect if the user is on a mobile device
+function isMobileDevice() {
+    return /Mobi|Android|iPhone|iPad|iPod|BlackBerry|Windows Phone/i.test(navigator.userAgent);
+}
+
+// Check if the user is on a mobile device
+if (isMobileDevice()) {
+    // Display a message or disable features
+    document.body.innerHTML = `
+        <p style="
+            text-align: center;
+            font-size: 18px;
+            margin: 0;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: Arial, sans-serif;
+        ">
+            This feature is not available on mobile devices.
+        </p>`;
+} else {
+    // Proceed with the normal functionality
+    animate();
+}
+
 // Animate function
 function animate() {
     requestAnimationFrame(animate);
