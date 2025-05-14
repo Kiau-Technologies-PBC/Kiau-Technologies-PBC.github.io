@@ -181,9 +181,9 @@ toggleButton.addEventListener('click', () => {
     }
 });
 
-// Function to detect if the user is on a mobile device
+// Function to detect if the user is on a mobile device based on screen size
 function isMobileDevice() {
-    return /Mobi|Android|iPhone|iPad|iPod|BlackBerry|Windows Phone/i.test(navigator.userAgent);
+    return window.innerWidth <= 768; // Consider devices with width <= 768px as mobile
 }
 
 // Check if the user is on a mobile device
