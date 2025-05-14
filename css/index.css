@@ -1,0 +1,124 @@
+/* General Styles */
+body {
+    background-color: #1e1e1e; /* Dark gray for a clean, minimal look */
+    margin: 0;
+    font-family: 'Courier New', Courier, monospace; /* Retro-inspired font */
+    color: #e0e0e0; /* Light gray text for contrast */
+}
+
+canvas {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+}
+
+/* Header Styles */
+#heading {
+    position: fixed;
+    width: 100%;
+    padding: 15px 0;
+    text-align: center;
+    background: #1e1e1e; /* Solid dark gray */
+    border-bottom: 1px solid #3a3a3a; /* Subtle border for separation */
+    z-index: 1000;
+}
+
+#heading h1 {
+    color: #e0e0e0; /* Light gray text */
+    font-size: 1.8em;
+    font-weight: 400;
+    margin: 0;
+    letter-spacing: 1px;
+}
+
+.border {
+    background: #a6a6a6; /* Muted gray border */
+    height: 2px;
+    width: 50%;
+    margin: 10px auto 0;
+    border-radius: 2px;
+}
+
+h1 {
+    color: rgb(215, 215, 215);
+    font-size: 4em;
+    margin: 0px;
+    font-weight: 100;
+}
+
+#progress-container {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#progress {
+    font-size: 3em;
+    color: white;
+}
+
+/* Loading Screen */
+#loading-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #1e1e1e; /* Solid dark gray */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+#loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(255, 255, 255, 0.2);
+    border-top: 4px solid #e0e0e0; /* Light gray spinner */
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+#loading-screen p {
+    color: #e0e0e0; /* Light gray text */
+    margin-top: 15px;
+    font-size: 1em;
+    font-weight: 400;
+    text-align: center;
+}
+
+/* Tooltip */
+#tooltip {
+    position: absolute;
+    color: #e0e0e0; /* Light gray text */
+    background-color: #2a2a2a; /* Slightly lighter gray for contrast */
+    padding: 5px 8px;
+    border: 1px solid #3a3a3a; /* Subtle border */
+    border-radius: 3px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    text-align: center;
+    pointer-events: none;
+    display: none;
+    z-index: 1000;
+    transition: opacity 0.2s ease-in-out;
+}
+
+/* Animations */
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}

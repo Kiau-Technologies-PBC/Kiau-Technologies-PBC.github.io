@@ -154,7 +154,8 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
       const nodeGroup = d3.select(this);
     
       const anchor = nodeGroup.append("a")
-        .attr("xlink:href", d.id === 'Soil Health Monitoring' ? "about.html" : "example.html")
+        .attr("xlink:href", d.id === 'Kiau Technologies' ? "about.html" : "example.html")
+        .attr("xlink:href", d.id === 'Soil Health Monitoring' ? "climate_battery3D.html" : "example.html")
         .attr("role", "link")
         .attr("tabindex", 0)
         .attr("aria-hidden", "true");
