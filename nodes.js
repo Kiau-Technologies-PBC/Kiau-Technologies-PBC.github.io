@@ -67,16 +67,18 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
     .attr("width", "300%")
     .attr("x", "-100%")
     .attr("y", "-100%");
-  
-  const blur = glowFilter.append("feGaussianBlur")
-    .attr("in", "SourceGraphic")
-    .attr("stdDeviation", 5.5)
-    .attr("result", "coloredBlur");
-  
-  const merge = glowFilter.append("feMerge");
-  merge.append("feMergeNode").attr("in", "coloredBlur");
-  merge.append("feMergeNode").attr("in", "SourceGraphic");
-    
+
+  if (!isMobile) {
+    // Only add Gaussian blur if not on mobile
+    const blur = glowFilter.append("feGaussianBlur")
+      .attr("in", "SourceGraphic")
+      .attr("stdDeviation", 5.5)
+      .attr("result", "coloredBlur");
+
+    const merge = glowFilter.append("feMerge");
+    merge.append("feMergeNode").attr("in", "coloredBlur");
+    merge.append("feMergeNode").attr("in", "SourceGraphic");
+  }
 
   // Initialize the simulation with forces
   const simulation = d3.forceSimulation(nodes)
@@ -129,7 +131,7 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
     .data(links)
     .enter().append("path")
     .attr("stroke", linkColor) // Apply preset link color
-    .attr("filter", isDayMode ? null : "url(#glow)");
+    .attr("filter", (!isDayMode && !isMobile) ? "url(#glow)" : null); // Disable glow on mobile
 
   // Create node groups with circles and text
   const node = svg.append("g")
@@ -174,7 +176,7 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
     
       const text = anchor.append("text")
         .attr("class", "main-text")
-        .attr("filter", isDayMode ? null : "url(#glow)")
+        .attr("filter", (!isDayMode && !isMobile) ? "url(#glow)" : null) // Disable glow on mobile
         .attr("x", offsetX)
         .attr("y", offsetY)
         .attr("dy", dy)
