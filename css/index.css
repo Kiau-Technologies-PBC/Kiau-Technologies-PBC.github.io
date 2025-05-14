@@ -1,9 +1,14 @@
+:root {
+    --text-color: #333333;
+    --background-color: #90c37a;
+}
+
 /* General Styles */
 body {
-    background-color: #1e1e1e; /* Dark gray for a clean, minimal look */
+    background-color: var(--background-color); /* Matches --background-color from styles.css */
     margin: 0;
     font-family: 'Courier New', Courier, monospace; /* Retro-inspired font */
-    color: #e0e0e0; /* Light gray text for contrast */
+    color: var(--text-color); /* Matches --text-color from styles.css */
 }
 
 canvas {
@@ -22,21 +27,20 @@ canvas {
     width: 100%;
     padding: 15px 0;
     text-align: center;
-    background: #1e1e1e; /* Solid dark gray */
-    border-bottom: 1px solid #3a3a3a; /* Subtle border for separation */
+    background: var(--background-color); /* Matches --background-color from styles.css */
+    border-bottom: 1px solid var(--color-3); /* Matches --color-3 from styles.css */
     z-index: 1000;
 }
 
 #heading h1 {
-    color: #e0e0e0; /* Light gray text */
+    color: var(--text-color); /* Matches --text-color from styles.css */
     font-size: 1.8em;
-    font-weight: 400;
     margin: 0;
     letter-spacing: 1px;
 }
 
 .border {
-    background: #a6a6a6; /* Muted gray border */
+    background: var(--color-3); /* Matches --color-3 from styles.css */
     height: 2px;
     width: 50%;
     margin: 10px auto 0;
@@ -44,10 +48,9 @@ canvas {
 }
 
 h1 {
-    color: rgb(215, 215, 215);
+    color: var(--text-color); /* Matches --text-color from styles.css */
     font-size: 4em;
     margin: 0px;
-    font-weight: 100;
 }
 
 #progress-container {
@@ -61,7 +64,7 @@ h1 {
 
 #progress {
     font-size: 3em;
-    color: white;
+    color: var(--text-color); /* Matches --text-color from styles.css */
 }
 
 /* Loading Screen */
@@ -71,7 +74,7 @@ h1 {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: #1e1e1e; /* Solid dark gray */
+    background-color: var(--background-color); /* Matches --background-color from styles.css */
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -82,14 +85,14 @@ h1 {
 #loading-spinner {
     width: 40px;
     height: 40px;
-    border: 4px solid rgba(255, 255, 255, 0.2);
-    border-top: 4px solid #e0e0e0; /* Light gray spinner */
+    border: 4px solid rgba(255, 255, 255, 0.2); /* Lightened spinner border */
+    border-top: 4px solid var(--text-color); /* Matches --text-color from styles.css */
     border-radius: 50%;
     animation: spin 1s linear infinite;
 }
 
 #loading-screen p {
-    color: #e0e0e0; /* Light gray text */
+    color: var(--text-color); /* Matches --text-color from styles.css */
     margin-top: 15px;
     font-size: 1em;
     font-weight: 400;
@@ -99,10 +102,10 @@ h1 {
 /* Tooltip */
 #tooltip {
     position: absolute;
-    color: #e0e0e0; /* Light gray text */
-    background-color: #2a2a2a; /* Slightly lighter gray for contrast */
+    color: var(--text-color); /* Matches --text-color from styles.css */
+    background-color: var(--background-color); /* Matches --color-4 from styles.css */
     padding: 5px 8px;
-    border: 1px solid #3a3a3a; /* Subtle border */
+    border: 1px solid var(--color-3); /* Matches --color-3 from styles.css */
     border-radius: 3px;
     font-family: 'Courier New', Courier, monospace;
     font-size: 12px;
@@ -121,4 +124,25 @@ h1 {
     100% {
         transform: rotate(360deg);
     }
+}
+
+#toggle-model {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 1000;
+    background-color: #d3d3d3; /* Light grey background */
+    color: #214d22; /* Dark green text */
+    border: none;
+    border-radius: 12px; /* Rounded corners */
+    padding: 10px 15px; /* Add some padding */
+    font-size: 14px; /* Adjust font size */
+    font-family: 'Poppins', sans-serif; /* Match the font style */
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease; /* Add hover effects */
+}
+
+#toggle-model:hover {
+    background-color: #bfbfbf; /* Slightly darker grey on hover */
+    transform: scale(1.05); /* Slight zoom effect */
 }
