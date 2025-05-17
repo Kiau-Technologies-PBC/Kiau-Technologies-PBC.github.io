@@ -151,7 +151,7 @@ stlLoader.load(
             opacity: 0.5, 
         });
         stlModel = new THREE.Mesh(geometry, material);
-        stlModel.position.set(0, 0, 10);
+        stlModel.position.set(0.20, -0.01, 10);
         stlModel.scale.set(0.001, 0.001, 0.001);
         stlModel.rotateX(-Math.PI / 2);
         stlModel.visible = false; // Initially hide the STL model
