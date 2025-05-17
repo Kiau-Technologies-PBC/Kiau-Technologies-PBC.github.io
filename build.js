@@ -7,9 +7,15 @@ import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 
-renderer.setSize(window.innerWidth, window.innerHeight);
+if (isMobileDevice()) {
+    renderer.setPixelRatio(1); // Reduce pixel ratio for better performance
+    renderer.setSize(window.innerWidth / 2, window.innerHeight / 2); // Lower resolution
+} else {
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setSize(window.innerWidth, window.innerHeight);
+}
+
 renderer.setClearColor(0xaaaaaa);
-renderer.setPixelRatio(window.devicePixelRatio);
 
 document.body.appendChild(renderer.domElement);
 
@@ -152,10 +158,22 @@ stlLoader.load(
         });
         stlModel = new THREE.Mesh(geometry, material);
         stlModel.position.set(0.20, -0.01, 10);
-        stlModel.scale.set(0.001, 0.001, 0.001);
+
+        // Dynamically adjust the scale based on the device
+        if (isMobileDevice()) {
+            stlModel.scale.set(0.001, 0.001, 0.001); // Smaller scale for mobile
+        } else {
+            stlModel.scale.set(0.001, 0.001, 0.001); // Default scale for desktop
+        }
+
         stlModel.rotateX(-Math.PI / 2);
         stlModel.visible = false; // Initially hide the STL model
         scene.add(stlModel);
+
+        // Log the bounding box for debugging
+        const box = new THREE.Box3().setFromObject(stlModel);
+        console.log("STL Model bounding box:", box);
+        console.log("STL Model size:", box.getSize(new THREE.Vector3()));
     },
     (xhr) => {
         console.log((xhr.loaded / xhr.total) * 100 + '% loaded');
@@ -183,29 +201,45 @@ toggleButton.addEventListener('click', () => {
 
 // Function to detect if the user is on a mobile device based on screen size
 function isMobileDevice() {
-    return window.innerWidth <= 768; // Consider devices with width <= 768px as mobile
+    return window.innerWidth <= 768; // Adjust threshold if needed
 }
 
-// Check if the user is on a mobile device
-if (isMobileDevice()) {
-    // Display a message or disable features
-    document.body.innerHTML = `
-        <p style="
-            text-align: center;
-            font-size: 18px;
-            margin: 0;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-family: Arial, sans-serif;
-        ">
-            This feature is not available on mobile devices.
-        </p>`;
-} else {
-    // Proceed with the normal functionality
-    animate();
+// Adjust camera settings based on the device
+if (camera) {
+    if (isMobileDevice()) {
+        console.log("Mobile device detected. Adjusting camera settings...");
+        camera.fov = 90; // Increase FOV for mobile
+        camera.position.set(0, 15, 25); // Move the camera farther away for mobile
+        
+    } else {
+        camera.fov = 45; // Default FOV for desktop
+        camera.position.set(0, 15, 25); // Default position for desktop
+    }
+    camera.aspect = window.innerWidth / window.innerHeight; // Update aspect ratio
+    camera.updateProjectionMatrix(); // Apply the changes
+    controls.update(); // Update controls to reflect the new camera settings
 }
+
+// Add resize event listener
+window.addEventListener('resize', () => {
+    console.log("Resize event triggered");
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+
+    camera.aspect = width / height;
+
+    if (isMobileDevice()) {
+        camera.fov = 60; // Keep the wider FOV for mobile
+        camera.position.set(0, 50, 150); // Adjust for mobile
+    } else {
+        camera.fov = 45; // Default FOV for desktop
+        camera.position.set(0, 15, 25); // Adjust for desktop
+    }
+
+    camera.updateProjectionMatrix();
+    renderer.setSize(width, height);
+    controls.update(); // Update controls to reflect the new camera settings
+});
 
 // Animate function
 function animate() {
@@ -216,4 +250,13 @@ function animate() {
     updateLabelPositions(); // Update all label positions
 }
 
+
+// Set the initial size
+renderer.setSize(window.innerWidth, window.innerHeight);
+
+console.log('Renderer size:', renderer.domElement.clientWidth, renderer.domElement.clientHeight);
+console.log('Camera aspect ratio:', camera.aspect);
+console.log("Screen width:", window.innerWidth);
+console.log("Is mobile device:", isMobileDevice());
+console.log("Camera position:", camera.position);
 animate();
