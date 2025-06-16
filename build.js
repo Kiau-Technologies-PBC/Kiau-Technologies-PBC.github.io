@@ -118,7 +118,7 @@ const sheetId = "1a3ffD9pGRO6xu8ujJIWUM9y-YoxzAz61XgRerVWAntU";
 const sheetName = "Most Recent";
 const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=${sheetName}`;
 
-const targetIDs = ['TX1', 'TX3', 'TX7', 'SI1']; // The IDs you want to pull data for
+const targetIDs = ['TX1', 'TX3', 'TX7', 'SI1A']; // The IDs you want to pull data for
 const positions = {
     TX1: new THREE.Vector3(-2.9, -1, 2),
     TX3: new THREE.Vector3(-2.9, 0.4, 2),
@@ -143,11 +143,11 @@ fetch(url)
             const id = c[0]?.v;
 
             if (targetIDs.includes(id)) {
-              const date = c[1]?.v ?? "N/A";
-              const time = c[2]?.v ?? "N/A";
+              const date = c[1]?.v;
+              const time = c[2]?.v;
               const temp1 = c[3]?.v ?? "N/A";
               const hum1 = c[4]?.v ?? "N/A";
-              const description = `ID: ${id}, Ambient Temperature: ${temp1}°C, Ambient Humidity: ${hum1}%, Time: ${date}, Date: ${date}`;
+              const description = `ID: ${id}, Ambient Temperature: ${temp1}°C, Ambient Humidity: ${hum1}%, Time: ${time}, Date: ${date}`;
     
               const position = positions[id] || new THREE.Vector3(0, 0, 0);
               const color = colors[id] || 0x0099ff;
