@@ -108,12 +108,57 @@ function updateLabelPositions() {
 }
 
 // Add markers and labels with hover information
-addMarker('TX7', 'This node is collecting ambient temps.', new THREE.Vector3(-3.2, 1.6, 3), 0x0099ff);
-addMarker('TX3', 'This node is collecting ambient temps.',  new THREE.Vector3(-2.9, .4, 2), 0x0099ff);
-addMarker('TX1', 'This node is collecting ambient temps.',  new THREE.Vector3(-2.9, -1, 2), 0x0099ff);
-addMarker('ST1', 'This node is collecting soil module temps.',  new THREE.Vector3(2.2, 0, .2), 0xffffff);
+// addMarker('TX7', 'This node is collecting ambient temps.', new THREE.Vector3(-3.2, 1.6, 3), 0x0099ff);
+// addMarker('TX3', 'This node is collecting ambient temps.',  new THREE.Vector3(-2.9, .4, 2), 0x0099ff);
+// addMarker('TX1', 'This node is collecting ambient temps.',  new THREE.Vector3(-2.9, -1, 2), 0x0099ff);
+// addMarker('ST1', 'This node is collecting soil module temps.',  new THREE.Vector3(2.2, 0, .2), 0xffffff);
 
+// START: Add markers and labels with hover information from Google Sheets Live Data 06/16/2025
+const sheetId = "1a3ffD9pGRO6xu8ujJIWUM9y-YoxzAz61XgRerVWAntU";
+const sheetName = "Most Recent";
+const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=${sheetName}`;
 
+const targetIDs = ['TX1', 'TX3', 'TX7', 'SI1']; // The IDs you want to pull data for
+const positions = {
+    TX1: new THREE.Vector3(-2.9, -1, 2),
+    TX3: new THREE.Vector3(-2.9, 0.4, 2),
+    TX7: new THREE.Vector3(-3.2, 1.6, 3.0),
+    SI1: new THREE.Vector3(2.2, 0, 0.2)
+};
+const colors = {
+    TX1: 0x0099ff,
+    TX3: 0x0099ff,
+    TX7: 0x0099ff,
+    SI1: 0xffffff  
+};
+
+fetch(url)
+    .then(res => res.text())
+    .then(data => {
+        const json = JSON.parse(data.substring(47).slice(0, -2));
+        const rows = json.table.rows;
+        
+        rows.forEach(row => {
+            const c = row.c;
+            const id = c[4]?.v;
+
+            if (targetIDs.includes(id)) {
+              const temp1 = c[5]?.v ?? "N/A";
+              const hum1 = c[6]?.v ?? "N/A";
+              const description = `ID: ${id}, Ambient Temperature: ${temp1}°C, Ambient Humidity: ${hum1}%`;
+    
+              const position = positions[id] || new THREE.Vector3(0, 0, 0);
+              const color = colors[id] || 0x0099ff;
+    
+              addMarker(id, description, position, color);
+            }
+        });
+    })
+    .catch(err => {
+      console.error("Error loading data:", err);
+    });
+
+// END: Markers
 
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.5); // Soft white light
 scene.add(ambientLight);
