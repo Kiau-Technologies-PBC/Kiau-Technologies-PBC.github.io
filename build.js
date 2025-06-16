@@ -123,13 +123,13 @@ const positions = {
     TX1: new THREE.Vector3(-2.9, -1, 2),
     TX3: new THREE.Vector3(-2.9, 0.4, 2),
     TX7: new THREE.Vector3(-3.2, 1.6, 3.0),
-    SI1: new THREE.Vector3(2.2, 0, 0.2)
+    SI1A: new THREE.Vector3(2.2, 0, 0.2)
 };
 const colors = {
     TX1: 0x0099ff,
     TX3: 0x0099ff,
     TX7: 0x0099ff,
-    SI1: 0xffffff  
+    SI1A: 0xffffff  
 };
 
 fetch(url)
