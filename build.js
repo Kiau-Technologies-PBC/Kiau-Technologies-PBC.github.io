@@ -140,14 +140,21 @@ fetch(url)
         
         rows.forEach(row => {
             const c = row.c;
-            const id = c[0]?.v;
+            // const id = c[0]?.v;
+
+            // if (targetIDs.includes(id)) {
+            //   const date = c[1]?.v;
+            //   const time = c[2]?.v;
+            //   const temp1 = c[3]?.v ?? "N/A";
+            //   const hum1 = c[4]?.v ?? "N/A";
+            //   const description = `ID: ${id}, Ambient Temperature: ${temp1}°C, Ambient Humidity: ${hum1}%, Time: ${time}, Date: ${date}`;
+            
+            const id = c[4]?.v;
 
             if (targetIDs.includes(id)) {
-              const date = c[1]?.v;
-              const time = c[2]?.v;
-              const temp1 = c[3]?.v ?? "N/A";
-              const hum1 = c[4]?.v ?? "N/A";
-              const description = `ID: ${id}, Ambient Temperature: ${temp1}°C, Ambient Humidity: ${hum1}%, Time: ${time}, Date: ${date}`;
+              const temp1 = c[5]?.v ?? "N/A";
+              const hum1 = c[6]?.v ?? "N/A";
+              const description = `ID: ${id}, Ambient Temperature: ${temp1}°C, Ambient Humidity: ${hum1}%`;
     
               const position = positions[id] || new THREE.Vector3(0, 0, 0);
               const color = colors[id] || 0x0099ff;
