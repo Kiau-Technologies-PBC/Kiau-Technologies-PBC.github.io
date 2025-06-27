@@ -140,28 +140,29 @@ fetch(url)
         
         rows.forEach(row => {
             const c = row.c;
-            // const id = c[0]?.v;
-
-            // if (targetIDs.includes(id)) {
-            //   const date = c[1]?.v;
-            //   const time = c[2]?.v;
-            //   const temp1 = c[3]?.v ?? "N/A";
-            //   const hum1 = c[4]?.v ?? "N/A";
-            //   const description = `ID: ${id}, Ambient Temperature: ${temp1}°C, Ambient Humidity: ${hum1}%, Time: ${time}, Date: ${date}`;
-            
             const id = c[4]?.v;
 
             if (targetIDs.includes(id)) {
-              const temp1 = c[5]?.v ?? "N/A";
-              const hum1 = c[6]?.v ?? "N/A";
-              const date = c[1]?.v;
-              const time = c[2]?.v;
-              const description = `ID: ${id}, Ambient Temperature: ${temp1}°C, Ambient Humidity: ${hum1}%, Time: ${time}, Date: ${date}`;
-    
-              const position = positions[id] || new THREE.Vector3(0, 0, 0);
-              const color = colors[id] || 0x0099ff;
-    
-              addMarker(id, description, position, color);
+                const temp1 = c[5]?.v ?? "N/A";
+                const hum1 = c[6]?.v ?? "N/A";
+                const date = c[1]?.v;
+                const time = c[2]?.v;
+
+                // Temperature check
+                let warning = "";
+                const tempNum = parseFloat(temp1);
+                if (!isNaN(tempNum) && (tempNum > 50 || tempNum < -20)) {
+                    warning = `⚠️ Temperature out of range for ID ${id}: ${temp1}°C (limit: -20 to 50°C)`;
+                }
+
+                const description = 
+                    (warning ? warning + "\n" : "") +
+                    `ID: ${id}, Ambient Temperature: ${temp1}°C, Ambient Humidity: ${hum1}%, Time: ${time}, Date: ${date}`;
+
+                const position = positions[id] || new THREE.Vector3(0, 0, 0);
+                const color = colors[id] || 0x0099ff;
+
+                addMarker(id, description, position, color);
             }
         });
     })
