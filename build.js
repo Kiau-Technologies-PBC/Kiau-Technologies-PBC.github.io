@@ -75,7 +75,7 @@ function addMarker(nodeName, description, location, color) {
 
     // Add hover events for the tooltip
     label.addEventListener('mouseenter', () => {
-        tooltip.innerText = description; // Set the tooltip text to the description
+        tooltip.innerHTML = description; // Set the tooltip text to the description
         tooltip.style.display = 'block'; // Show the tooltip
     });
 
@@ -148,16 +148,20 @@ fetch(url)
                 const date = c[1]?.v;
                 const time = c[2]?.v;
 
-                // Temperature check
+                // Temperature and humidity checks
                 let warning = "";
                 const tempNum = parseFloat(temp1);
-                if (!isNaN(tempNum) && (tempNum > 50 || tempNum < -20)) {
-                    warning = `⚠️ Temperature out of range for ID ${id}: ${temp1}°C (limit: -20 to 50°C)`;
-                }
+                const humNum = parseFloat(hum1);
 
-                const description = 
-                    (warning ? warning + "\n" : "") +
-                    `ID: ${id}, Ambient Temperature: ${temp1}°C, Ambient Humidity: ${hum1}%, Time: ${time}, Date: ${date}`;
+                let description = "";
+                const tempError = !isNaN(tempNum) && (tempNum > 50 || tempNum < -20);
+                const humError = !isNaN(humNum) && (humNum > 100 || humNum < 0);
+
+                if (tempError || humError) {
+                    description = `<b>Sensor Reading Error</b><br>ID: ${id}<br>Date: ${date}`;
+                } else {
+                    description = `ID: ${id}, Ambient Temperature: ${temp1}°C, Ambient Humidity: ${hum1}%, Time: ${time}, Date: ${date}`;
+                }
 
                 const position = positions[id] || new THREE.Vector3(0, 0, 0);
                 const color = colors[id] || 0x0099ff;
