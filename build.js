@@ -331,14 +331,14 @@ function animate() {
             const easedProgress = 1 - Math.pow(1 - progress, 3); // Cubic ease-out
 
             // Spin the model smoothly
-            const spinAngle = easedProgress * Math.PI * 4; // Full rotation (360 degrees)
+            const spinAngle = easedProgress * Math.PI * 2.5; // Full rotation (360 degrees)
             if (gltfModel) {
                 gltfModel.rotation.y = spinAngle;
             }
         } else {
             // Ensure the model completes a full rotation at the end
             if (gltfModel) {
-                gltfModel.rotation.y = Math.PI * 4; // Final position
+                gltfModel.rotation.y = Math.PI * 2.5; // Final position
             }
             spinning = false; // Stop spinning
         }
