@@ -3,6 +3,10 @@ Our website!
 
 
 Change Log:
+07/14/2025
+Max Van Dorn
+Added small spin animation to the 3D Scan page, small improvements.
+
 07/10/2025
 Max Van Dorn
 Removed the old MUDBUG logo. Farewell, website is going under a phase of development of sites. 
