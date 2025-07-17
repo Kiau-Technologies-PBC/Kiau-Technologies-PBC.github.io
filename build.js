@@ -194,8 +194,11 @@ loader.load(
         gltfModel.position.set(0, 1.05, -1);
         scene.add(gltfModel);
 
-        // Hide the loading screen once the GLTF model is loaded
+        // Hide the loading screen and start the spin animation
         loadingScreen.style.display = 'none';
+        setTimeout(() => {
+            startSpin(); // Start the spin animation after a short delay
+        }, 500); // 500 milliseconds delay
     },
     (xhr) => {
 
@@ -302,12 +305,47 @@ window.addEventListener('resize', () => {
     controls.update(); // Update controls to reflect the new camera settings
 });
 
+const clock = new THREE.Clock(); // Create a clock to manage time
+
+let spinDuration = 2; // Duration of the spin in seconds
+let spinStartTime = null; // Track when the spin starts
+let spinning = false; // Flag to indicate if the model is spinning
+
+function startSpin() {
+    spinning = true;
+    spinStartTime = clock.getElapsedTime(); // Record the start time of the spin
+}
+
 // Animate function
 function animate() {
     requestAnimationFrame(animate);
-    controls.update();
-    renderer.render(scene, camera);
 
+    const elapsedTime = clock.getElapsedTime();
+
+    if (spinning) {
+        const spinElapsedTime = elapsedTime - spinStartTime;
+
+        if (spinElapsedTime < spinDuration) {
+            // Calculate easing progress (ease-out effect)
+            const progress = spinElapsedTime / spinDuration; // Normalized progress (0 to 1)
+            const easedProgress = 1 - Math.pow(1 - progress, 3); // Cubic ease-out
+
+            // Spin the model smoothly
+            const spinAngle = easedProgress * Math.PI * 2.5; // Full rotation (360 degrees)
+            if (gltfModel) {
+                gltfModel.rotation.y = spinAngle;
+            }
+        } else {
+            // Ensure the model completes a full rotation at the end
+            if (gltfModel) {
+                gltfModel.rotation.y = Math.PI * 2.5; // Final position
+            }
+            spinning = false; // Stop spinning
+        }
+    }
+
+    controls.update(); // Update camera controls
+    renderer.render(scene, camera); // Render the scene
     updateLabelPositions(); // Update all label positions
 }
 
