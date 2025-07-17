@@ -19,6 +19,7 @@
           - More...
         */
         :root {
+            font-family: 'OCR_A', Arial, sans-serif;
             --color-1: #90c37a; 
             --color-2: #90c37a; 
             --color-3: #333333; 
@@ -72,9 +73,13 @@
                 --wave-amp: 10;
             }
         }
+        @font-face {
+            font-family: "OCR_A";
+            src: url("fonts/OCR-A.ttf") format("truetype");
+        }
        
         .night-mode {
-            font-family: "Roboto Mono", Arial, sans-serif;
+            font-family: "OCR_A", Arial, sans-serif;
             background-color: var(--night-background);
             margin: 0;
             display: flex;
@@ -84,7 +89,7 @@
         }
 
         .day-mode {
-            font-family: "Roboto Mono", Arial, sans-serif;
+            font-family: "OCR_A", Arial, sans-serif;
             background-color: var(--day-background);
             margin: 0;
             display: flex;
@@ -166,7 +171,7 @@
             border-radius: 5px;
             padding: 5px;
             background: rgba(115, 89, 70, 0.5);
-            font-size: 10px;
+            font-size: 12px;
         }
 
         .night-mode .cookieNotice {
@@ -176,7 +181,7 @@
             padding: 5px;
             color:white;
             background: rgba(115, 89, 70, 0.5);
-            font-size: 10px;
+            font-size: 12px;
         }
 
         .sr-only {

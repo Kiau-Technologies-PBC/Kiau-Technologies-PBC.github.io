@@ -56,7 +56,7 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
     .attr("preserveAspectRatio", "xMidYMid meet")
     .attr("width", "100%")
     .attr("height", "100%")
-    .attr("style", "max-width: 100%; height: auto; font: 18px Roboto Mono;");
+    .attr("style", "max-width: 100%; height: auto; font: 18px OCR_A;");
 
   // Add filter for glow effect
   const defs = svg.append("defs");
