@@ -3,6 +3,7 @@ Our website!
 
 
 Change Log:
+
 06/27/2025
 Max Van Dorn
 Much has changed, added the 3D scans to the website. We are now trying to rework the page such that there is less clutter of nodes on the index.html page. Also will be adding more information on the pages that do not contain any information now. 

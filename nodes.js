@@ -159,9 +159,12 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
         .attr("xlink:href", () => {
           if (d.id === 'Kiau Technologies') {
             return "about.html";
-          } else if (d.id === 'Soil Health Monitoring') {
+          } else if (d.id === 'Green House Twins') {
             return "climate_battery3D.html";
-          } else {
+          } else if (d.id === 'Small-Scale Biochar Reactors') {
+            return "smallScaleBiochar.html";
+          } 
+          else {
             return "example.html";
           }
         })

@@ -1,0 +1,143 @@
+<!-- Opens in full screen image of biochar -->
+ <!DOCTYPE html>
+ <html lang="en">
+ <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        @font-face {
+            font-family: 'OCR_A';
+            src: url('fonts/OCR-A.ttf') format('truetype');
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh; /* enough space to scroll */
+            font-family: 'OCR_A', monospace;
+            background: url('images/BiocharRigV1.jpg') center center no-repeat;
+            background-size: cover;
+            background-attachment: fixed;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            font-family: 'OCR_A', monospace;
+            color: #000;
+            text-align: left;
+            margin-top: 2rem;
+            margin-left: 2rem;
+            font-size: 2.5rem;
+            z-index: 10;
+            position: relative;
+        }
+
+        #zoom-img {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            pointer-events: none;
+            z-index: 1;
+            background: url('images/BiocharRigV1.jpg') center center no-repeat;
+            background-size: cover;
+            transition: transform 0.5s;
+        }
+
+        #node-label {
+            position: fixed;
+            z-index: 2;
+            display: none;
+        }
+
+        .node-dot {
+            width: 10px; height: 10px;
+            background: #000;
+            border-radius: 50%;
+            border: 1.5px solid #fff;
+            position: absolute;
+            left: 0; top: 0;
+            transform: translate(-50%, -50%);
+        }
+
+        .node-text {
+            background: #000;
+            color: #fff;
+            font-family: 'OCR_A', monospace;
+            padding: 8px 16px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+            position: absolute;
+            left: 24px; top: 0;
+            white-space: nowrap;
+        }
+
+        #second-img {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            background: url('images/BiocharRigV2.jpg') center center no-repeat;
+            background-size: cover;
+            z-index: 0;
+            opacity: 0;
+            transition: opacity 0.8s;
+        }
+        #second-img.visible {
+            opacity: 1;
+        }
+    </style>
+ </head>
+ <body>
+    <h1>Small-Scale Biochar Reactors</h1>
+    <div id="zoom-img"></div>
+    <div id="node-label">
+      <div class="node-dot"></div>
+      <div class="node-text"></div>
+    </div>
+    <div id="second-img"></div>
+    <script>
+const zoomImg = document.getElementById('zoom-img');
+const nodeLabel = document.getElementById('node-label');
+const secondImg = document.getElementById('second-img');
+
+// Example node data: [{x, y, label, zoom}]
+const nodes = [
+  { x: 45, y: 75, label: "Fuel line", zoom: 1.8, cx: .45, cy: .82},
+  { x: 48, y: 65, label: "Pyrolysis Chamber", zoom: 1.5, cx: 0.48, cy: 0.65 },
+  { x: 60, y: 35, label: "Insulation", zoom: 1.4, cx: .5, cy: .35 },
+  { x: 68, y: 60, label: "Pressure Gauge", zoom: 1.8, cx: .51, cy: .6 },
+  { x: 54.5, y: 70, label: "Tar Trap", zoom: 1.8, cx: .555, cy: .7 },
+  { x: 57, y: 53, label: "Valve", zoom: 1.4, cx: .65, cy: .58 },
+  { x: 58, y: 67, label: "Recirculate Syn-gas", zoom: 1.6, cx: .635, cy: .67 },
+  { x: 53, y: 42, label: "Exhaust", zoom: 1.2, cx: .64, cy: .4 }
+];
+
+document.body.style.minHeight = `${nodes.length * 800 + window.innerHeight}px`;
+
+window.addEventListener('scroll', () => {
+  const scrollY = window.scrollY - window.innerHeight;
+  const section = Math.floor(scrollY / 400);
+
+  if (nodes[section]) {
+    zoomImg.style.display = 'block';
+    // Show node and zoom image, hide second image
+    const { zoom, cx, cy } = nodes[section];
+    // Calculate translate to keep (cx, cy) at the center
+    const tx = (0.5 - cx) * 100; // percent of width
+    const ty = (0.5 - cy) * 100; // percent of height
+    zoomImg.style.transform = `scale(${zoom}) translate(${tx/zoom}vw, ${ty/zoom}vh)`;
+    nodeLabel.style.display = 'block';
+    nodeLabel.style.left = `${nodes[section].x}vw`;
+    nodeLabel.style.top = `${nodes[section].y}vh`;
+    nodeLabel.querySelector('.node-text').textContent = nodes[section].label;
+    secondImg.classList.remove('visible');
+  } else {
+    // Hide node and zoom image, show second image
+    nodeLabel.style.display = 'none';
+    zoomImg.style.transform = 'scale(1) translate(0,0)';
+    secondImg.classList.add('visible');
+  }
+});
+</script>
+ </body>
+ </html>

@@ -265,12 +265,12 @@
      background-color: var(--color-4);
  }
  
- nav {
+ /* nav {
      display: flex;
      justify-content: space-between;
      align-items: center;
      padding: 1rem 5%;
- }
+ } */
  
  .logo {
      display: flex;
