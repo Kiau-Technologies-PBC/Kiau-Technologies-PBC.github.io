@@ -196,9 +196,9 @@ loader.load(
 
         // Hide the loading screen and start the spin animation
         loadingScreen.style.display = 'none';
-        setTimeout(() => {
-            startSpin(); // Start the spin animation after a short delay
-        }, 500); // 500 milliseconds delay
+        // setTimeout(() => {
+        //     startSpin(); // Start the spin animation after a short delay
+        // }, 500); // 500 milliseconds delay
     },
     (xhr) => {
 
