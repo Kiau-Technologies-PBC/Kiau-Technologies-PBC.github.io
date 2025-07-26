@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Typing Effect</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    #typing-section {
+        font-family: monospace;
+        font-size: 1.2rem;
+    }
+    .cursor {
+        display: inline-block;
+        width: 10px;
+        background: #ffff;
+        margin-left: 2px;
+        animation: blink 0.7s infinite;
+    }
+    @keyframes blink {
+        0%, 50% { background: green; }
+        50.1%, 100% { background: transparent; }
+    }
+  </style>
+</head>
+<body>
+    <section style="padding: 50px; background: #90c37a; color: #333333;">
+        <h2>ReCoop: A Local Recycling Initiative</h2>
+        <div id="typing-section"></div>
+    </section>
+
+  <div id="terminal"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12"></script>
+<script>
+const text = [
+  "Before founding Kiau Tech, several of our team members led a promising plastic recycling project at The Cooper Union in NYC. ",
+  "Known as ReCoop, the initiative focused on developing local-scale recycling technologies. ",
+  "While not commercially deployed, the project sparked ideas that continue to inspire our work. ",
+  "We’re currently exploring ways to bring local recycling tech closer to real-world impact — and we're looking for partners interested in pushing this forward."
+];
+let line = 0;
+let char = 0;
+const target = document.getElementById("typing-section");
+
+function typeLine() {
+  if (line < text.length) {
+    if (char < text[line].length) {
+      target.innerHTML += text[line][char];
+      char++;
+      setTimeout(typeLine, 20); // speed
+    } else {
+      target.innerHTML += "<br>";
+      line++;
+      char = 0;
+      setTimeout(typeLine, 500); // delay between lines
+    }
+  } else {
+    // Add blinking cursor after finish
+    target.insertAdjacentHTML('beforeend', '<span class="cursor"></span>');
+  }
+}
+typeLine();
+</script>
+
+</body>
+</html>
