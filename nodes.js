@@ -163,7 +163,9 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
             return "climate_battery3D.html";
           } else if (d.id === 'Small-Scale Biochar Reactors') {
             return "smallScaleBiochar.html";
-          } 
+          } else if (d.id === 'Local Plastic Recycling') {
+            return "localPlasticRecycling.html";
+          }
           else {
             return "example.html";
           }
