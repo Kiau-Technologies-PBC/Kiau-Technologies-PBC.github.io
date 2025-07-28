@@ -56,7 +56,7 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
     .attr("preserveAspectRatio", "xMidYMid meet")
     .attr("width", "100%")
     .attr("height", "100%")
-    .attr("style", "max-width: 100%; height: auto; font: 18px Roboto Mono;");
+    .attr("style", "max-width: 100%; height: auto; font: 18px OCR_A;");
 
   // Add filter for glow effect
   const defs = svg.append("defs");
@@ -159,9 +159,14 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
         .attr("xlink:href", () => {
           if (d.id === 'Kiau Technologies') {
             return "about.html";
-          } else if (d.id === 'Soil Health Monitoring') {
+          } else if (d.id === 'Greenhouse Twins') {
             return "climate_battery3D.html";
-          } else {
+          } else if (d.id === 'Small-Scale Biochar Reactors') {
+            return "smallScaleBiochar.html";
+          } else if (d.id === 'Local Plastic Recycling') {
+            return "localPlasticRecycling.html";
+          }
+          else {
             return "example.html";
           }
         })
@@ -264,4 +269,5 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
       .on("drag", dragged)
       .on("end", dragended);
   }
+
 });

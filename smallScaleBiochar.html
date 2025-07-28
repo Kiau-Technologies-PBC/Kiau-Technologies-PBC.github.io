@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Biochar Reactor Scroll</title>
+  <style>
+    @font-face {
+      font-family: 'OCR_A';
+      src: url('fonts/OCR-A.ttf') format('truetype');
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'OCR_A', monospace;
+      background: #000;
+      overflow-x: hidden;
+    }
+
+    h1 {
+      font-family: 'OCR_A', monospace;
+      color: #000;
+      text-align: left;
+      margin: 1rem;
+      font-size: 2rem;
+      z-index: 10;
+      position: fixed;
+      top: 10px;
+      left: 10px;
+    }
+
+    #zoom-img {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: url('./images/BiocharRigV1.JPG') center center no-repeat;
+      background-size: cover;
+      transform: scale(1);
+      transition: transform 0.5s ease;
+      z-index: 1;
+    }
+
+    #node-label {
+      position: fixed;
+      z-index: 2;
+      display: none;
+      transition: opacity 0.3s ease;
+      opacity: 0;
+    }
+
+    .node-dot {
+      width: 10px;
+      height: 10px;
+      background: #000;
+      border-radius: 50%;
+      border: 1.5px solid #fff;
+      position: absolute;
+      transform: translate(-50%, -50%);
+    }
+
+    .node-text {
+      background: rgba(0,0,0,0.8);
+      color: #fff;
+      font-family: 'OCR_A', monospace;
+      padding: 8px 16px;
+      border-radius: 8px;
+      position: absolute;
+      left: 20px;
+      top: -10px;
+      white-space: nowrap;
+      font-size: 1rem;
+    }
+
+    #second-img {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      background: url('./images/BiocharRigV2.jpg') center center no-repeat;
+      background-size: cover;
+      z-index: 0;
+      opacity: 0;
+      transition: opacity 0.8s ease;
+    }
+    #second-img.visible {
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+  <h1>Small-Scale Biochar Reactors</h1>
+  <div id="zoom-img"></div>
+  <div id="node-label">
+    <div class="node-dot"></div>
+    <div class="node-text"></div>
+  </div>
+  <div id="second-img"></div>
+
+  <script>
+    const zoomImg = document.getElementById('zoom-img');
+    const nodeLabel = document.getElementById('node-label');
+    const nodeText = nodeLabel.querySelector('.node-text');
+    const secondImg = document.getElementById('second-img');
+
+    const nodes = [
+      { x: 45, y: 75, label: "Fuel line", zoom: 1.8, cx: 45, cy: 82 },
+      { x: 48, y: 65, label: "Pyrolysis Chamber", zoom: 1.5, cx: 48, cy: 65 },
+      { x: 60, y: 35, label: "Insulation", zoom: 1.4, cx: 50, cy: 35 },
+      { x: 68, y: 60, label: "Pressure Gauge", zoom: 1.8, cx: 51, cy: 60 },
+      { x: 54.5, y: 70, label: "Tar Trap", zoom: 1.8, cx: 55.5, cy: 70 },
+      { x: 57, y: 53, label: "Valve", zoom: 1.4, cx: 65, cy: 58 },
+      { x: 58, y: 67, label: "Recirculate Syn-gas", zoom: 1.6, cx: 63.5, cy: 67 },
+      { x: 53, y: 42, label: "Exhaust", zoom: 1.2, cx: 64, cy: 40 }
+    ];
+
+    // Dynamic page height based on nodes
+    const sectionHeight = window.innerHeight * 0.6;
+    document.body.style.minHeight = `${nodes.length * sectionHeight + window.innerHeight}px`;
+
+    let lastSection = -1;
+    let typingInterval = null;
+
+    function typeText(text, element, speed = 60) {
+      if (typingInterval) clearInterval(typingInterval);
+      element.textContent = '';
+      let index = 0;
+      typingInterval = setInterval(() => {
+        if (index < text.length) {
+          element.textContent += text.charAt(index);
+          index++;
+        } else {
+          clearInterval(typingInterval);
+          typingInterval = null;
+        }
+      }, speed);
+    }
+
+    function showSection(section) {
+      if (nodes[section]) {
+        const { x, y, cx, cy, zoom, label } = nodes[section];
+        nodeLabel.style.display = 'block';
+        nodeLabel.style.left = `${x}%`;
+        nodeLabel.style.top = `${y}%`;
+        nodeLabel.style.opacity = 1;
+
+        typeText(label, nodeText);
+
+        const tx = 50 - cx;
+        const ty = 50 - cy;
+        zoomImg.style.transform = `scale(${zoom}) translate(${tx / zoom}%, ${ty / zoom}%)`;
+
+        secondImg.classList.remove('visible');
+      } else {
+        nodeLabel.style.opacity = 0;
+        zoomImg.style.transform = 'scale(1) translate(0,0)';
+        secondImg.classList.add('visible');
+      }
+    }
+
+    // Debounce scroll
+    let scrollTimeout;
+    window.addEventListener('scroll', () => {
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(() => {
+        const scrollY = window.scrollY;
+        const section = Math.floor(scrollY / sectionHeight);
+
+        if (section !== lastSection) {
+          lastSection = section;
+          showSection(section);
+        }
+      }, 100);
+    });
+  </script>
+</body>
+</html>

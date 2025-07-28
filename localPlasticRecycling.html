@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Local Plastic Recycling</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
+
+  <style>
+    #typing-section {
+        font-family: monospace;
+        font-size: 1.2rem;
+    }
+    .cursor {
+        display: inline-block;
+        width: 10px;
+        background: #ffff;
+        margin-left: 2px;
+        animation: blink 0.7s infinite;
+    }
+    @keyframes blink {
+        0%, 50% { background: green; }
+        50.1%, 100% { background: transparent; }
+    }
+  </style>
+</head>
+<body>
+    <section style="padding: 50px; background: #90c37a; color: #333333;">
+        <h2><a href="https://re.cooper.edu" target="_blank" style="color:#271405; text-decoration:underline;">ReCoop</a>: A Local Recycling Initiative</h2>
+        <div id="typing-section"></div>
+    </section>
+
+  <div id="terminal"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12"></script>
+<script>
+const text = [
+  "Before founding Kiau Tech, several of our team members led a promising plastic recycling project at The Cooper Union in NYC. ",
+  "Known as ReCoop, the initiative focused on developing local-scale recycling technologies. ",
+  "While not commercially deployed, the project sparked ideas that continue to inspire our work. ",
+  "We’re currently exploring ways to bring local recycling tech closer to real-world impact — and we're looking for partners interested in pushing this forward.",
+  "Visit <a href='https://re.cooper.edu' target='_blank' style='color:blue; text-decoration:underline;'>ReCoop</a> for more."
+];
+
+let line = 0;
+let char = 0;
+const target = document.getElementById("typing-section");
+
+function typeLine() {
+  if (line < text.length) {
+    if (char < text[line].length) {
+      // If next character starts an HTML tag
+      if (text[line][char] === "<") {
+        // Extract the full tag
+        const endTagIndex = text[line].indexOf(">", char);
+        const tag = text[line].substring(char, endTagIndex + 1);
+        target.innerHTML += tag; // Append the tag as HTML
+        char = endTagIndex + 1;  // Move pointer after the tag
+      } else {
+        target.innerHTML += text[line][char];
+        char++;
+      }
+      setTimeout(typeLine, 20); // typing speed
+    } else {
+      target.innerHTML += "<br>";
+      line++;
+      char = 0;
+      setTimeout(typeLine, 500); // pause between lines
+    }
+  } else {
+    target.insertAdjacentHTML('beforeend', '<span class="cursor"></span>');
+  }
+}
+
+typeLine();
+</script>
+
+
+</body>
+</html>

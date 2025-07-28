@@ -13,6 +13,10 @@
      --background-color: var(--color-1);
   
  }
+ @font-face {
+    font-family: "OCR_A";
+    src: url("../fonts/OCR-A.ttf") format("truetype");
+ }
  
  * {
      margin: 0;
@@ -21,7 +25,7 @@
  }
  
  html, body {
-     font-family: 'Roboto Mono', Arial, sans-serif;
+     font-family: 'OCR_A', Arial, sans-serif;
      font-style: normal;
      line-height: 1.6;
      color: var(--text-color);
@@ -33,8 +37,9 @@
      padding: 0;
  }
  
- body {
+body {
      overflow-y: auto;
+     cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><circle cx="5" cy="5" r="5" fill="white"/></svg>') 5 5, auto;
  }
  
  /* Team Grid */
@@ -231,16 +236,16 @@
      bottom: 0;
      background-color: rgba(0, 0, 0, 0.5);
      display: flex;
-     flex-direction: column;
-     justify-content: center;
+     flex-direction: row;
+     justify-content: space-evenly;
      align-items: center;
-     text-align: center;
+     text-align: start;
      padding: 2rem;
      color: #fff;
  }
  
  .hero-overlay h1 {
-     font-size: 2.5rem;
+     font-size: 5rem;
      margin-bottom: 1rem;
  }
  
@@ -265,12 +270,12 @@
      background-color: var(--color-4);
  }
  
- nav {
+ /* nav {
      display: flex;
      justify-content: space-between;
      align-items: center;
      padding: 1rem 5%;
- }
+ } */
  
  .logo {
      display: flex;
