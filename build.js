@@ -51,6 +51,118 @@ const labels = [];
 // Create a reference to the tooltip element
 const tooltip = document.getElementById('tooltip');
 
+// --- BEGIN: Tooltip 3D preview setup ---
+// Path to the single GLTF preview file (put your file here)
+const PREVIEW_GLTF = './data/preview.gltf';
+
+let previewRenderer = null;
+let previewScene = null;
+let previewCamera = null;
+let previewModel = null;
+let previewAnimating = false;
+let previewRAF = null;
+
+function ensurePreviewSetup() {
+    if (previewRenderer) return;
+
+    previewRenderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+    previewRenderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+    previewRenderer.setSize(180, 120);
+    previewRenderer.domElement.style.width = '180px';
+    previewRenderer.domElement.style.height = '120px';
+    previewRenderer.domElement.style.pointerEvents = 'none';
+
+    previewScene = new THREE.Scene();
+
+    previewCamera = new THREE.PerspectiveCamera(50, 180 / 120, 0.1, 100);
+    previewCamera.position.set(0, 0, 3);
+    previewCamera.lookAt(0, 0, 0);
+
+    previewScene.add(new THREE.AmbientLight(0xffffff, 0.6));
+    const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    dirLight.position.set(3, 3, 3);
+    previewScene.add(dirLight);
+}
+
+function loadPreviewModel() {
+    return new Promise((resolve, reject) => {
+        // If already loaded and cached in previewModel, return it
+        if (previewModel) return resolve(previewModel);
+
+        const loaderPreview = new GLTFLoader().setPath('./');
+        loaderPreview.load(
+            PREVIEW_GLTF,
+            (gltf) => {
+                // remove previous if any
+                if (previewModel) {
+                    previewScene.remove(previewModel);
+                    previewModel = null;
+                }
+
+                previewModel = gltf.scene.clone(true);
+
+                // center & scale to fit preview camera
+                const box = new THREE.Box3().setFromObject(previewModel);
+                const size = box.getSize(new THREE.Vector3()).length();
+                const baseScale = size > 0 ? 0.9 / size : 1;
+                const scale = baseScale * 6;
+                previewModel.scale.setScalar(scale);
+                const center = box.getCenter(new THREE.Vector3());
+                previewModel.position.sub(center.multiplyScalar(scale));
+
+                previewModel.position.x -= .2;
+                previewModel.position.y-= 1;
+
+                previewModel.rotation.set(-Math.PI / 2, 0, 0);
+
+                previewScene.add(previewModel);
+                resolve(previewModel);
+            },
+            undefined,
+            (err) => reject(err)
+        );
+    });
+}
+
+function showTooltipWithModel(descriptionHtml) {
+    tooltip.innerHTML = ''; // clear any previous content
+
+    const descDiv = document.createElement('div');
+    descDiv.className = 'desc';
+    descDiv.innerHTML = descriptionHtml || '';
+    tooltip.appendChild(descDiv);
+
+    ensurePreviewSetup();
+    if (!tooltip.querySelector('canvas')) {
+        tooltip.appendChild(previewRenderer.domElement);
+    }
+
+    // load (cached) model and start animation loop
+    loadPreviewModel().catch(err => console.warn('Preview load failed', err));
+
+    if (!previewAnimating) {
+        previewAnimating = true;
+        const animatePreview = () => {
+            previewRAF = requestAnimationFrame(animatePreview);
+            if (previewModel) previewModel.rotation.z += 0.02;
+            previewRenderer.render(previewScene, previewCamera);
+        };
+        animatePreview();
+    }
+
+    tooltip.style.display = 'block';
+}
+
+function hideTooltip() {
+    tooltip.style.display = 'none';
+    if (previewRAF) {
+        cancelAnimationFrame(previewRAF);
+        previewRAF = null;
+    }
+    previewAnimating = false;
+    // keep previewModel in memory for quick reuse (remove if you need to free memory)
+}
+// --- END: Tooltip 3D preview setup ---
 
 // Function to create a marker with a custom color
 function addMarker(nodeName, description, location, color) {
@@ -74,18 +186,20 @@ function addMarker(nodeName, description, location, color) {
     document.body.appendChild(label);
 
     // Add hover events for the tooltip
-    label.addEventListener('mouseenter', () => {
-        tooltip.innerHTML = description; // Set the tooltip text to the description
-        tooltip.style.display = 'block'; // Show the tooltip
+    label.addEventListener('mouseenter', (e) => {
+        // show description + preview model
+        showTooltipWithModel(description);
+        tooltip.style.left = `${e.pageX + 10}px`;
+        tooltip.style.top = `${e.pageY + 10}px`;
     });
 
     label.addEventListener('mousemove', (event) => {
-        tooltip.style.left = `${event.pageX + 10}px`; // Position near the mouse
+        tooltip.style.left = `${event.pageX + 10}px`;
         tooltip.style.top = `${event.pageY + 10}px`;
     });
 
     label.addEventListener('mouseleave', () => {
-        tooltip.style.display = 'none'; // Hide the tooltip
+        hideTooltip();
     });
 
     // Add the marker and label to their respective arrays
@@ -305,44 +419,44 @@ window.addEventListener('resize', () => {
     controls.update(); // Update controls to reflect the new camera settings
 });
 
-const clock = new THREE.Clock(); // Create a clock to manage time
+// const clock = new THREE.Clock(); // Create a clock to manage time
 
-let spinDuration = 2; // Duration of the spin in seconds
-let spinStartTime = null; // Track when the spin starts
-let spinning = false; // Flag to indicate if the model is spinning
+// let spinDuration = 2; // Duration of the spin in seconds
+// let spinStartTime = null; // Track when the spin starts
+// let spinning = false; // Flag to indicate if the model is spinning
 
-function startSpin() {
-    spinning = true;
-    spinStartTime = clock.getElapsedTime(); // Record the start time of the spin
-}
+// function startSpin() {
+//     spinning = true;
+//     spinStartTime = clock.getElapsedTime(); // Record the start time of the spin
+// }
 
 // Animate function
 function animate() {
     requestAnimationFrame(animate);
 
-    const elapsedTime = clock.getElapsedTime();
+    // const elapsedTime = clock.getElapsedTime();
 
-    if (spinning) {
-        const spinElapsedTime = elapsedTime - spinStartTime;
+    // if (spinning) {
+    //     const spinElapsedTime = elapsedTime - spinStartTime;
 
-        if (spinElapsedTime < spinDuration) {
-            // Calculate easing progress (ease-out effect)
-            const progress = spinElapsedTime / spinDuration; // Normalized progress (0 to 1)
-            const easedProgress = 1 - Math.pow(1 - progress, 3); // Cubic ease-out
+    //     if (spinElapsedTime < spinDuration) {
+    //         // Calculate easing progress (ease-out effect)
+    //         const progress = spinElapsedTime / spinDuration; // Normalized progress (0 to 1)
+    //         const easedProgress = 1 - Math.pow(1 - progress, 3); // Cubic ease-out
 
-            // Spin the model smoothly
-            const spinAngle = easedProgress * Math.PI * 2.5; // Full rotation (360 degrees)
-            if (gltfModel) {
-                gltfModel.rotation.y = spinAngle;
-            }
-        } else {
-            // Ensure the model completes a full rotation at the end
-            if (gltfModel) {
-                gltfModel.rotation.y = Math.PI * 2.5; // Final position
-            }
-            spinning = false; // Stop spinning
-        }
-    }
+    //         // Spin the model smoothly
+    //         const spinAngle = easedProgress * Math.PI * 2.5; // Full rotation (360 degrees)
+    //         if (gltfModel) {
+    //             gltfModel.rotation.y = spinAngle;
+    //         }
+    //     } else {
+    //         // Ensure the model completes a full rotation at the end
+    //         if (gltfModel) {
+    //             gltfModel.rotation.y = Math.PI * 2.5; // Final position
+    //         }
+    //         spinning = false; // Stop spinning
+    //     }
+    // }
 
     controls.update(); // Update camera controls
     renderer.render(scene, camera); // Render the scene

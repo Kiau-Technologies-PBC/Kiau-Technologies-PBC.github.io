@@ -4,13 +4,13 @@
  */
  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
  :root {
-     --color-1: #90c37a; /* R:27 G:46 B:67 */
-     --color-2: #90c37a; /* R:23 G:41 B:64 */
-     --color-3: #333333; /* R:44 G:62 B:23 */
-     --color-4: #3C2717; /* R:60 G:39 B:23 */
-     --color-5: #271405; /* R:39 G:20 B:5 */
-     --text-color: var(--color-3); /* Set text color to --color-3 */
-     --background-color: var(--color-1);
+    --color-1: #5c864b;
+    --color-2: #223729;
+    --color-3: #c7cabd;
+    --color-4: #1c1c1d;
+    --color-5: #271405;
+    --text-color: var(--color-3);
+    --background-color: var(--color-1);
   
  }
  @font-face {
