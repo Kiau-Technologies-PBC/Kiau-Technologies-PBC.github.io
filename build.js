@@ -53,7 +53,7 @@ const tooltip = document.getElementById('tooltip');
 
 // --- BEGIN: Tooltip 3D preview setup ---
 // Path to the single GLTF preview file (put your file here)
-const PREVIEW_GLTF = './data/preview.gltf';
+const PREVIEW_GLTF = './data/preview2.gltf';
 
 let previewRenderer = null;
 let previewScene = null;
@@ -75,7 +75,7 @@ function ensurePreviewSetup() {
     previewScene = new THREE.Scene();
 
     previewCamera = new THREE.PerspectiveCamera(50, 180 / 120, 0.1, 100);
-    previewCamera.position.set(0, 0, 3);
+    previewCamera.position.set(2, 1, 4.6);
     previewCamera.lookAt(0, 0, 0);
 
     previewScene.add(new THREE.AmbientLight(0xffffff, 0.6));
@@ -110,7 +110,7 @@ function loadPreviewModel() {
                 const center = box.getCenter(new THREE.Vector3());
                 previewModel.position.sub(center.multiplyScalar(scale));
 
-                previewModel.position.x -= .2;
+                previewModel.position.x -= 1;
                 previewModel.position.y-= 1;
 
                 previewModel.rotation.set(-Math.PI / 2, 0, 0);
@@ -297,7 +297,8 @@ scene.add(ambientLight);
 const loadingScreen = document.getElementById('loading-screen');
 
 // Variables to store the models
-let gltfModel, stlModel;
+let gltfModel, stlModel, gnomeModel;
+
 
 // GLTF Loader
 const loader = new GLTFLoader().setPath('./');
@@ -321,6 +322,40 @@ loader.load(
     (error) => {
         console.error('An error happened', error);
     }
+);
+
+// Replace the existing gnome loader block with this:
+const manager = new THREE.LoadingManager();
+manager.onStart = (url, itemsLoaded, itemsTotal) => {
+  console.log('Started loading file:', url);
+};
+manager.onProgress = (url, itemsLoaded, itemsTotal) => {
+  console.log(`Loading: ${url} (${itemsLoaded}/${itemsTotal})`);
+};
+manager.onError = (url) => {
+  console.error('There was an error loading', url);
+};
+
+// Use the manager so we can see/modify requests if needed
+const gnomeLoader = new GLTFLoader(manager).setPath('./data/');
+gnomeLoader.setResourcePath('./data/'); // ensures .bin and textures are requested from ./data/
+
+gnomeLoader.load(
+  'gnome.gltf',
+  (gltf) => {
+    gnomeModel = gltf.scene;
+    gnomeModel.position.set(0, 1.05, 4);
+    scene.add(gnomeModel);
+    console.log('gnome.gltf loaded, scene has', gltf.scene.children.length, 'children');
+  },
+  (xhr) => {
+    if (xhr.lengthComputable) {
+      console.log('gnome load', Math.round((xhr.loaded / xhr.total) * 100) + '%');
+    }
+  },
+  (error) => {
+    console.error('gnome load error:', error);
+  }
 );
 
 
