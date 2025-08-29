@@ -48,7 +48,7 @@ const labels = [];
 const tooltip = document.getElementById('tooltip');
 
 // Setup for tooltip preview renderer and model caching
-const PREVIEW_GLTF = './data/preview2.gltf';
+const PREVIEW_GLTF = './data/models/preview2.gltf';
 let previewRenderer = null;
 let previewScene = null;
 let previewCamera = null;
@@ -292,7 +292,7 @@ let gnomeModel = null;
 
 const loader = new GLTFLoader().setPath('./');
 loader.load(
-    './data/4_21_2025.glb',
+    './data/models/4_21_2025.glb',
     (gltf) => {
         gltfModel = gltf.scene;
         gltfModel.position.set(0, 1.05, -1);
@@ -337,7 +337,7 @@ gnomeLoader.load(
 
 const stlLoader = new STLLoader();
 stlLoader.load(
-    './data/climate_battery3D.stl',
+    './data/models/climate_battery3D.stl',
     (geometry) => {
         const material = new THREE.MeshStandardMaterial({ color: 0xaaaaaa, transparent: true, opacity: 0.5 });
         stlModel = new THREE.Mesh(geometry, material);
