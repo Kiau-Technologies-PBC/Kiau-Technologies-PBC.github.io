@@ -107,10 +107,10 @@ h1 {
 /* Tooltip */
 #tooltip {
     position: absolute;
-    color: var(--text-color); /* Matches --text-color from styles.css */
-    background-color: var(--background-color); /* Matches --color-4 from styles.css */
+    color: var(--text-color);
+    background-color: var(--background-color); 
     padding: 5px 8px;
-    border: 1px solid var(--color-3); /* Matches --color-3 from styles.css */
+    border: 1px solid var(--color-3); 
     border-radius: 3px;
     font-family: 'Courier New', Courier, monospace;
     font-size: 12px;
