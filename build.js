@@ -76,11 +76,11 @@ function ensurePreviewSetup() {
     previewScene = new THREE.Scene();
 
     previewCamera = new THREE.PerspectiveCamera(50, 180 / 120, 0.1, 100);
-    previewCamera.position.set(2, 1, 4.6);
+    previewCamera.position.set(7, 7, 0);
     previewCamera.lookAt(0, 0, 0);
 
     previewScene.add(new THREE.AmbientLight(0xffffff, 0.6));
-    const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    const dirLight = new THREE.DirectionalLight(0xffffff, .8);
     dirLight.position.set(3, 3, 3);
     previewScene.add(dirLight);
 }
@@ -111,8 +111,9 @@ function loadPreviewModel() {
                 const center = box.getCenter(new THREE.Vector3());
                 previewModel.position.sub(center.multiplyScalar(scale));
 
-                previewModel.position.x -= 1;
-                previewModel.position.y -= 1;
+                previewModel.position.z += 2.3;
+                // previewModel.position.y -= 1;
+                
 
                 previewModel.rotation.set(-Math.PI / 2, 0, 0);
 
@@ -202,6 +203,16 @@ function addMarker(nodeName, description, location, color) {
 
     label.addEventListener('mouseleave', () => {
         hideTooltip();
+    });
+
+    label.addEventListener('click', (e) => {
+        const payload = { nodeName, description };
+        try {
+            sessionStorage.setItem('previewData', JSON.stringify(payload));
+        } catch (err) {
+            console.warn('Session storage error', err);
+        }
+        window.open(`preview.html?node=${encodeURIComponent(nodeName)}`, '_blank');
     });
 
     markers.push(marker);
