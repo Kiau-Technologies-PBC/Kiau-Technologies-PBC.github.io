@@ -6,13 +6,26 @@
   <title>Mycelium — Scroll Slideshow</title>
 
   <style>
-    :root{
-      --bg:#0f1720;
-      --card-bg: #0b1220;
-      --accent: #8cd37c;
-      --text:#e6eef8;
-    }
-    html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;}
+
+  @font-face {
+    font-family: 'OCR A';
+    src: url('./fonts/OCR-A.woff2') format('woff2'),
+         url('./fonts/OCR-A.woff') format('woff'),
+         url('./fonts/OCR-A.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  :root{
+    --bg:#223729;
+    --card-bg: #0b1220;
+    --accent: #8cd37c;
+    --text:#e6eef8;
+  }
+  html,body{height:100%;margin:0;background:var(--bg);color:var(--text);
+    font-family: 'OCR A', 'Roboto Mono', monospace;
+  }
     .page {
       max-width:1200px;
       margin:0 auto;
@@ -29,6 +42,7 @@
       margin: 24px 0;
       position: relative;
       overflow: hidden;
+      padding-bottom: 48px; /* reserve space for the dots so they don't overlap slides */
     }
 
     /* Track holds slides horizontally */
@@ -54,16 +68,17 @@
       flex-direction:column;
       position:relative;
       border: 1px solid rgba(255,255,255,0.03);
+      min-height: 0; /* allow children to shrink correctly inside flex */
     }
 
-    .slide img{
-      width:100%;
-      height:100%;
-      object-fit:cover;
-      display:block;
-      flex:1 1 auto;
-      transform-origin:center center;
-      backface-visibility:hidden;
+    /* replace previous .slide img rules with these */
+    .slide img {
+      width: 100%;
+      height: auto;        /* don't force 100% height (avoids covering the caption) */
+      flex: 1 1 auto;      /* let image take available space but be flex-aware */
+      min-height: 0;       /* important: allows the image to shrink inside a column flex item */
+      object-fit: cover;   /* keeps nice cropping */
+      display: block;
     }
 
     /* caption panel */
@@ -73,6 +88,8 @@
       color:var(--text);
       font-size:14px;
       line-height:1.4;
+      flex: 0 0 auto;
+      box-sizing: border-box;
     }
 
     .caption h3{margin:0 0 6px 0;font-size:16px;color:var(--accent)}
@@ -84,17 +101,26 @@
       .slide{flex:0 0 88vw;height:calc(62vh - 32px)}
     }
 
-    /* progress / dots */
+    /* progress / dots (now positioned over the scroller) */
     .dots {
-      display:flex;
-      gap:8px;
-      justify-content:center;
-      margin-top:14px;
+      position: absolute;               /* position over the scroller */
+      left: 50%;
+      bottom: 12px;             /* raise dots away from slide edge */
+      transform: translateX(-50%);
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      z-index: 60;                       /* above slides; increase if needed */
+      pointer-events: auto;
     }
+
     .dot {
       width:10px;height:10px;border-radius:50%;
       background:rgba(255,255,255,0.12);
       transition:all .24s;
+      border: 0;
+      padding: 0;
+      cursor: pointer;
     }
     .dot.active{transform:scale(1.45);background:var(--accent);box-shadow:0 6px 18px rgba(140,211,124,0.18)}
   </style>
@@ -110,7 +136,7 @@
       <div class="track" id="track">
         <!-- Replace these images and captions with your own -->
         <figure class="slide">
-          <img src="./Mycomaterials/slide-01.jpg" alt="Slide 1">
+          <img src="./Mycomaterials/DT_MagnetPanel.jpg" alt="Slide 1">
           <figcaption class="caption">
             <h3>Slide 1 title</h3>
             <p>Short caption or description for slide one. Replace with your content.</p>
@@ -118,7 +144,7 @@
         </figure>
 
         <figure class="slide">
-          <img src="./images/slide-02.jpg" alt="Slide 2">
+          <img src="./Mycomaterials/PodcastCeilingPanel1.JPG" alt="Slide 2">
           <figcaption class="caption">
             <h3>Slide 2 title</h3>
             <p>Short caption describing slide two. Use concise copy.</p>
@@ -126,7 +152,7 @@
         </figure>
 
         <figure class="slide">
-          <img src="./images/slide-03.jpg" alt="Slide 3">
+          <img src="./images/BiocharRigV1.jpg" alt="Slide 3">
           <figcaption class="caption">
             <h3>Slide 3 title</h3>
             <p>Another caption. Add credits or context as needed.</p>
@@ -134,16 +160,17 @@
         </figure>
 
         <figure class="slide">
-          <img src="./images/slide-04.jpg" alt="Slide 4">
+          <img src="./images/BiocharRigV2.jpg" alt="Slide 4">
           <figcaption class="caption">
             <h3>Slide 4 title</h3>
             <p>Final caption. You can use HTML markup here.</p>
           </figcaption>
         </figure>
       </div>
-    </section>
 
-    <div class="dots" id="dots" aria-hidden="false"></div>
+      <!-- moved: dots overlay sits inside the scroller-wrap so it's visible while pinned -->
+      <div class="dots" id="dots" aria-hidden="false"></div>
+    </section>
   </div>
 
   <!-- GSAP + ScrollTrigger from CDN -->
@@ -151,7 +178,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
 
   <script>
-    // Initialize GSAP ScrollTrigger and configure horizontal scroll driven by vertical scroll
     gsap.registerPlugin(ScrollTrigger);
 
     const track = document.getElementById('track');
@@ -159,90 +185,99 @@
     const scroller = document.getElementById('scroller');
     const dotsContainer = document.getElementById('dots');
 
-    // Create dots
-    slides.forEach((_, i) => {
-      const d = document.createElement('button');
-      d.className = 'dot';
-      d.type = 'button';
-      d.setAttribute('aria-label', 'Go to slide ' + (i+1));
-      dotsContainer.appendChild(d);
-      d.addEventListener('click', () => {
-        const snap = 1 / (slides.length - 1);
-        // ScrollTrigger.to with progress target
-        gsap.to(window, {scrollTo: ScrollTrigger.startPositions ? ScrollTrigger.startPositions : 0}); // no-op safe
-        ScrollTrigger.getById('horizontal')?.scroll( gsap.utils.clamp(0,1,i * snap) );
-      });
-    });
-
-    // Helper: compute total horizontal scroll distance
-    function getTotalScroll() {
-      return track.scrollWidth - window.innerWidth + 40; // + gap safety
+    function waitForImages(parent) {
+      const imgs = Array.from(parent.querySelectorAll('img'));
+      return Promise.all(imgs.map(img => {
+        if (img.complete && img.naturalWidth !== 0) return Promise.resolve();
+        return new Promise((res) => { img.onload = img.onerror = res; });
+      }));
     }
 
-    // Build the horizontal animation: translate track left as page scrolls down
-    const totalScroll = () => getTotalScroll();
+    function getHorizontalOverflow() {
+      return Math.max(0, track.scrollWidth - window.innerWidth + 40);
+    }
 
-    // Remove any existing ScrollTriggers on this element (useful for HMR/dev)
-    ScrollTrigger.getAll().forEach(st => st.kill());
+    function buildDots() {
+      dotsContainer.innerHTML = '';
+      slides.forEach((_, i) => {
+        const d = document.createElement('button');
+        d.className = 'dot';
+        d.type = 'button';
+        d.setAttribute('aria-label', 'Go to slide ' + (i+1));
+        d.addEventListener('click', () => {
+          const st = ScrollTrigger.getById('horizontal');
+          if (!st) return;
+          const progress = i / Math.max(1, slides.length - 1);
+          const targetY = st.start + progress * (st.end - st.start);
+          window.scrollTo({ top: Math.round(targetY), behavior: 'smooth' });
+        });
+        dotsContainer.appendChild(d);
+      });
+    }
 
-    // Create animation
-    const tween = gsap.to(track, {
-      x: () => `-${totalScroll()}px`,
-      ease: "none",
-      force3D: true,
-      scrollTrigger: {
-        id: 'horizontal',
-        trigger: scroller,
-        start: "top top",
-        end: () => `+=${totalScroll()}`,
-        scrub: 0.6,
-        pin: true,
-        anticipatePin: 1,
-        invalidateOnRefresh: true,
-        snap: {
-          snapTo: 1 / (slides.length - 1),
-          duration: {min: 0.2, max: 0.45},
-          ease: "power2.inOut"
-        },
-        onUpdate: self => {
-          // Update active dot based on progress
-          const progress = self.progress;
-          const index = Math.round(progress * (slides.length - 1));
-          Array.from(dotsContainer.children).forEach((dot, i) => dot.classList.toggle('active', i === index));
+    async function initHorizontal() {
+      await waitForImages(track);
+
+      ScrollTrigger.getAll().forEach(st => st.kill());
+      buildDots();
+
+      // real horizontal overflow (how many px we need to move track)
+      const overflow = getHorizontalOverflow();
+
+      // compute desired translation so last slide center ends up in viewport center
+      const trackRect = track.getBoundingClientRect();
+      const lastSlide = slides[slides.length - 1];
+      const lastRect = lastSlide.getBoundingClientRect();
+      const lastCenter = (lastRect.left - trackRect.left) + lastRect.width / 2;
+      const desiredToCenterLast = Math.max(0, lastCenter - window.innerWidth / 2);
+
+      // ensure sensible minimum scroll distance so the pin can release on small content
+      const minPixels = Math.round(window.innerWidth * 0.8);
+
+      // pick a single 'total' value used for both translation and ScrollTrigger end
+      const total = Math.max(overflow, desiredToCenterLast, minPixels);
+
+      // remove any previous spacer (we won't create a manual spacer here)
+      const prev = document.getElementById('horizontal-spacer');
+      if (prev) prev.remove();
+
+      gsap.to(track, {
+        x: () => `-${total}px`,
+        ease: "none",
+        force3D: true,
+        scrollTrigger: {
+          id: 'horizontal',
+          trigger: scroller,
+          start: "top top",
+          end: () => `+=${total}`,
+          scrub: 0.6,
+          pin: true,
+          pinSpacing: true,
+          anticipatePin: 1,
+          invalidateOnRefresh: true,
+          snap: {
+            snapTo: 1 / Math.max(1, slides.length - 1),
+            duration: {min: 0.18, max: 0.45},
+            ease: "power2.inOut"
+          },
+          onUpdate(self) {
+            const index = Math.round(self.progress * (slides.length - 1));
+            Array.from(dotsContainer.children).forEach((dot, i) => dot.classList.toggle('active', i === index));
+          }
         }
-      }
-    });
+      });
 
-    // Make ScrollTrigger expose a programmatic scroll(progress) method used by dots click
-    (function exposeScrollMethod() {
-      const st = ScrollTrigger.getById('horizontal');
-      if (!st) return;
-      st.scroll = progress => {
-        const clamp = gsap.utils.clamp(0, 1, progress);
-        const targetY = st.start + clamp * (st.end - st.start);
-        window.scrollTo({ top: targetY, behavior: 'smooth' });
-      };
-    })();
-
-    // Refresh on resize to recalc sizes and snap positions
-    window.addEventListener('resize', () => {
       ScrollTrigger.refresh();
-    });
+    }
 
-    // Optional: keyboard left/right navigation
-    window.addEventListener('keydown', (e) => {
-      const st = ScrollTrigger.getById('horizontal');
-      if (!st) return;
-      const step = 1 / (slides.length - 1);
-      if (e.key === 'ArrowRight' || e.key === 'PageDown') {
-        st.scroll(Math.min(1, st.progress + step));
-      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
-        st.scroll(Math.max(0, st.progress - step));
-      }
+    window.addEventListener('load', initHorizontal);
+    window.addEventListener('resize', () => {
+      clearTimeout(window.__gsap_resize_timer);
+      window.__gsap_resize_timer = setTimeout(() => {
+        initHorizontal();
+        ScrollTrigger.refresh();
+      }, 160);
     });
-
-    // Initial active dot
-    Array.from(dotsContainer.children)[0]?.classList.add('active');
   </script>
 </body>
 </html>
