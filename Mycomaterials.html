@@ -123,55 +123,134 @@
       cursor: pointer;
     }
     .dot.active{transform:scale(1.45);background:var(--accent);box-shadow:0 6px 18px rgba(140,211,124,0.18)}
+
+    /* Additional styles for the content below the scroller */
+    .below-content {
+      color: var(--text);
+      font-size: 16px;
+      line-height: 1.6;
+      margin-top: 40px;
+    }
+
+    .below-content h2 {
+      color: var(--accent);
+      font-size: clamp(18px, 2.2vw, 26px);
+      margin-top: 0;
+    }
+
+    .below-content p {
+      opacity: 0.95;
+    }
+
+    .below-content article {
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.04));
+      padding: 12px;
+      border-radius: 10px;
+    }
+
+    .below-content article h3 {
+      margin: 0 0 8px 0;
+      font-size: 16px;
+    }
+
+    .below-content article p {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    /* Grid container for articles */
+    .below-content .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-top: 18px;
+    }
   </style>
 </head>
 <body>
   <div class="page">
     <header>
-      <h1>Mycelium — Scroll to slide</h1>
-      <p>Scroll down to move the images from right → left. The view snaps to each slide; click a dot to jump.</p>
+      <h1>Mycomaterials</h1>
+      <p>Scroll to see more -></p>
     </header>
 
     <section class="scroller-wrap" id="scroller">
       <div class="track" id="track">
-        <!-- Replace these images and captions with your own -->
         <figure class="slide">
           <img src="./Mycomaterials/DT_MagnetPanel.jpg" alt="Slide 1">
           <figcaption class="caption">
-            <h3>Slide 1 title</h3>
-            <p>Short caption or description for slide one. Replace with your content.</p>
+            <h3></h3>
+            <p>A magnetic mycomaterial acoustic panel installed at the Loisaida Community Center's blackbox theater, 2022.</p>
           </figcaption>
         </figure>
 
         <figure class="slide">
           <img src="./Mycomaterials/PodcastCeilingPanel1.JPG" alt="Slide 2">
           <figcaption class="caption">
-            <h3>Slide 2 title</h3>
-            <p>Short caption describing slide two. Use concise copy.</p>
+            <h3></h3>
+            <p>A drop-tile mycomaterial acoustic ceiling panel replacement.</p>
           </figcaption>
         </figure>
 
         <figure class="slide">
-          <img src="./images/BiocharRigV1.jpg" alt="Slide 3">
+          <img src="./Mycomaterials/IMG_6151.jpeg" alt="Slide 3">
           <figcaption class="caption">
-            <h3>Slide 3 title</h3>
-            <p>Another caption. Add credits or context as needed.</p>
+            <h3></h3>
+            <p>Close up of Purple Yam Powder as natural dye for mycomaterials, 2022.</p>
           </figcaption>
         </figure>
 
-        <figure class="slide">
+        <!-- <figure class="slide">
           <img src="./images/BiocharRigV2.jpg" alt="Slide 4">
           <figcaption class="caption">
             <h3>Slide 4 title</h3>
             <p>Final caption. You can use HTML markup here.</p>
           </figcaption>
-        </figure>
+        </figure> -->
       </div>
 
       <!-- moved: dots overlay sits inside the scroller-wrap so it's visible while pinned -->
       <div class="dots" id="dots" aria-hidden="false"></div>
     </section>
   </div>
+
+  <!-- Additional page content shown after the horizontal scroller -->
+  <main class="below-content" aria-label="More content">
+    <section style="max-width:1200px;margin:40px auto;padding:24px;">
+      <h2 style="margin-top:0;font-size:clamp(18px,2.2vw,26px);">The Benefits of Mycomaterials</h2>
+      <p style="line-height:1.6;color:var(--text);opacity:.95">
+        <li>
+            <strong>Biodegradability:</strong> Mycomaterials are fully biodegradable (in your backyard, not in a commercial composting facility) in under 90 days.
+        </li>
+        <li>
+            <strong>Low Embodied Carbon:</strong> Flaunts low embodied carbon, and can be desiccated without added energy.
+        </li>
+        <li>
+            <strong>Water Proof:</strong> Mycomaterials create semi-waterproof surface layers.
+        </li>
+        <li>
+            <strong>Fire Proofing:</strong> Mycomaterials have excellent fire resistance properties, making them suitable for use in a variety of applications.
+      </p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-top:18px">
+        <article style="background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(0,0,0,0.04));padding:12px;border-radius:10px">
+          <h3 style="margin:0 0 8px 0">Extra notes? Maybe sources?</h3>
+          <p style="margin:0;font-size:13px;line-height:1.45">Short notes about ...?</p>
+        </article>
+        <article style="background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(0,0,0,0.04));padding:12px;border-radius:10px">
+          <h3 style="margin:0 0 8px 0">Photo Credits?</h3>
+          <p style="margin:0;font-size:13px;line-height:1.45">lypsu odajwda oiajdoaijwd</p>
+        </article>
+      </div>
+    </section>
+        <footer style="background-color:#0b1220; text-align:center; color:#8cd37cd">
+        <div class="social-links">
+            <!-- Add social media links here -->
+        </div>
+        <p>&copy; 2025 Kiau Technologies PBC. All rights reserved.</p>
+    </footer>
+  </main>
+  <!-- /additional content -->
 
   <!-- GSAP + ScrollTrigger from CDN -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>

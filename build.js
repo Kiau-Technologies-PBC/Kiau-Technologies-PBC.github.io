@@ -301,74 +301,63 @@ let gltfModel = null;
 let stlModel = null;
 let gnomeModel = null;
 
-const loader = new GLTFLoader().setPath('./');
-loader.load(
-    './data/models/4_21_2025.glb',
-    (gltf) => {
-        gltfModel = gltf.scene;
-        gltfModel.position.set(0, 1.05, -1);
-        scene.add(gltfModel);
-        loadingScreen.style.display = 'none';
-    },
-    (xhr) => {
-        console.log((xhr.loaded / xhr.total) * 100 + '% loaded');
-    },
-    (error) => {
-        console.error('An error happened', error);
-    }
-);
+// collect important load promises so we can wait for everything (including preview)
+const modelLoadPromises = [];
 
-const manager = new THREE.LoadingManager();
-manager.onStart = (url) => { console.log('Started loading file:', url); };
-manager.onProgress = (url) => { console.log('Loading:', url); };
-manager.onError = (url) => { console.error('There was an error loading', url); };
-manager.setURLModifier((url) => {
-    if (url.startsWith('data:')) return url;
-    const name = url.replace(/^(\.\/|\/)/, '');
-    return `./data/${name}`;
+// wrap main GLB load in a promise (do not hide loading screen here)
+const gltfLoadPromise = new Promise((resolve, reject) => {
+    const loader = new GLTFLoader().setPath('./');
+    loader.load(
+        './data/models/4_21_2025.glb',
+        (gltf) => {
+            gltfModel = gltf.scene;
+            gltfModel.position.set(0, 1.05, -1);
+            scene.add(gltfModel);
+            resolve();
+        },
+        (xhr) => {
+            console.log((xhr.loaded / xhr.total) * 100 + '% loaded');
+        },
+        (error) => {
+            console.error('An error happened', error);
+            reject(error);
+        }
+    );
 });
+modelLoadPromises.push(gltfLoadPromise);
 
-const gnomeLoader = new GLTFLoader(manager).setPath('./data/');
-gnomeLoader.setResourcePath('./data/');
-gnomeLoader.load(
-    'gnome.gltf',
-    (gltf) => {
-        gnomeModel = gltf.scene;
-        gnomeModel.position.set(0, 1.05, 4);
-        scene.add(gnomeModel);
-        console.log('gnome.gltf loaded');
-    },
-    (xhr) => {
-        if (xhr.lengthComputable) console.log('gnome load', Math.round((xhr.loaded / xhr.total) * 100) + '%');
-    },
-    (error) => {
-        console.error('gnome load error:', error);
-    }
-);
+// NOTE: removed gnome loader and its LoadingManager per request
 
-const stlLoader = new STLLoader();
-stlLoader.load(
-    './data/models/climate_battery3D.stl',
-    (geometry) => {
-        const material = new THREE.MeshStandardMaterial({ color: 0xaaaaaa, transparent: true, opacity: 0.5 });
-        stlModel = new THREE.Mesh(geometry, material);
-        stlModel.position.set(0.20, -0.01, 10);
-        stlModel.scale.set(0.001, 0.001, 0.001);
-        stlModel.rotateX(-Math.PI / 2);
-        stlModel.visible = false;
-        scene.add(stlModel);
+// wrap STL load in a promise
+const stlLoadPromise = new Promise((resolve, reject) => {
+    const stlLoader = new STLLoader();
+    stlLoader.load(
+        './data/models/climate_battery3D.stl',
+        (geometry) => {
+            const material = new THREE.MeshStandardMaterial({ color: 0xaaaaaa, transparent: true, opacity: 0.5 });
+            stlModel = new THREE.Mesh(geometry, material);
+            stlModel.position.set(0.20, -0.01, 10);
+            stlModel.scale.set(0.001, 0.001, 0.001);
+            stlModel.rotateX(-Math.PI / 2);
+            stlModel.visible = false;
+            scene.add(stlModel);
 
-        const box = new THREE.Box3().setFromObject(stlModel);
-        console.log("STL Model bounding box:", box);
-    },
-    (xhr) => {
-        console.log((xhr.loaded / xhr.total) * 100 + '% loaded');
-    },
-    (error) => {
-        console.error('An error happened', error);
-    }
-);
+            const box = new THREE.Box3().setFromObject(stlModel);
+            console.log("STL Model bounding box:", box);
+            resolve();
+        },
+        (xhr) => {
+            console.log((xhr.loaded / xhr.total) * 100 + '% loaded');
+        },
+        (error) => {
+            console.error('An error happened', error);
+            reject(error);
+        }
+    );
+});
+modelLoadPromises.push(stlLoadPromise);
 
+// toggle button logic remains unchanged
 const toggleButton = document.getElementById('toggle-model');
 toggleButton.addEventListener('click', () => {
     if (gltfModel && stlModel) {
@@ -383,6 +372,31 @@ toggleButton.addEventListener('click', () => {
         }
     }
 });
+
+// ensure preview setup and wait for preview model load as well
+ensurePreviewSetup();
+const previewLoadPromise = loadPreviewModel().then(() => {
+    console.log('Preview model loaded');
+}).catch((err) => {
+    console.warn('Preview failed to load', err);
+    // resolve anyway so page doesn't hang; remove this if you want to block on preview failure
+    return Promise.resolve();
+});
+
+// Wait for all important models (main gltf, stl, preview) before hiding loading UI
+Promise.all(modelLoadPromises.concat(previewLoadPromise))
+    .then(() => {
+        console.log('All models loaded — ready to show page content');
+        if (loadingScreen) loadingScreen.style.display = 'none';
+        document.body.classList.add('models-ready');
+    })
+    .catch((err) => {
+        console.error('One or more model loads failed:', err);
+        // still hide loading screen after a short delay so user can interact
+        if (loadingScreen) {
+            setTimeout(() => { loadingScreen.style.display = 'none'; }, 1000);
+        }
+    });
 
 /*
  * Return true when the viewport width indicates a mobile device.
