@@ -168,7 +168,7 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
           } else if (d.id === 'E-Waste Projects') {
             return "e-waste.html";
           } else if (d.id === 'Mycomaterials') {
-            return "mycomaterials.html";
+            return "Mycomaterials.html";
           } else {
             return "example.html";
           }
