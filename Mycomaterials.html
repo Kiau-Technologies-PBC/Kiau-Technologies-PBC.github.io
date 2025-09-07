@@ -233,17 +233,17 @@
             <strong>Fire Proofing:</strong> Mycomaterials have excellent fire resistance properties, making them suitable for use in a variety of applications.
       </p>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-top:18px">
+        <!-- <article style="background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(0,0,0,0.04));padding:12px;border-radius:10px">
+          <h3 style="margin:0 0 8px 0"></h3>
+          <p style="margin:0;font-size:13px;line-height:1.45"></p>
+        </article> -->
         <article style="background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(0,0,0,0.04));padding:12px;border-radius:10px">
-          <h3 style="margin:0 0 8px 0">Extra notes? Maybe sources?</h3>
-          <p style="margin:0;font-size:13px;line-height:1.45">Short notes about ...?</p>
-        </article>
-        <article style="background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(0,0,0,0.04));padding:12px;border-radius:10px">
-          <h3 style="margin:0 0 8px 0">Photo Credits?</h3>
-          <p style="margin:0;font-size:13px;line-height:1.45">lypsu odajwda oiajdoaijwd</p>
+          <h3 style="margin:0 0 8px 0">Photo Credits</h3>
+          <p style="margin:0;font-size:13px;line-height:1.45">Brandon Bunt</p>
         </article>
       </div>
     </section>
-        <footer style="background-color:#0b1220; text-align:center; color:#8cd37cd">
+        <footer style="background-color:#0b1220; text-align:center; color:#8cd37c">
         <div class="social-links">
             <!-- Add social media links here -->
         </div>
@@ -336,7 +336,8 @@
           invalidateOnRefresh: true,
           snap: {
             snapTo: 1 / Math.max(1, slides.length - 1),
-            duration: {min: 0.18, max: 0.45},
+            // duration: {min: 0.18, max: 0.45},
+            duration: 0.12,
             ease: "power2.inOut"
           },
           onUpdate(self) {
