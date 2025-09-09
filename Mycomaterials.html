@@ -82,6 +82,30 @@
       display: block;
     }
 
+    /* media wrapper keeps image aspect ratio and prevents squishing on small screens */
+    .media {
+      width: 100%;
+      aspect-ratio: 16 / 9;       /* preferred aspect ratio for images */
+      overflow: hidden;
+      flex: 1 1 auto;             /* let media grow/shrink inside slide column */
+      min-height: 0;              /* allow proper flex shrinking */
+      display: block;
+    }
+
+    .media img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;          /* crop rather than squish to fit */
+      display: block;
+    }
+
+    /* Slightly taller image area on phones for better visual balance */
+    @media (max-width:720px){
+      .scroller-wrap{height:100vh}
+      .media { aspect-ratio: 3 / 2; } /* taller crop on narrow viewports */
+      .slide { height: calc(58vh - 32px); }
+    }
+
     /* caption panel */
     .caption {
       padding:12px 14px;
@@ -177,38 +201,36 @@
     </header>
 
     <section class="scroller-wrap" id="scroller">
-      <div class="track" id="track">
-        <figure class="slide">
-          <img src="./Mycomaterials/DT_MagnetPanel.JPG" alt="Slide 1">
+      <div class="track" id="track" role="list">
+        <figure class="slide" role="listitem">
+          <div class="media">
+            <img src="./Mycomaterials/DT_MagnetPanel.JPG" alt="Magnetic mycomaterial acoustic panel" loading="lazy">
+          </div>
           <figcaption class="caption">
-            <h3></h3>
+            <h3>Magnetic Panel</h3>
             <p>A magnetic mycomaterial acoustic panel installed at the Loisaida Community Center's blackbox theater, 2022.</p>
           </figcaption>
         </figure>
 
-        <figure class="slide">
-          <img src="./Mycomaterials/PodcastCeilingPanel1.JPG" alt="Slide 2">
+        <figure class="slide" role="listitem">
+          <div class="media">
+            <img src="./Mycomaterials/PodcastCeilingPanel1.JPG" alt="Drop-tile mycomaterial ceiling panel" loading="lazy">
+          </div>
           <figcaption class="caption">
-            <h3></h3>
+            <h3>Ceiling Panel</h3>
             <p>A drop-tile mycomaterial acoustic ceiling panel replacement.</p>
           </figcaption>
         </figure>
 
-        <figure class="slide">
-          <img src="./Mycomaterials/IMG_6151.jpeg" alt="Slide 3">
+        <figure class="slide" role="listitem">
+          <div class="media">
+            <img src="./Mycomaterials/IMG_6151.jpeg" alt="Purple yam powder dye close up" loading="lazy">
+          </div>
           <figcaption class="caption">
-            <h3></h3>
+            <h3>Purple Yam Dye</h3>
             <p>Close up of Purple Yam Powder as natural dye for mycomaterials, 2022.</p>
           </figcaption>
         </figure>
-
-        <!-- <figure class="slide">
-          <img src="./images/BiocharRigV2.jpg" alt="Slide 4">
-          <figcaption class="caption">
-            <h3>Slide 4 title</h3>
-            <p>Final caption. You can use HTML markup here.</p>
-          </figcaption>
-        </figure> -->
       </div>
 
       <!-- moved: dots overlay sits inside the scroller-wrap so it's visible while pinned -->
