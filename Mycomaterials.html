@@ -9,14 +9,13 @@
   <style>
 
   @font-face {
-    font-family: 'OCR A';
-    src: url('./fonts/OCR-A.woff2') format('woff2'),
-         url('./fonts/OCR-A.woff') format('woff'),
-         url('./fonts/OCR-A.ttf') format('truetype');
-    font-weight: 400;
-    font-style: normal;
-    font-display: swap;
-  }
+  font-family: 'OCR A';
+  src: url('./fonts/OCR-A.ttf') format('truetype'),
+       url('./fonts/OCRAStd.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
 
   :root{
     --bg:#223729;
@@ -135,7 +134,9 @@
       display: flex;
       gap: 8px;
       justify-content: center;
-      z-index: 60;                       /* above slides; increase if needed */
+      z-index: 99999;                    /* above everything so it's visible */
+      background: rgba(0,0,0,0.04);      /* subtle bg so bounds are clear during debug */
+      padding: 6px;
       pointer-events: auto;
     }
 
@@ -197,7 +198,6 @@
   <div class="page">
     <header>
       <h1>Mycomaterials</h1>
-      <p>Scroll to see more -></p>
     </header>
 
     <section class="scroller-wrap" id="scroller">
@@ -280,84 +280,218 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
 
   <script>
-    gsap.registerPlugin(ScrollTrigger);
+(async function(){
+  console.log('[MYCO] inline script start');
 
-    const track = document.getElementById('track');
-    const slides = Array.from(track.querySelectorAll('.slide'));
-    const scroller = document.getElementById('scroller');
-    const dotsContainer = document.getElementById('dots');
+  // global error handlers to catch silent failures
+  window.addEventListener('error', (e) => {
+    console.error('[MYCO] window error', e.message, e.filename, e.lineno, e.colno, e.error);
+  });
+  window.addEventListener('unhandledrejection', (e) => {
+    console.error('[MYCO] unhandledrejection', e.reason);
+  });
 
-    function waitForImages(parent) {
-      const imgs = Array.from(parent.querySelectorAll('img'));
-      return Promise.all(imgs.map(img => {
-        if (img.complete && img.naturalWidth !== 0) return Promise.resolve();
-        return new Promise((res) => { img.onload = img.onerror = res; });
-      }));
+  // helper to load a script dynamically if CDN blocked
+  function loadScript(src){
+    return new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = src;
+      s.async = true;
+      s.onload = () => resolve();
+      s.onerror = () => reject(new Error('Failed to load ' + src));
+      document.head.appendChild(s);
+    });
+  }
+
+  const CDN_GSAP = 'https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js';
+  const CDN_ST   = 'https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js';
+
+  try {
+    if (typeof gsap === 'undefined') {
+      console.warn('[MYCO] gsap missing, attempting to load from CDN...');
+      await loadScript(CDN_GSAP);
+    }
+    if (typeof ScrollTrigger === 'undefined') {
+      console.warn('[MYCO] ScrollTrigger missing, attempting to load from CDN...');
+      await loadScript(CDN_ST);
+    }
+  } catch (err) {
+    console.error('[MYCO] failed to dynamically load GSAP/ScrollTrigger:', err);
+    return;
+  }
+
+  if (typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined') {
+    console.error('[MYCO] GSAP or ScrollTrigger still unavailable after dynamic load. Check network/CSP.');
+    return;
+  }
+
+  console.log('[MYCO] GSAP loaded, version:', gsap.version || '(unknown)');
+  gsap.registerPlugin(ScrollTrigger);
+
+  /* ====== existing slideshow initialization logic follows (unchanged) ====== */
+  const track = document.getElementById('track');
+  const slides = Array.from(track.querySelectorAll('.slide'));
+  const scroller = document.getElementById('scroller');
+  let dotsContainer = document.getElementById('dots'); // use let so we can recreate if needed
+
+  let currentIndex = 0;
+  let mediaQuery = window.matchMedia('(max-width:720px)');
+
+  function waitForImages(parent, timeout = 700) {
+    const imgs = Array.from(parent.querySelectorAll('img'));
+    if (imgs.length === 0) return Promise.resolve();
+
+    const loadPromises = imgs.map(img => {
+      if (img.complete && img.naturalWidth !== 0) return Promise.resolve();
+      return new Promise((res) => { img.onload = img.onerror = res; });
+    });
+
+    // resolve when all images load OR after timeout (avoid hanging due to lazy-load placeholders)
+    return Promise.race([
+      Promise.all(loadPromises),
+      new Promise((res) => setTimeout(() => {
+        console.warn('[MYCO] waitForImages timeout — proceeding without all images loaded');
+        res();
+      }, timeout))
+    ]);
+  }
+
+  function getHorizontalOverflow() {
+    return Math.max(0, track.scrollWidth - window.innerWidth + 40);
+  }
+
+  function ensureDotsContainer() {
+    if (!dotsContainer) {
+      dotsContainer = document.createElement('div');
+      dotsContainer.id = 'dots';
+      scroller.appendChild(dotsContainer);
+    }
+  }
+
+  function buildDots() {
+    ensureDotsContainer();
+    dotsContainer.innerHTML = '';
+    slides.forEach((_, i) => {
+      const d = document.createElement('button');
+      d.className = 'dot';
+      d.type = 'button';
+      d.setAttribute('aria-label', 'Go to slide ' + (i+1));
+      d.dataset.index = i;
+      d.addEventListener('click', () => goToIndex(i));
+      d.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); goToIndex(i); } });
+      dotsContainer.appendChild(d);
+    });
+    Array.from(dotsContainer.children).forEach((dot, idx) => dot.classList.toggle('active', idx === currentIndex));
+  }
+
+  function updateActiveDotNative() {
+    const centerX = window.innerWidth / 2;
+    let bestIndex = 0;
+    let bestDist = Infinity;
+    slides.forEach((s, i) => {
+      const r = s.getBoundingClientRect();
+      const slideCenter = r.left + r.width / 2;
+      const dist = Math.abs(slideCenter - centerX);
+      if (dist < bestDist) { bestDist = dist; bestIndex = i; }
+    });
+    currentIndex = bestIndex;
+    if (dotsContainer) Array.from(dotsContainer.children).forEach((dot, i) => dot.classList.toggle('active', i === bestIndex));
+  }
+
+  function goToIndex(i) {
+    i = Math.max(0, Math.min(i, slides.length - 1));
+    currentIndex = i;
+
+    if (scroller.classList.contains('native-scroll')) {
+      slides[i].scrollIntoView({behavior: 'smooth', inline: 'center'});
+      updateActiveDotNative();
+      return;
     }
 
-    function getHorizontalOverflow() {
-      return Math.max(0, track.scrollWidth - window.innerWidth + 40);
+    const st = ScrollTrigger.getById('horizontal');
+    if (st && st.animation) {
+      const progress = (slides.length > 1) ? i / (slides.length - 1) : 0;
+      gsap.to(st.animation, { progress, duration: 0.6, ease: "power2.inOut" });
+      if (dotsContainer) Array.from(dotsContainer.children).forEach((dot, idx) => dot.classList.toggle('active', idx === i));
+      return;
     }
 
-    function buildDots() {
-      dotsContainer.innerHTML = '';
-      slides.forEach((_, i) => {
-        const d = document.createElement('button');
-        d.className = 'dot';
-        d.type = 'button';
-        d.setAttribute('aria-label', 'Go to slide ' + (i+1));
-        d.dataset.index = i;
+    if (st && typeof st.start === 'number' && typeof st.end === 'number') {
+      const progress = (slides.length > 1) ? i / (slides.length - 1) : 0;
+      const targetY = Math.round(st.start + progress * (st.end - st.start));
+      window.scrollTo({ top: targetY, behavior: 'smooth' });
+    }
+  }
 
-        d.addEventListener('click', () => {
-          const st = ScrollTrigger.getById('horizontal');
-          const progress = i / Math.max(1, slides.length - 1);
+  function initNativeScroller() {
+    if (window.__myco_tween) { try { window.__myco_tween.kill(); } catch(e){} window.__myco_tween = null; }
+    ScrollTrigger.getAll().forEach(st => st.kill());
 
-          // Preferred: animate ScrollTrigger's internal animation progress
-          if (st && st.animation) {
-            gsap.to(st.animation, { progress, duration: 0.6, ease: "power2.inOut" });
-            // keep dots in sync immediately
-            Array.from(dotsContainer.children).forEach((dot, idx) => dot.classList.toggle('active', idx === i));
-            return;
-          }
+    scroller.classList.add('native-scroll');
+    track.classList.add('native-scroll');
+    scroller.style.overflow = 'auto';
+    track.style.transform = 'none';
+    track.style.willChange = 'auto';
+    track.style.scrollBehavior = 'smooth';
+    track.style.paddingBottom = '24px';
+    track.style.scrollSnapType = 'x mandatory';
 
-          // Fallback: compute document scroll position if animation isn't available
-          if (st && typeof st.start === 'number' && typeof st.end === 'number') {
-            const targetY = Math.round(st.start + progress * (st.end - st.start));
-            window.scrollTo({ top: targetY, behavior: 'smooth' });
-          }
-        });
+    buildDots();
+    updateActiveDotNative();
 
-        dotsContainer.appendChild(d);
-      });
+    track.removeEventListener('scroll', nativeScrollHandler);
+    track.addEventListener('scroll', nativeScrollHandler, { passive: true });
+
+    window.removeEventListener('keydown', desktopKeyHandler);
+    window.addEventListener('keydown', nativeKeyHandler);
+  }
+
+  function nativeScrollHandler() {
+    updateActiveDotNative();
+  }
+
+  function nativeKeyHandler(e) {
+    if (e.key === 'ArrowRight') goToIndex(currentIndex + 1);
+    if (e.key === 'ArrowLeft') goToIndex(currentIndex - 1);
+  }
+
+  function desktopKeyHandler(e) {
+    if (e.key === 'ArrowRight') goToIndex(currentIndex + 1);
+    if (e.key === 'ArrowLeft') goToIndex(currentIndex - 1);
+  }
+
+  async function initHorizontal() {
+    console.log('[MYCO] initHorizontal start — slides:', slides.length, 'isMobile:', mediaQuery.matches);
+    await waitForImages(track);
+
+    if (window.__myco_tween) { try { window.__myco_tween.kill(); } catch(e){} window.__myco_tween = null; }
+    ScrollTrigger.getAll().forEach(st => st.kill());
+
+    const isSmall = mediaQuery.matches;
+    if (isSmall) {
+      scroller.classList.remove('native-scroll');
+      track.classList.remove('native-scroll');
+      initNativeScroller();
+      return;
     }
 
-    async function initHorizontal() {
-      await waitForImages(track);
+    scroller.classList.remove('native-scroll');
+    track.classList.remove('native-scroll');
+    scroller.style.overflow = '';
+    track.style.transform = '';
+    track.style.willChange = 'transform';
 
-      ScrollTrigger.getAll().forEach(st => st.kill());
-      buildDots();
+    const overflow = getHorizontalOverflow();
+    const trackRect = track.getBoundingClientRect();
+    const lastSlide = slides[slides.length - 1];
+    const lastRect = lastSlide.getBoundingClientRect();
+    const lastCenter = (lastRect.left - trackRect.left) + lastRect.width / 2;
+    const desiredToCenterLast = Math.max(0, lastCenter - window.innerWidth / 2);
+    const minPixels = Math.round(window.innerWidth * 0.8);
+    const total = Math.max(overflow, desiredToCenterLast, minPixels);
 
-      // real horizontal overflow (how many px we need to move track)
-      const overflow = getHorizontalOverflow();
-
-      // compute desired translation so last slide center ends up in viewport center
-      const trackRect = track.getBoundingClientRect();
-      const lastSlide = slides[slides.length - 1];
-      const lastRect = lastSlide.getBoundingClientRect();
-      const lastCenter = (lastRect.left - trackRect.left) + lastRect.width / 2;
-      const desiredToCenterLast = Math.max(0, lastCenter - window.innerWidth / 2);
-
-      // ensure sensible minimum scroll distance so the pin can release on small content
-      const minPixels = Math.round(window.innerWidth * 0.8);
-
-      // pick a single 'total' value used for both translation and ScrollTrigger end
-      const total = Math.max(overflow, desiredToCenterLast, minPixels);
-
-      // remove any previous spacer (we won't create a manual spacer here)
-      const prev = document.getElementById('horizontal-spacer');
-      if (prev) prev.remove();
-
-      gsap.to(track, {
+    try {
+      const tween = gsap.to(track, {
         x: () => `-${total}px`,
         ease: "none",
         force3D: true,
@@ -373,28 +507,61 @@
           invalidateOnRefresh: true,
           snap: {
             snapTo: 1 / Math.max(1, slides.length - 1),
-            // duration: {min: 0.18, max: 0.45},
             duration: 0.12,
             ease: "power2.inOut"
           },
           onUpdate(self) {
             const index = Math.round(self.progress * (slides.length - 1));
-            Array.from(dotsContainer.children).forEach((dot, i) => dot.classList.toggle('active', i === index));
+            currentIndex = index;
+            if (dotsContainer) Array.from(dotsContainer.children).forEach((dot, i) => dot.classList.toggle('active', i === index));
           }
         }
       });
-
-      ScrollTrigger.refresh();
+      window.__myco_tween = tween;
+    } catch (err) {
+      console.error('[MYCO] gsap.to() failed:', err);
     }
 
-    window.addEventListener('load', initHorizontal);
-    window.addEventListener('resize', () => {
-      clearTimeout(window.__gsap_resize_timer);
-      window.__gsap_resize_timer = setTimeout(() => {
-        initHorizontal();
-        ScrollTrigger.refresh();
-      }, 160);
-    });
-  </script>
+    buildDots();
+
+    window.removeEventListener('keydown', nativeKeyHandler);
+    window.addEventListener('keydown', desktopKeyHandler);
+
+    ScrollTrigger.refresh();
+  }
+
+  window.addEventListener('load', () => {
+    ensureDotsContainer();
+    initHorizontal().catch(e => console.error('[MYCO] initHorizontal error:', e));
+  });
+
+  let __resizeTimer;
+  window.addEventListener('resize', () => {
+    clearTimeout(__resizeTimer);
+    __resizeTimer = setTimeout(() => initHorizontal().catch(e => console.error('[MYCO] initHorizontal error:', e)), 160);
+  });
+
+  if (mediaQuery.addEventListener) {
+    mediaQuery.addEventListener('change', () => initHorizontal().catch(e => console.error('[MYCO] media change error:', e)));
+  } else if (mediaQuery.addListener) {
+    mediaQuery.addListener(() => initHorizontal().catch(e => console.error('[MYCO] media change error:', e)));
+  }
+
+  // Are the DOM elements present?
+  document.getElementById('scroller');
+  document.getElementById('track');
+  document.getElementById('dots');
+  document.getElementById('track')?.querySelectorAll('.slide')?.length;
+
+  // GSAP / ScrollTrigger state
+  ScrollTrigger ? ScrollTrigger.getAll().length : 'no ScrollTrigger';
+  ScrollTrigger.getById('horizontal');
+  window.__myco_tween || 'no tween';
+
+  // Useful metrics if ScrollTrigger exists or tween was created
+  const st = ScrollTrigger.getById('horizontal'); st ? {start: st.start, end: st.end, progress: st.animation?.progress?.() ?? null} : 'no st';
+  document.getElementById('track') ? { scrollWidth: document.getElementById('track').scrollWidth, rect: document.getElementById('track').getBoundingClientRect() } : null;
+})(); 
+</script>
 </body>
 </html>
