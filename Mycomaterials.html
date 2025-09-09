@@ -306,13 +306,27 @@
         d.className = 'dot';
         d.type = 'button';
         d.setAttribute('aria-label', 'Go to slide ' + (i+1));
+        d.dataset.index = i;
+
         d.addEventListener('click', () => {
           const st = ScrollTrigger.getById('horizontal');
-          if (!st) return;
           const progress = i / Math.max(1, slides.length - 1);
-          const targetY = st.start + progress * (st.end - st.start);
-          window.scrollTo({ top: Math.round(targetY), behavior: 'smooth' });
+
+          // Preferred: animate ScrollTrigger's internal animation progress
+          if (st && st.animation) {
+            gsap.to(st.animation, { progress, duration: 0.6, ease: "power2.inOut" });
+            // keep dots in sync immediately
+            Array.from(dotsContainer.children).forEach((dot, idx) => dot.classList.toggle('active', idx === i));
+            return;
+          }
+
+          // Fallback: compute document scroll position if animation isn't available
+          if (st && typeof st.start === 'number' && typeof st.end === 'number') {
+            const targetY = Math.round(st.start + progress * (st.end - st.start));
+            window.scrollTo({ top: targetY, behavior: 'smooth' });
+          }
         });
+
         dotsContainer.appendChild(d);
       });
     }
