@@ -169,6 +169,8 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
             return "e-waste.html";
           } else if (d.id === 'Mycomaterials') {
             return "Mycomaterials.html";
+          } else if (d.id === 'Design Thinking') {
+            return "designThinking.html";
           } else {
             return "example.html";
           }
