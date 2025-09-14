@@ -1,0 +1,154 @@
+/* ...existing code... */
+:root {
+  --bg: var(--day-background, #223729);
+  --panel: rgba(11,18,32,0.9);
+  --accent: #8cd37c;
+  --muted: #c7cabd;
+  --text: var(--text-color, #e6eef8);
+}
+
+#circular-graph-root {
+  width: min(92vw, 640px);
+  aspect-ratio: 1/1;
+  position: relative;
+  margin: 8px auto 24px;
+}
+
+.circular-graph {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: linear-gradient(180deg, rgba(0,0,0,0.06), rgba(0,0,0,0.02));
+  overflow: visible;
+  display:block;
+}
+
+.circular-graph-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 20; /* must be greater than .box z-index (currently 10) */
+}
+
+/* boxes */
+.box {
+  position: absolute;
+  transform: translate(-50%,-50%) scale(1);   /* keep translate always present */
+  transform-origin: center center;            /* scale around center */
+  will-change: transform, box-shadow;
+  min-width: 88px;
+  max-width: 160px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--panel);
+  color: var(--muted);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  font-size:14px;
+  cursor:pointer;
+  box-shadow: 0 8px 22px rgba(0,0,0,0.22);
+  transition: transform .18s ease, box-shadow .18s ease, color .18s ease;
+  z-index: 10;
+  touch-action: manipulation;
+}
+
+/* Hover and focused states: include the translate so element doesn't jump */
+.box:hover {
+  transform: translate(-50%,-50%) scale(1.06);
+  box-shadow: 0 18px 40px rgba(140,211,124,0.18); /* subtle green glow */
+  color: var(--text);
+}
+
+.box.focused {
+  transform: translate(-50%,-50%) scale(1.14);
+  box-shadow: 0 22px 60px rgba(140,211,124,0.28); /* stronger glow when focused */
+  color: var(--text);
+}
+
+/* keep focus visible for keyboard users */
+.box:focus {
+  outline: none;
+  box-shadow: 0 22px 60px rgba(140,211,124,0.28), 0 0 0 4px rgba(140,211,124,0.06);
+}
+
+/* modal */
+.modal {
+  display:none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  align-items:center;
+  justify-content:center;
+  z-index: 9999;
+  padding: 18px;
+}
+.modal .content {
+  width: min(760px, 94vw);
+  max-width: 760px;
+  background: linear-gradient(180deg,#0b1220,#081018);
+  color: var(--text);
+  border-radius: 12px;
+  padding: 18px;
+  box-shadow: 0 18px 80px rgba(0,0,0,0.6);
+  display:flex;
+  gap:12px;
+  align-items:flex-start;
+}
+.modal .left { flex:1 1 60%; }
+.modal .right { flex:0 0 220px; text-align:center; }
+.modal h2{margin:0 0 8px;color:var(--accent)}
+.modal p{margin:0;font-size:14px;line-height:1.4;color:var(--text);opacity:.95}
+
+/* modal nav */
+.modal .nav { display:flex; gap:8px; justify-content:center; margin-top:12px; }
+.modal .nav button {
+  background: rgba(255,255,255,0.04);
+  color: var(--accent);
+  border: 0;
+  padding:8px 12px;
+  border-radius:8px;
+  cursor:pointer;
+}
+
+/* nicer arrow appearance */
+.circular-graph-svg path.cg-path {
+  transition: stroke-width .18s ease, opacity .18s ease, filter .18s ease, stroke .18s ease;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.92;
+}
+
+/* subtle hover emphasis */
+.circular-graph-svg path.cg-path:hover {
+  stroke-width: calc(1.6 * var(--cg-stroke, 2.2));
+  opacity: 1;
+  filter: drop-shadow(0 6px 18px rgba(140,211,124,0.14));
+  cursor: default; /* arrows are decorative but respond visually */
+}
+
+/* optional subtle motion: enable per-connection by setting c.motion = true */
+.circular-graph-svg path.cg-path.motion {
+  stroke-dasharray: 14 10;
+  animation: cg-dash 5s linear infinite;
+  /* make motion low-contrast so it's not distracting */
+  opacity: 0.86;
+}
+@keyframes cg-dash {
+  to { stroke-dashoffset: -24; }
+}
+
+/* ensure svg draws above boxes so arrowheads remain visible */
+.circular-graph-svg { z-index: 20; pointer-events: none; }
+
+/* responsive */
+@media (max-width:720px) {
+  .modal .content { flex-direction:column; padding:12px; }
+  .modal .right { width:100%; }
+  .box { font-size:13px; min-width:96px; }
+}
+/* ...existing code... */
