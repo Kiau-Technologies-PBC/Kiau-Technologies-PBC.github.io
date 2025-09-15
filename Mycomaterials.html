@@ -1,0 +1,567 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Mycelium — Scroll Slideshow</title>
+  <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
+
+  <style>
+
+  @font-face {
+  font-family: 'OCR A';
+  src: url('./fonts/OCR-A.ttf') format('truetype'),
+       url('./fonts/OCRAStd.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+  :root{
+    --bg:#223729;
+    --card-bg: #0b1220;
+    --accent: #8cd37c;
+    --text:#e6eef8;
+  }
+  html,body{height:100%;margin:0;background:var(--bg);color:var(--text);
+    font-family: 'OCR A', 'Roboto Mono', monospace;
+  }
+    .page {
+      max-width:1200px;
+      margin:0 auto;
+      padding:40px 20px;
+    }
+
+    header {text-align:center;margin-bottom:28px}
+    header h1{margin:0;font-size:clamp(20px,3.2vw,34px);letter-spacing:-0.02em}
+    header p{opacity:.9;margin-top:8px;font-size:14px}
+
+    /* Horizontal scroller wrapper (pinned while scrolling) */
+    .scroller-wrap {
+      height: 70vh; /* visible area */
+      margin: 24px 0;
+      position: relative;
+      overflow: hidden;
+      padding-bottom: 48px; /* reserve space for the dots so they don't overlap slides */
+    }
+
+    /* Track holds slides horizontally */
+    .track {
+      display:flex;
+      gap:24px;
+      align-items:center;
+      height:100%;
+      will-change: transform;
+      padding: 16px;
+      box-sizing:border-box;
+    }
+
+    .slide {
+      flex: 0 0 calc(70vw); /* card width relative to viewport */
+      max-width: 860px;
+      height: calc(70vh - 32px);
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(0,0,0,0.06));
+      border-radius:14px;
+      overflow:hidden;
+      box-shadow: 0 8px 30px rgba(2,6,23,0.6), inset 0 1px 0 rgba(255,255,255,0.02);
+      display:flex;
+      flex-direction:column;
+      position:relative;
+      border: 1px solid rgba(255,255,255,0.03);
+      min-height: 0; /* allow children to shrink correctly inside flex */
+    }
+
+    /* replace previous .slide img rules with these */
+    .slide img {
+      width: 100%;
+      height: auto;        /* don't force 100% height (avoids covering the caption) */
+      flex: 1 1 auto;      /* let image take available space but be flex-aware */
+      min-height: 0;       /* important: allows the image to shrink inside a column flex item */
+      object-fit: cover;   /* keeps nice cropping */
+      display: block;
+    }
+
+    /* media wrapper keeps image aspect ratio and prevents squishing on small screens */
+    .media {
+      width: 100%;
+      aspect-ratio: 16 / 9;       /* preferred aspect ratio for images */
+      overflow: hidden;
+      flex: 1 1 auto;             /* let media grow/shrink inside slide column */
+      min-height: 0;              /* allow proper flex shrinking */
+      display: block;
+    }
+
+    .media img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;          /* crop rather than squish to fit */
+      display: block;
+    }
+
+    /* Slightly taller image area on phones for better visual balance */
+    @media (max-width:720px){
+      .scroller-wrap{height:62vh}
+      .media { aspect-ratio: 3 / 2; } /* taller crop on narrow viewports */
+      .slide { height: calc(58vh - 32px); }
+    }
+
+    /* caption panel */
+    .caption {
+      padding:12px 14px;
+      background: linear-gradient(180deg, rgba(0,0,0,0.35), rgba(0,0,0,0.45));
+      color:var(--text);
+      font-size:14px;
+      line-height:1.4;
+      flex: 0 0 auto;
+      box-sizing: border-box;
+    }
+
+    .caption h3{margin:0 0 6px 0;font-size:16px;color:var(--accent)}
+    .caption p{margin:0;opacity:0.92;font-size:13px}
+
+    /* small screens: slide becomes full width */
+    @media (max-width:720px){
+      .scroller-wrap{height:62vh}
+      .slide{flex:0 0 88vw;height:calc(62vh - 32px)}
+    }
+
+    /* progress / dots (now positioned over the scroller) */
+    .dots {
+      position: absolute;               /* position over the scroller */
+      left: 50%;
+      bottom: 12px;             /* raise dots away from slide edge */
+      transform: translateX(-50%);
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      z-index: 99999;                    /* above everything so it's visible */
+      background: rgba(0,0,0,0.04);      /* subtle bg so bounds are clear during debug */
+      padding: 6px;
+      pointer-events: auto;
+    }
+
+    .dot {
+      width:10px;height:10px;border-radius:50%;
+      background:rgba(255,255,255,0.12);
+      transition:all .24s;
+      border: 0;
+      padding: 0;
+      cursor: pointer;
+    }
+    .dot.active{transform:scale(1.45);background:var(--accent);box-shadow:0 6px 18px rgba(140,211,124,0.18)}
+
+    /* Additional styles for the content below the scroller */
+    .below-content {
+      color: var(--text);
+      font-size: 16px;
+      line-height: 1.6;
+      margin-top: 40px;
+    }
+
+    .below-content h2 {
+      color: var(--accent);
+      font-size: clamp(18px, 2.2vw, 26px);
+      margin-top: 0;
+    }
+
+    .below-content p {
+      opacity: 0.95;
+    }
+
+    .below-content article {
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.04));
+      padding: 12px;
+      border-radius: 10px;
+    }
+
+    .below-content article h3 {
+      margin: 0 0 8px 0;
+      font-size: 16px;
+    }
+
+    .below-content article p {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    /* Grid container for articles */
+    .below-content .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-top: 18px;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <h1>Mycomaterials</h1>
+    </header>
+
+    <section class="scroller-wrap" id="scroller">
+      <div class="track" id="track" role="list">
+        <figure class="slide" role="listitem">
+          <div class="media">
+            <img src="./Mycomaterials/DT_MagnetPanel.JPG" alt="Magnetic mycomaterial acoustic panel" loading="lazy">
+          </div>
+          <figcaption class="caption">
+            <h3>Magnetic Panel</h3>
+            <p>A magnetic mycomaterial acoustic panel installed at the Loisaida Community Center's blackbox theater, 2022.</p>
+          </figcaption>
+        </figure>
+
+        <figure class="slide" role="listitem">
+          <div class="media">
+            <img src="./Mycomaterials/PodcastCeilingPanel1.JPG" alt="Drop-tile mycomaterial ceiling panel" loading="lazy">
+          </div>
+          <figcaption class="caption">
+            <h3>Ceiling Panel</h3>
+            <p>A drop-tile mycomaterial acoustic ceiling panel replacement.</p>
+          </figcaption>
+        </figure>
+
+        <figure class="slide" role="listitem">
+          <div class="media">
+            <img src="./Mycomaterials/IMG_6151.jpeg" alt="Purple yam powder dye close up" loading="lazy">
+          </div>
+          <figcaption class="caption">
+            <h3>Purple Yam Dye</h3>
+            <p>Close up of Purple Yam Powder as natural dye for mycomaterials, 2022.</p>
+          </figcaption>
+        </figure>
+      </div>
+
+      <!-- moved: dots overlay sits inside the scroller-wrap so it's visible while pinned -->
+      <div class="dots" id="dots" aria-hidden="false"></div>
+    </section>
+  </div>
+
+  <!-- Additional page content shown after the horizontal scroller -->
+  <main class="below-content" aria-label="More content">
+    <section style="max-width:1200px;margin:40px auto;padding:24px;">
+      <h2 style="margin-top:0;font-size:clamp(18px,2.2vw,26px);">The Benefits of Mycomaterials</h2>
+      <p style="line-height:1.6;color:var(--text);opacity:.95">
+        <li>
+            <strong>Biodegradability:</strong> Mycomaterials are fully biodegradable (in your backyard, not in a commercial composting facility) in under 90 days.
+        </li>
+        <li>
+            <strong>Low Embodied Carbon:</strong> Flaunts low embodied carbon, and can be desiccated without added energy.
+        </li>
+        <li>
+            <strong>Water Proof:</strong> Mycomaterials create semi-waterproof surface layers.
+        </li>
+        <li>
+            <strong>Fire Proofing:</strong> Mycomaterials have excellent fire resistance properties, making them suitable for use in a variety of applications.
+      </p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-top:18px">
+        <!-- <article style="background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(0,0,0,0.04));padding:12px;border-radius:10px">
+          <h3 style="margin:0 0 8px 0"></h3>
+          <p style="margin:0;font-size:13px;line-height:1.45"></p>
+        </article> -->
+        <article style="background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(0,0,0,0.04));padding:12px;border-radius:10px">
+          <h3 style="margin:0 0 8px 0">Photo Credits</h3>
+          <p style="margin:0;font-size:13px;line-height:1.45">Brandon Bunt</p>
+        </article>
+      </div>
+    </section>
+        <footer style="background-color:#0b1220; text-align:center; color:#8cd37c">
+        <div class="social-links">
+            <!-- Add social media links here -->
+        </div>
+        <p>&copy; 2025 Kiau Technologies PBC. All rights reserved.</p>
+    </footer>
+  </main>
+  <!-- /additional content -->
+
+  <!-- GSAP + ScrollTrigger from CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+  <script>
+(async function(){
+  console.log('[MYCO] inline script start');
+
+  // global error handlers to catch silent failures
+  window.addEventListener('error', (e) => {
+    console.error('[MYCO] window error', e.message, e.filename, e.lineno, e.colno, e.error);
+  });
+  window.addEventListener('unhandledrejection', (e) => {
+    console.error('[MYCO] unhandledrejection', e.reason);
+  });
+
+  // helper to load a script dynamically if CDN blocked
+  function loadScript(src){
+    return new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = src;
+      s.async = true;
+      s.onload = () => resolve();
+      s.onerror = () => reject(new Error('Failed to load ' + src));
+      document.head.appendChild(s);
+    });
+  }
+
+  const CDN_GSAP = 'https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js';
+  const CDN_ST   = 'https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js';
+
+  try {
+    if (typeof gsap === 'undefined') {
+      console.warn('[MYCO] gsap missing, attempting to load from CDN...');
+      await loadScript(CDN_GSAP);
+    }
+    if (typeof ScrollTrigger === 'undefined') {
+      console.warn('[MYCO] ScrollTrigger missing, attempting to load from CDN...');
+      await loadScript(CDN_ST);
+    }
+  } catch (err) {
+    console.error('[MYCO] failed to dynamically load GSAP/ScrollTrigger:', err);
+    return;
+  }
+
+  if (typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined') {
+    console.error('[MYCO] GSAP or ScrollTrigger still unavailable after dynamic load. Check network/CSP.');
+    return;
+  }
+
+  console.log('[MYCO] GSAP loaded, version:', gsap.version || '(unknown)');
+  gsap.registerPlugin(ScrollTrigger);
+
+  /* ====== existing slideshow initialization logic follows (unchanged) ====== */
+  const track = document.getElementById('track');
+  const slides = Array.from(track.querySelectorAll('.slide'));
+  const scroller = document.getElementById('scroller');
+  let dotsContainer = document.getElementById('dots'); // use let so we can recreate if needed
+
+  let currentIndex = 0;
+  let mediaQuery = window.matchMedia('(max-width:720px)');
+
+  function waitForImages(parent, timeout = 700) {
+    const imgs = Array.from(parent.querySelectorAll('img'));
+    if (imgs.length === 0) return Promise.resolve();
+
+    const loadPromises = imgs.map(img => {
+      if (img.complete && img.naturalWidth !== 0) return Promise.resolve();
+      return new Promise((res) => { img.onload = img.onerror = res; });
+    });
+
+    // resolve when all images load OR after timeout (avoid hanging due to lazy-load placeholders)
+    return Promise.race([
+      Promise.all(loadPromises),
+      new Promise((res) => setTimeout(() => {
+        console.warn('[MYCO] waitForImages timeout — proceeding without all images loaded');
+        res();
+      }, timeout))
+    ]);
+  }
+
+  function getHorizontalOverflow() {
+    return Math.max(0, track.scrollWidth - window.innerWidth + 40);
+  }
+
+  function ensureDotsContainer() {
+    if (!dotsContainer) {
+      dotsContainer = document.createElement('div');
+      dotsContainer.id = 'dots';
+      scroller.appendChild(dotsContainer);
+    }
+  }
+
+  function buildDots() {
+    ensureDotsContainer();
+    dotsContainer.innerHTML = '';
+    slides.forEach((_, i) => {
+      const d = document.createElement('button');
+      d.className = 'dot';
+      d.type = 'button';
+      d.setAttribute('aria-label', 'Go to slide ' + (i+1));
+      d.dataset.index = i;
+      d.addEventListener('click', () => goToIndex(i));
+      d.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); goToIndex(i); } });
+      dotsContainer.appendChild(d);
+    });
+    Array.from(dotsContainer.children).forEach((dot, idx) => dot.classList.toggle('active', idx === currentIndex));
+  }
+
+  function updateActiveDotNative() {
+    const centerX = window.innerWidth / 2;
+    let bestIndex = 0;
+    let bestDist = Infinity;
+    slides.forEach((s, i) => {
+      const r = s.getBoundingClientRect();
+      const slideCenter = r.left + r.width / 2;
+      const dist = Math.abs(slideCenter - centerX);
+      if (dist < bestDist) { bestDist = dist; bestIndex = i; }
+    });
+    currentIndex = bestIndex;
+    if (dotsContainer) Array.from(dotsContainer.children).forEach((dot, i) => dot.classList.toggle('active', i === bestIndex));
+  }
+
+  function goToIndex(i) {
+    i = Math.max(0, Math.min(i, slides.length - 1));
+    currentIndex = i;
+
+    if (scroller.classList.contains('native-scroll')) {
+      slides[i].scrollIntoView({behavior: 'smooth', inline: 'center'});
+      updateActiveDotNative();
+      return;
+    }
+
+    const st = ScrollTrigger.getById('horizontal');
+    if (st && st.animation) {
+      const progress = (slides.length > 1) ? i / (slides.length - 1) : 0;
+      gsap.to(st.animation, { progress, duration: 0.6, ease: "power2.inOut" });
+      if (dotsContainer) Array.from(dotsContainer.children).forEach((dot, idx) => dot.classList.toggle('active', idx === i));
+      return;
+    }
+
+    if (st && typeof st.start === 'number' && typeof st.end === 'number') {
+      const progress = (slides.length > 1) ? i / (slides.length - 1) : 0;
+      const targetY = Math.round(st.start + progress * (st.end - st.start));
+      window.scrollTo({ top: targetY, behavior: 'smooth' });
+    }
+  }
+
+  function initNativeScroller() {
+    if (window.__myco_tween) { try { window.__myco_tween.kill(); } catch(e){} window.__myco_tween = null; }
+    ScrollTrigger.getAll().forEach(st => st.kill());
+
+    scroller.classList.add('native-scroll');
+    track.classList.add('native-scroll');
+    scroller.style.overflow = 'auto';
+    track.style.transform = 'none';
+    track.style.willChange = 'auto';
+    track.style.scrollBehavior = 'smooth';
+    track.style.paddingBottom = '24px';
+    track.style.scrollSnapType = 'x mandatory';
+
+    buildDots();
+    updateActiveDotNative();
+
+    track.removeEventListener('scroll', nativeScrollHandler);
+    track.addEventListener('scroll', nativeScrollHandler, { passive: true });
+
+    window.removeEventListener('keydown', desktopKeyHandler);
+    window.addEventListener('keydown', nativeKeyHandler);
+  }
+
+  function nativeScrollHandler() {
+    updateActiveDotNative();
+  }
+
+  function nativeKeyHandler(e) {
+    if (e.key === 'ArrowRight') goToIndex(currentIndex + 1);
+    if (e.key === 'ArrowLeft') goToIndex(currentIndex - 1);
+  }
+
+  function desktopKeyHandler(e) {
+    if (e.key === 'ArrowRight') goToIndex(currentIndex + 1);
+    if (e.key === 'ArrowLeft') goToIndex(currentIndex - 1);
+  }
+
+  async function initHorizontal() {
+    console.log('[MYCO] initHorizontal start — slides:', slides.length, 'isMobile:', mediaQuery.matches);
+    await waitForImages(track);
+
+    if (window.__myco_tween) { try { window.__myco_tween.kill(); } catch(e){} window.__myco_tween = null; }
+    ScrollTrigger.getAll().forEach(st => st.kill());
+
+    const isSmall = mediaQuery.matches;
+    if (isSmall) {
+      scroller.classList.remove('native-scroll');
+      track.classList.remove('native-scroll');
+      initNativeScroller();
+      return;
+    }
+
+    scroller.classList.remove('native-scroll');
+    track.classList.remove('native-scroll');
+    scroller.style.overflow = '';
+    track.style.transform = '';
+    track.style.willChange = 'transform';
+
+    const overflow = getHorizontalOverflow();
+    const trackRect = track.getBoundingClientRect();
+    const lastSlide = slides[slides.length - 1];
+    const lastRect = lastSlide.getBoundingClientRect();
+    const lastCenter = (lastRect.left - trackRect.left) + lastRect.width / 2;
+    const desiredToCenterLast = Math.max(0, lastCenter - window.innerWidth / 2);
+    const minPixels = Math.round(window.innerWidth * 0.8);
+    const total = Math.max(overflow, desiredToCenterLast, minPixels);
+
+    try {
+      const tween = gsap.to(track, {
+        x: () => `-${total}px`,
+        ease: "none",
+        force3D: true,
+        scrollTrigger: {
+          id: 'horizontal',
+          trigger: scroller,
+          start: "top top",
+          end: () => `+=${total}`,
+          scrub: 0.6,
+          pin: true,
+          pinSpacing: true,
+          anticipatePin: 1,
+          invalidateOnRefresh: true,
+          snap: {
+            snapTo: 1 / Math.max(1, slides.length - 1),
+            duration: 0.12,
+            ease: "power2.inOut"
+          },
+          onUpdate(self) {
+            const index = Math.round(self.progress * (slides.length - 1));
+            currentIndex = index;
+            if (dotsContainer) Array.from(dotsContainer.children).forEach((dot, i) => dot.classList.toggle('active', i === index));
+          }
+        }
+      });
+      window.__myco_tween = tween;
+    } catch (err) {
+      console.error('[MYCO] gsap.to() failed:', err);
+    }
+
+    buildDots();
+
+    window.removeEventListener('keydown', nativeKeyHandler);
+    window.addEventListener('keydown', desktopKeyHandler);
+
+    ScrollTrigger.refresh();
+  }
+
+  window.addEventListener('load', () => {
+    ensureDotsContainer();
+    initHorizontal().catch(e => console.error('[MYCO] initHorizontal error:', e));
+  });
+
+  let __resizeTimer;
+  window.addEventListener('resize', () => {
+    clearTimeout(__resizeTimer);
+    __resizeTimer = setTimeout(() => initHorizontal().catch(e => console.error('[MYCO] initHorizontal error:', e)), 160);
+  });
+
+  if (mediaQuery.addEventListener) {
+    mediaQuery.addEventListener('change', () => initHorizontal().catch(e => console.error('[MYCO] media change error:', e)));
+  } else if (mediaQuery.addListener) {
+    mediaQuery.addListener(() => initHorizontal().catch(e => console.error('[MYCO] media change error:', e)));
+  }
+
+  // Are the DOM elements present?
+  document.getElementById('scroller');
+  document.getElementById('track');
+  document.getElementById('dots');
+  document.getElementById('track')?.querySelectorAll('.slide')?.length;
+
+  // GSAP / ScrollTrigger state
+  ScrollTrigger ? ScrollTrigger.getAll().length : 'no ScrollTrigger';
+  ScrollTrigger.getById('horizontal');
+  window.__myco_tween || 'no tween';
+
+  // Useful metrics if ScrollTrigger exists or tween was created
+  const st = ScrollTrigger.getById('horizontal'); st ? {start: st.start, end: st.end, progress: st.animation?.progress?.() ?? null} : 'no st';
+  document.getElementById('track') ? { scrollWidth: document.getElementById('track').scrollWidth, rect: document.getElementById('track').getBoundingClientRect() } : null;
+})(); 
+</script>
+</body>
+</html>

@@ -1,6 +1,6 @@
 :root {
-    --text-color: #333333;
-    --background-color: #90c37a;
+    --text-color: #1c1c1d;
+    --background-color: #5c864b;
 }
 
 /* General Styles */
@@ -107,10 +107,10 @@ h1 {
 /* Tooltip */
 #tooltip {
     position: absolute;
-    color: var(--text-color); /* Matches --text-color from styles.css */
-    background-color: var(--background-color); /* Matches --color-4 from styles.css */
+    color: var(--text-color);
+    background-color: var(--background-color); 
     padding: 5px 8px;
-    border: 1px solid var(--color-3); /* Matches --color-3 from styles.css */
+    border: 1px solid var(--color-3); 
     border-radius: 3px;
     font-family: 'Courier New', Courier, monospace;
     font-size: 12px;
@@ -119,6 +119,35 @@ h1 {
     display: none;
     z-index: 1000;
     transition: opacity 0.2s ease-in-out;
+    min-width: 180px;
+    max-width: 320px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+    justify-content: center;
+}
+
+#tooltip canvas {
+    position: relative;
+    text-align: center;
+    align-items: center;
+    margin: 0 auto;
+    width: 180px;
+    height: 140px;
+    border-radius: 4px;
+    background: rgba(0,0,0,0.15);
+    box-shadow: 0 2px 6px rgba(0,0,0,1);
+    pointer-events: none;
+}
+
+#tooltip .desc {
+    color: var(--text-color);
+    font-size: 12px;
+    text-align: center;
+    align-items: center;
+    width: 100%;
+    overflow-wrap: anywhere;
 }
 
 /* Animations */

@@ -20,25 +20,25 @@
         */
         :root {
             font-family: 'OCR_A', Arial, sans-serif;
-            --color-1: #90c37a; 
-            --color-2: #90c37a; 
-            --color-3: #333333; 
-            --color-4: #3C2717; 
-            --color-5: #271405; 
+            --color-1: #5c864b;
+            --color-2: #223729;
+            --color-3: #c7cabd;
+            --color-4: #1c1c1d;
+            --color-5: #271405;
 
             --node-color-night: #47313b; 
             --link-color-night: #9fb38d; 
             --text-stroke-color-night:#9fb38d;
 
             --node-color-day: #2C3E17;
-            --link-color-day: #595c31;
-            --text-stroke-color-day: #c3f8cf;
+            --link-color-day: var(--color-2);
+            --text-stroke-color-day: var(--color-3);
 
 
             --text-color: var(--color-3); /* Set text color to --color-3 */
             --background-color: var(--color-1);
             --night-background: #020f08;
-            --day-background: #90c37a;
+            --day-background: var(--color-1);
             --night-node: ;
             --day-node: #2c3e17 ;
             --night-stroke: ;
@@ -101,7 +101,7 @@
 
         .day-mode svg {
             border-radius: 8px;
-            background-color: #90c37a;
+            background-color: var(--day-background);
         }
         
 

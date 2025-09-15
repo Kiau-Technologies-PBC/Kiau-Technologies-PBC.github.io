@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!--Edited by Max Van Dorn -->
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tackling E-Waste</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <script src="/script.js" defer></script>
+
+    <style>
+        /* Responsive video card */
+        .video-figure {
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 0.75rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.75rem;
+            font-family: 'Roboto Mono', monospace;
+        }
+
+        .video-wrapper {
+            width: 100%;
+            aspect-ratio: 16/9;
+            background: #000;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.35);
+        }
+
+        .video-wrapper video {
+            width: 100%;
+            height: 100%;
+            display: block;
+            object-fit: cover;
+            background: #000;
+        }
+
+        .video-caption {
+            max-width: 960px;
+            color: #e9ecef;
+            background: rgba(0,0,0,0.35);
+            padding: 10px 14px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 0.98rem;
+            line-height: 1.4;
+        }
+
+        /* Small responsive tweak for very small screens */
+        @media (max-width: 520px) {
+            .video-figure { margin: 1rem; padding: 0.5rem; }
+            .video-caption { font-size: 0.9rem; padding: 8px 10px; }
+        }
+
+        /* remove previous full-viewport iframe rule if present */
+        iframe { display: none; }
+    </style>
+</head>
+<body>
+    <header>
+        <!--<nav>
+            <div class="logo">
+                <img src="images/" alt="" class="logo-image">
+                <span class="logo-text"></span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="pages/blog.html">Blog</a></li>
+                <li><a href="pages/about.html">About Us</a></li>
+                <li><a href="contact.html">Contact & Team</a></li> 
+            </ul>
+            <div class="burger">
+                <div class="line1"></div>
+                <div class="line2"></div>
+                <div class="line3"></div>
+            </div>
+        </nav>-->
+    </header>
+
+    <main>
+        <section id="hero">
+            <div class="hero-overlay">
+                <figure class="video-figure" aria-labelledby="video-caption">
+                    <div class="video-wrapper">
+                        <video id="previewVideo" controls playsinline preload="metadata" >
+                            <source src="/images/spencer_vid.mp4" type="video/mp4">
+                            Your browser does not support the video element.
+                        </video>
+                    </div>
+                    <figcaption id="video-caption" class="video-caption">
+                        This video shows Spencer dissecting disposable vapes to collect rechargeable li-ion cells and PCBs to be repurposed for other projects.
+                    </figcaption>
+                </figure>
+            </div>
+        </section>
+    </main>
+    
+    <footer>
+        <div class="social-links">
+            <!-- Add social media links here -->
+        </div>
+        <p>&copy; 2025 Kiau Technologies PBC. All rights reserved.</p>
+    </footer>
+</body>
+</html>
