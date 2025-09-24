@@ -190,29 +190,16 @@ function addMarker(nodeName, description, location, color) {
     label.innerText = nodeName;
     document.body.appendChild(label);
 
-    label.addEventListener('mouseenter', (e) => {
-        showTooltipWithModel(description);
-        tooltip.style.left = `${e.pageX + 10}px`;
-        tooltip.style.top = `${e.pageY + 10}px`;
-    });
-
-    label.addEventListener('mousemove', (event) => {
-        tooltip.style.left = `${event.pageX + 10}px`;
-        tooltip.style.top = `${event.pageY + 10}px`;
-    });
-
-    label.addEventListener('mouseleave', () => {
-        hideTooltip();
-    });
-
     label.addEventListener('click', (e) => {
-        const payload = { nodeName, description };
-        try {
-            sessionStorage.setItem('previewData', JSON.stringify(payload));
-        } catch (err) {
-            console.warn('Session storage error', err);
-        }
-        window.open(`preview.html?node=${encodeURIComponent(nodeName)}`, '_blank');
+        spawnNodeWindow(nodeName, description, () => {
+            const payload = { nodeName, description };
+            try {
+                sessionStorage.setItem('previewData', JSON.stringify(payload));
+            } catch (err) {
+                console.warn('Session storage error', err);
+            }
+            window.open(`preview.html?node=${encodeURIComponent(nodeName)}`, '_blank');
+        });
     });
 
     markers.push(marker);
@@ -238,7 +225,6 @@ function updateLabelPositions() {
 const sheetId = "1a3ffD9pGRO6xu8ujJIWUM9y-YoxzAz61XgRerVWAntU";
 const sheetName = "Most Recent";
 const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=${sheetName}`;
-
 const targetIDs = ['TX1', 'TX3', 'TX7', 'SI1A'];
 const positions = {
     TX1: new THREE.Vector3(-2.9, -1, 2),
@@ -252,6 +238,19 @@ const colors = {
     TX7: 0x0099ff,
     SI1A: 0xffffff
 };
+
+// Problems right now; 1) the columns and recorded data in the new excel sheet is different
+// 2)Might have to sort specific columns to get the data we want since the device IDS are put in
+// one column and the data in another. 
+// Possible fixes: 1) filter column 'Device ID' for targetIDs and then get the data from the other columns.
+// 2) Once filtered, I need to pull the 24hr data from 'Ambient Temp', 'Ambient Humidity', 'Data', and 'Time' columns.
+// 3) Put it on a graph and display it. 
+
+// The tooltip is going to stay, it wont display the graph but now I want to add a feature that when when a user clicks
+// on a node, it opens another pop up tooltip on the side that you can close that has the graph and more detailed data. If the user clicks another graph it will display both graphs temps and humidity in different colors on the same graph so the user can compare them.
+// On the tooltip will also be a button that allows the user to get to the 3D preview page, that displays the nodes 3D scan itself. 
+
+// If a node is down, or not sending valid data, the color of the marker for the node on the 3D model will change colors. I also want the colors of the node to change depending on the battery
 
 fetch(url)
     .then(res => res.text())
@@ -444,3 +443,103 @@ console.log("Screen width:", window.innerWidth);
 console.log("Is mobile device:", isMobileDevice());
 console.log("Camera position:", camera.position);
 animate();
+
+function spawnNodeWindow(nodeName, descriptionHtml, previewCallback) {
+    // Track open windows for offset
+    if (!window._nodeWindowCount) window._nodeWindowCount = 0;
+    window._nodeWindowCount += 1;
+    const offset = 32 * (window._nodeWindowCount - 1);
+
+    const win = document.createElement('div');
+    win.className = 'node-popup-window';
+    win.style.position = 'fixed';
+    win.style.top = `${24 + offset}px`;
+    win.style.right = `${24 + offset}px`;
+    win.style.width = '340px';
+    win.style.minHeight = '180px';
+    win.style.background = '#1a2332';
+    win.style.color = '#fff';
+    win.style.borderRadius = '10px';
+    win.style.boxShadow = '0 8px 32px rgba(0,0,0,0.28)';
+    win.style.zIndex = 2000 + window._nodeWindowCount;
+    win.style.border = '2px solid #223729';
+    win.style.userSelect = 'none';
+    win.style.display = 'flex';
+    win.style.flexDirection = 'column';
+
+    // Header bar for dragging
+    const header = document.createElement('div');
+    header.textContent = nodeName;
+    header.style.background = '#223729';
+    header.style.padding = '10px 14px';
+    header.style.cursor = 'move';
+    header.style.fontWeight = 'bold';
+    header.style.borderTopLeftRadius = '8px';
+    header.style.borderTopRightRadius = '8px';
+    header.style.display = 'flex';
+    header.style.justifyContent = 'space-between';
+    header.style.alignItems = 'center';
+
+    // Close button
+    const closeBtn = document.createElement('button');
+    closeBtn.textContent = '✕';
+    closeBtn.style.background = 'none';
+    closeBtn.style.color = '#fff';
+    closeBtn.style.border = 'none';
+    closeBtn.style.fontSize = '18px';
+    closeBtn.style.cursor = 'pointer';
+    closeBtn.style.marginLeft = '12px';
+    closeBtn.onclick = () => {
+        win.remove();
+        window._nodeWindowCount -= 1;
+    };
+    header.appendChild(closeBtn);
+
+    win.appendChild(header);
+
+    // Content area
+    const content = document.createElement('div');
+    content.style.padding = '14px';
+    content.style.overflowY = 'auto';
+    content.style.flex = '1 1 auto';
+    content.innerHTML = descriptionHtml || '';
+    win.appendChild(content);
+
+    // Preview button
+    const previewBtn = document.createElement('button');
+    previewBtn.textContent = 'Show Full 3D Preview';
+    previewBtn.style.margin = '14px 0 0 0';
+    previewBtn.style.padding = '8px';
+    previewBtn.style.width = '100%';
+    previewBtn.style.borderRadius = '6px';
+    previewBtn.style.background = '#223729';
+    previewBtn.style.color = '#fff';
+    previewBtn.style.border = 'none';
+    previewBtn.style.cursor = 'pointer';
+    previewBtn.onclick = previewCallback;
+    win.appendChild(previewBtn);
+
+    document.body.appendChild(win);
+
+    // Drag logic
+    let dragging = false, startX = 0, startY = 0, winX = 0, winY = 0;
+    header.onmousedown = function(e) {
+        dragging = true;
+        startX = e.clientX;
+        startY = e.clientY;
+        winX = win.offsetLeft;
+        winY = win.offsetTop;
+        document.body.style.userSelect = 'none';
+    };
+    document.addEventListener('mousemove', function(e) {
+        if (!dragging) return;
+        win.style.left = 'auto';
+        win.style.right = 'auto';
+        win.style.top = Math.max(8, winY + (e.clientY - startY)) + 'px';
+        win.style.left = Math.max(8, winX + (e.clientX - startX)) + 'px';
+    });
+    document.addEventListener('mouseup', function() {
+        dragging = false;
+        document.body.style.userSelect = '';
+    });
+}
