@@ -178,3 +178,13 @@ h1 {
     background-color: #007acc; /* Darker blue on hover */
     transform: scale(1.05); /* Slight zoom effect */
 }
+
+.node-popup-window {
+    transition: box-shadow .18s;
+}
+.node-popup-window:active, .node-popup-window:focus-within {
+    box-shadow: 0 12px 40px rgba(0,0,0,0.38);
+}
+.node-popup-window button:focus {
+    outline: none;
+}
