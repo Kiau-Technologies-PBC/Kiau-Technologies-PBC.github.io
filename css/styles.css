@@ -124,14 +124,14 @@ body {
      background-color: var(--color-2);
  }
  
- .container {
-     padding-top: 2rem;
-     margin-bottom: 2rem;
-     display: flex;
-     justify-content: center;
-     flex-direction: column;
-     align-items: center;
- }
+.container {
+        padding-top: 2rem;
+        margin-bottom: 2rem;
+        display: flex;
+        justify-content: center;
+        flex-direction: column;
+        align-items: center;
+}
  
  .divider {
      width: 90%; 
@@ -215,17 +215,18 @@ body {
      color: var(--color-3);
  }
  
- #hero {
-     position: relative;
-     width: 100vw;
-     height: 100vh;
-     background-image: url('images/prototypeInSoil.png');
-     background-size: cover;
-     background-position: center;
-     background-repeat: no-repeat;
-     margin: 0;
-     padding: 0;
- }
+/* Hero - desktop defaults */
+#hero {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    background-image: url('images/prototypeInSoil.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    margin: 0;
+    padding: 0;
+}
  
  
  .hero-overlay {
@@ -239,6 +240,8 @@ body {
      text-align: center;
      padding: 2rem;
      color: #fff;
+    overflow: hidden; /* hide off-screen sliding text until it animates in */
+    will-change: transform, opacity;
  }
  
  .hero-overlay h1 {
@@ -248,11 +251,11 @@ body {
  }
 
  .hero-overlay .box_a, .box_c{
-     transform: translateX(-200px);
+     transform: translateX(-120vw); /* start fully off-screen to the left */
  }
 
  .hero-overlay .box_b, .box_d{
-     transform: translateX(+200px);
+     transform: translateX(120vw); /* start fully off-screen to the right */
  }
 
  .hero-overlay .box_e {
@@ -347,17 +350,48 @@ body {
  
  /* Responsive design */
  @media screen and (max-width: 768px) {
-     .hero-overlay h1 {
-         font-size: 2rem;
-     }
- 
-     .hero-overlay p {
-         font-size: 1rem;
-     }
- 
-     .nav-links {
-         display: none; /* Hide nav links on mobile */
-     }
+    /* Mobile layout overrides */
+    .container {
+        max-width: 680px; /* keep readable lines on narrow screens */
+        width: calc(100% - 32px);
+        padding-left: 16px;
+        padding-right: 16px;
+        line-height: 1.7;
+        background: rgba(255,255,255,0.92);
+        border-radius: 10px;
+        margin: 1rem auto;
+    }
+
+    #hero {
+        height: 70vh;
+    }
+
+    .hero-overlay {
+        min-height: 60vh;
+        padding: 2rem 1rem;
+        justify-content: center;
+    }
+
+    .hero-overlay h1 {
+        font-size: 3.2rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .hero-overlay p {
+        font-size: 1rem;
+    }
+
+    .nav-links {
+        display: none; /* Hide nav links on mobile */
+    }
+
+    /* reduce off-screen distance for small screens */
+    .hero-overlay .box_a, .hero-overlay .box_c{
+        transform: translateX(-40vw);
+    }
+    .hero-overlay .box_b, .hero-overlay .box_d{
+        transform: translateX(40vw);
+    }
  }
  
  .nav-links a {
