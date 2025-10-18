@@ -60,17 +60,48 @@
             --wave-amp: 60;
         }
 
+        /* Tablet breakpoint */
+        @media (max-width: 1024px) and (min-width: 769px) {
+            :root {
+                --link-distance: 220;
+                --node-radius: 5;
+                --stroke-width: 2.5;
+                --font-size-normal: 15px;
+                --font-size-special: 19px;
+                --boundries-padding-width: 150;
+                --boundries-padding-height: 30;
+                --wave-count: 20;
+                --wave-amp: 40;
+            }
+        }
+
+        /* Mobile breakpoint */
         @media (max-width: 768px) {
             :root {
-                --link-distance:150;
+                --link-distance: 150;
                 --node-radius: 3;
-                --stroke-width:1.4;
-                --font-size-normal:10px;
+                --stroke-width: 1.4;
+                --font-size-normal: 10px;
                 --font-size-special: 13px;
-                --boundries-padding-width:60;
-                --boundries-padding-height:5;
+                --boundries-padding-width: 60;
+                --boundries-padding-height: 5;
                 --wave-count: 10;
                 --wave-amp: 10;
+            }
+        }
+
+        /* Small mobile breakpoint */
+        @media (max-width: 480px) {
+            :root {
+                --link-distance: 120;
+                --node-radius: 2.5;
+                --stroke-width: 1.2;
+                --font-size-normal: 9px;
+                --font-size-special: 11px;
+                --boundries-padding-width: 40;
+                --boundries-padding-height: 3;
+                --wave-count: 8;
+                --wave-amp: 8;
             }
         }
         @font-face {
@@ -229,28 +260,33 @@
             const width = window.innerWidth;
             const height = window.innerHeight;
     
-    // Update SVG size
+            // Update SVG size
             svg.setAttribute('width', width);
             svg.setAttribute('height', height);
+            svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
 
-    // Adjust force simulation (distance and center)
+            // Adjust force simulation (distance and center)
             if (window.simulation) {
+                const linkDistance = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--link-distance'));
                 window.simulation
-                .force("center", d3.forceCenter(width / 2, height / 2))
-                .force("link", d3.forceLink().distance(width / 5)) // Change link distance dynamically
-                .alphaTarget(0.3).restart();
-                }
+                    .force("center", d3.forceCenter(width / 2, height / 2))
+                    .force("link", d3.forceLink().distance(linkDistance))
+                    .alpha(0.3)
+                    .restart();
             }
+        }
 
         // Apply mode on page load
-        
         window.onload = function() {
             timeMode();
             resizeSVG();
         };
 
+        // Debounced resize handler
+        let resizeTimer;
         window.onresize = function() {
-            resizeSVG();
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(resizeSVG, 150);
         }
 
     </script>

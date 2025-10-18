@@ -1,5 +1,8 @@
 function getResponsiveSettings() {
   const rootStyles = getComputedStyle(document.documentElement);
+  const width = window.innerWidth;
+  const height = window.innerHeight;
+  
   return {
     linkDistance: parseFloat(rootStyles.getPropertyValue('--link-distance')),
     nodeRadius: parseFloat(rootStyles.getPropertyValue('--node-radius')),
@@ -10,17 +13,43 @@ function getResponsiveSettings() {
     boundPaddingH: parseFloat(rootStyles.getPropertyValue('--boundries-padding-height')),
     waveCount: parseInt(rootStyles.getPropertyValue('--wave-count')),
     waveAmp: parseFloat(rootStyles.getPropertyValue('--wave-amp')),
+    width: width,
+    height: height,
+    centerX: width / 2,
+    centerY: height / 2
   };
+}
+
+// URL mapping configuration - easily extensible
+const urlMap = {
+  'Kiau Technologies': 'about.html',
+  'Greenhouse Twins': 'climate_battery3D.html',
+  'Small-Scale Biochar Reactors': 'smallScaleBiochar.html',
+  'Local Plastic Recycling': 'localPlasticRecycling.html',
+  'E-Waste Projects': 'e-waste.html',
+  'Mycomaterials': 'Mycomaterials.html',
+  'Design Thinking': 'designThinking.html'
+};
+
+// Get URL for a node - returns default if not found
+function getNodeUrl(nodeId) {
+  return urlMap[nodeId] || 'example.html';
+}
+
+// Special nodes configuration
+const specialNodes = ['Soil Health Monitoring', 'Kiau Technologies'];
+function isSpecialNode(nodeId) {
+  return specialNodes.includes(nodeId);
 }
 
 
 d3.csv("data/nodes2.0.csv").then(function(data) {
 
-  const settings = getResponsiveSettings();
+  let settings = getResponsiveSettings();
   console.log("Responsive Settings:", settings);
 
-  const width = window.innerWidth;
-  const height = window.innerHeight;
+  let width = settings.width;
+  let height = settings.height;
   const isMobile = window.innerWidth < 768;
   if (isMobile) {
     console.log("mobile mode");
@@ -83,11 +112,13 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
   // Initialize the simulation with forces
   const simulation = d3.forceSimulation(nodes)
     .force("link", d3.forceLink(links).id(d => d.id).distance(settings.linkDistance))
-    .force("charge", d3.forceManyBody().strength(-100))
-    .force("center", d3.forceCenter(width / 2, height / 2))
-    .force("collision", d3.forceCollide().radius(settings.nodeRadius * 2))
-    .force("directional", isMobile ? d3.forceX(width / 2).strength(.1) : null);
-  let mouseX = width / 2, mouseY = height / 2;
+    .force("charge", d3.forceManyBody().strength(isMobile ? -50 : -100))
+    .force("center", d3.forceCenter(settings.centerX, settings.centerY))
+    .force("collision", d3.forceCollide().radius(settings.nodeRadius * 2.5))
+    .force("directional", isMobile ? d3.forceX(settings.centerX).strength(.1) : null)
+    .alphaDecay(0.02); // Slower decay for smoother animation
+  
+  let mouseX = settings.centerX, mouseY = settings.centerY;
   svg.on("mousemove", function() {
     const [x, y] = d3.mouse(this);
     mouseX = x;
@@ -97,9 +128,39 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
   // Special node position for "Kiau Technologies"
   const specialNode = nodes.find(node => node.id === 'Kiau Technologies');
   if (specialNode) {
-    specialNode.fx = width / 2;
-    specialNode.fy = height / 2;
+    specialNode.fx = settings.centerX;
+    specialNode.fy = settings.centerY;
   }
+
+  // Window resize handler for dynamic resizing
+  let resizeTimeout;
+  window.addEventListener('resize', function() {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(() => {
+      settings = getResponsiveSettings();
+      width = settings.width;
+      height = settings.height;
+      
+      // Update SVG viewBox
+      svg.attr("viewBox", `0 0 ${width} ${height}`);
+      
+      // Update forces
+      simulation
+        .force("center", d3.forceCenter(settings.centerX, settings.centerY))
+        .force("link", d3.forceLink(links).id(d => d.id).distance(settings.linkDistance))
+        .force("collision", d3.forceCollide().radius(settings.nodeRadius * 2.5))
+        .alpha(0.3)
+        .restart();
+      
+      // Update special node position
+      if (specialNode) {
+        specialNode.fx = settings.centerX;
+        specialNode.fy = settings.centerY;
+      }
+      
+      console.log("Resized to:", settings);
+    }, 250);
+  });
 
   // Determine day/night mode based on time
   const hour = new Date().getHours();
@@ -156,42 +217,24 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
       const nodeGroup = d3.select(this);
     
       const anchor = nodeGroup.append("a")
-        .attr("xlink:href", () => {
-          if (d.id === 'Kiau Technologies') {
-            return "about.html";
-          } else if (d.id === 'Greenhouse Twins') {
-            return "climate_battery3D.html";
-          } else if (d.id === 'Small-Scale Biochar Reactors') {
-            return "smallScaleBiochar.html";
-          } else if (d.id === 'Local Plastic Recycling') {
-            return "localPlasticRecycling.html";
-          } else if (d.id === 'E-Waste Projects') {
-            return "e-waste.html";
-          } else if (d.id === 'Mycomaterials') {
-            return "Mycomaterials.html";
-          } else if (d.id === 'Design Thinking') {
-            return "designThinking.html";
-          } else {
-            return "example.html";
-          }
-        })
+        .attr("xlink:href", () => getNodeUrl(d.id))
         .attr("role", "link")
         .attr("tabindex", 0)
         .attr("aria-hidden", "true");
     
-      const offsetX = d.x < width / 2 ? -8 : 8;
-      const offsetY = d.y < height / 2 ? -8 : 8;
-      const textAnchor = d.x < width / 2 ? "end" : "start";
-      const dy = d.y < height / 2 ? "-0.0em" : "0.0em"; // Raise or lower text a bit
+      const offsetX = d.x < settings.centerX ? -8 : 8;
+      const offsetY = d.y < settings.centerY ? -8 : 8;
+      const textAnchor = d.x < settings.centerX ? "end" : "start";
+      const dy = d.y < settings.centerY ? "-0.0em" : "0.0em";
     
       const text = anchor.append("text")
         .attr("class", "main-text")
-        .attr("filter", (!isDayMode && !isMobile) ? "url(#glow)" : null) // Disable glow on mobile
+        .attr("filter", (!isDayMode && !isMobile) ? "url(#glow)" : null)
         .attr("x", offsetX)
         .attr("y", offsetY)
         .attr("dy", dy)
         .attr("text-anchor", textAnchor)
-        .attr("font-size", d.id === 'Soil Health Monitoring' || d.id === 'Kiau Technologies' ? settings.specialFontSize : settings.normalFontSize)
+        .attr("font-size", isSpecialNode(d.id) ? settings.specialFontSize : settings.normalFontSize)
         .text(d.id);
     
       text.attr("aria-label", d.id);
@@ -217,12 +260,15 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
   
     node.each(function(d) {
       const anchor = d3.select(this).select("a");
+      const currentCenterX = width / 2;
+      const currentCenterY = height / 2;
+      
       anchor.selectAll("text")
         .transition()
         .duration(50)
-        .attr("x", d.x < width / 2 ? -8 : 8)
-        .attr("y", d => d.y < height / 2 ? -8 : 8)
-        .attr("text-anchor", d.x < width / 2 ? "end" : "start");
+        .attr("x", d.x < currentCenterX ? -8 : 8)
+        .attr("y", d => d.y < currentCenterY ? -8 : 8)
+        .attr("text-anchor", d.x < currentCenterX ? "end" : "start");
     });
   });
   
