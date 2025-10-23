@@ -357,7 +357,11 @@
   }
 
   function getHorizontalOverflow() {
-    return Math.max(0, track.scrollWidth - window.innerWidth + 40);
+    // Calculate the actual overflow needed to show all slides properly
+    const trackWidth = track.scrollWidth;
+    const viewportWidth = window.innerWidth;
+    const padding = 80; // Account for track padding and extra space
+    return Math.max(0, trackWidth - viewportWidth + padding);
   }
 
   function ensureDotsContainer() {
@@ -485,10 +489,15 @@
     const trackRect = track.getBoundingClientRect();
     const lastSlide = slides[slides.length - 1];
     const lastRect = lastSlide.getBoundingClientRect();
+    
+    // Calculate distance needed to center the last slide
     const lastCenter = (lastRect.left - trackRect.left) + lastRect.width / 2;
     const desiredToCenterLast = Math.max(0, lastCenter - window.innerWidth / 2);
+    
+    // Add extra padding to ensure last slide is fully visible and centered
+    const extraPadding = lastRect.width * 0.5; // Half slide width as buffer
     const minPixels = Math.round(window.innerWidth * 0.8);
-    const total = Math.max(overflow, desiredToCenterLast, minPixels);
+    const total = Math.max(overflow + extraPadding, desiredToCenterLast + extraPadding, minPixels);
 
     try {
       const tween = gsap.to(track, {
