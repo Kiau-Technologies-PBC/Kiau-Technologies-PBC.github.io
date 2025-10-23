@@ -477,8 +477,8 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
   
 
   let frameCount = 0;
-  let lastPulseTime = Date.now() - 3000; // Start with offset to trigger first pulse quickly
-  const pulseInterval = isMobile ? 1500 : 1000; // Spawn pulse every 1-1.5 seconds (more frequent)
+  let lastPulseTime = Date.now() - 2000; // Start with offset to trigger first pulse quickly
+  const pulseInterval = isMobile ? 800 : 600; // Spawn pulses every 0.6-0.8 seconds (much more frequent)
   
   // Independent pulse animation system - runs continuously regardless of simulation state
   let pulseAnimationId;
@@ -487,9 +487,10 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
     // Update all active pulses
     updatePulses();
     
-    // Spawn new pulses based on timing
+    // Spawn new pulses based on timing with organic variation
     const currentTime = Date.now();
-    if (currentTime - lastPulseTime > pulseInterval + Math.random() * 1000) {
+    const timingVariation = Math.random() * 400; // 0-400ms variation
+    if (currentTime - lastPulseTime > pulseInterval + timingVariation) {
       spawnRandomPulse();
       lastPulseTime = currentTime;
     }
@@ -707,8 +708,18 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
       return;
     }
     
-    // Pick random connection(s) - sometimes spawn multiple for organic feel
-    const numPulses = Math.random() < 0.7 ? 1 : 2; // 70% chance single pulse, 30% double
+    // Pick random connection(s) - spawn multiple for more active network
+    const rand = Math.random();
+    let numPulses;
+    if (rand < 0.4) {
+      numPulses = 1; // 40% chance single pulse
+    } else if (rand < 0.75) {
+      numPulses = 2; // 35% chance double pulse
+    } else if (rand < 0.9) {
+      numPulses = 3; // 15% chance triple pulse
+    } else {
+      numPulses = isMobile ? 2 : 4; // 10% chance quad pulse (reduced on mobile)
+    }
     
     console.log(`Spawning ${numPulses} pulse(s) from Kiau Technologies`);
     
