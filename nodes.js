@@ -149,19 +149,70 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
     merge.append("feMergeNode").attr("in", "SourceGraphic");
   }
 
+  // Add special yellow glow filter for Kiau Technologies node
+  const yellowGlowFilter = defs.append("filter")
+    .attr("id", "yellowGlow")
+    .attr("height", "400%")
+    .attr("width", "400%")
+    .attr("x", "-150%")
+    .attr("y", "-150%");
+
+  if (!isMobile) {
+    const yellowBlur = yellowGlowFilter.append("feGaussianBlur")
+      .attr("in", "SourceGraphic")
+      .attr("stdDeviation", 8)
+      .attr("result", "yellowBlur");
+
+    const colorMatrix = yellowGlowFilter.append("feColorMatrix")
+      .attr("in", "yellowBlur")
+      .attr("type", "matrix")
+      .attr("values", "1 1 0.3 0 0  1 1 0.3 0 0  0.8 0.8 0.2 0 0  0 0 0 1 0")
+      .attr("result", "yellowGlow");
+
+    const yellowMerge = yellowGlowFilter.append("feMerge");
+    yellowMerge.append("feMergeNode").attr("in", "yellowGlow");
+    yellowMerge.append("feMergeNode").attr("in", "SourceGraphic");
+  }
+
+  // Add bioluminescent pulse filter
+  const bioGlowFilter = defs.append("filter")
+    .attr("id", "bioGlow")
+    .attr("height", "300%")
+    .attr("width", "300%")
+    .attr("x", "-100%")
+    .attr("y", "-100%");
+
+  if (!isMobile) {
+    const bioBlur = bioGlowFilter.append("feGaussianBlur")
+      .attr("in", "SourceGraphic")
+      .attr("stdDeviation", 6)
+      .attr("result", "bioBlur");
+
+    // Create organic bioluminescent color - cyan/blue-green
+    const bioColorMatrix = bioGlowFilter.append("feColorMatrix")
+      .attr("in", "bioBlur")
+      .attr("type", "matrix")
+      .attr("values", "0.2 1 0.8 0 0  0.3 1 1 0 0  0.1 0.8 1 0 0  0 0 0 1 0")
+      .attr("result", "bioColor");
+
+    const bioMerge = bioGlowFilter.append("feMerge");
+    bioMerge.append("feMergeNode").attr("in", "bioColor");
+    bioMerge.append("feMergeNode").attr("in", "SourceGraphic");
+  }
+
   // Initialize the simulation with forces - focused on elastic band feel
   const simulation = d3.forceSimulation(allNodes)
     .force("link", d3.forceLink([...links, ...ropeLinks]).id(d => d.id)
       .distance(d => d.isRope ? d.distance : settings.linkDistance)
-      .strength(d => d.isRope ? d.strength : 0.5))
+      .strength(d => d.isRope ? d.strength : 0.4))
     .force("charge", d3.forceManyBody().strength(d => {
-      if (d.isRopeSegment) return isMobile ? -5 : -10; // Minimal repulsion for elastic segments
-      return isMobile ? -50 : -100;
+      if (d.isRopeSegment) return isMobile ? -8 : -15; // Minimal repulsion for elastic segments
+      return isMobile ? -80 : -180; // Increased repulsion for more spread
     }))
     .force("center", d3.forceCenter(settings.centerX, settings.centerY))
     .force("collision", d3.forceCollide().radius(d => {
       if (d.isRopeSegment) return 1; // Very small collision for elastic segments
-      return settings.nodeRadius * 2.5;
+      return settings.nodeRadius * 3; // Slightly larger collision radius
     }))
     .force("directional", isMobile ? d3.forceX(settings.centerX).strength(.05) : null)
     .force("gravity", d3.forceY().strength(d => {
@@ -269,6 +320,93 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
     .attr("r", 0) // Invisible
     .attr("fill", "transparent");
 
+  // Bioluminescent pulse system
+  const pulseGroup = svg.append("g").attr("class", "pulses");
+  let activePulses = [];
+  let pulseIdCounter = 0;
+
+  // Function to create a pulse along a connection
+  function createPulse(link) {
+    const pulseId = ++pulseIdCounter;
+    const pulseColor = isDayMode ? "#4a9eff" : "#00ffaa";
+    const tailLength = isMobile ? 3 : 5; // Number of tail segments
+    
+    const pulseData = {
+      id: pulseId,
+      link: link,
+      progress: 0,
+      speed: 0.008 + Math.random() * 0.012, // Organic variation in speed
+      intensity: 0.6 + Math.random() * 0.4, // Varying glow intensity
+      size: isMobile ? 3 : 4 + Math.random() * 3,
+      color: pulseColor,
+      tail: [] // Array to store tail elements
+    };
+
+    // Create the main pulse element
+    const pulse = pulseGroup.append("circle")
+      .attr("class", "bio-pulse-main")
+      .attr("r", pulseData.size)
+      .attr("fill", pulseColor)
+      .attr("opacity", 0)
+      .attr("filter", !isMobile ? "url(#bioGlow)" : null);
+
+    pulseData.element = pulse;
+
+    // Create tail segments
+    for (let i = 0; i < tailLength; i++) {
+      const tailSegment = pulseGroup.append("circle")
+        .attr("class", "bio-pulse-tail")
+        .attr("r", pulseData.size * (0.8 - i * 0.15)) // Decreasing size
+        .attr("fill", pulseColor)
+        .attr("opacity", 0)
+        .attr("filter", !isMobile ? "url(#bioGlow)" : null);
+      
+      pulseData.tail.push({
+        element: tailSegment,
+        delay: i + 1, // Frames behind the main pulse
+        opacity: pulseData.intensity * (0.7 - i * 0.12) // Decreasing opacity
+      });
+    }
+
+    activePulses.push(pulseData);
+
+    // Fade in main pulse
+    pulse.transition()
+      .duration(200)
+      .attr("opacity", pulseData.intensity);
+
+    return pulseData;
+  }
+
+  // Function to get position along a path
+  function getPositionAlongPath(link, progress) {
+    if (!link.ropeSegments || link.ropeSegments.length === 0) {
+      // Direct line interpolation
+      const x = link.source.x + (link.target.x - link.source.x) * progress;
+      const y = link.source.y + (link.target.y - link.source.y) * progress;
+      return { x, y };
+    }
+
+    // Interpolate along rope segments
+    const points = [link.source, ...link.ropeSegments, link.target];
+    const totalSegments = points.length - 1;
+    const segmentProgress = progress * totalSegments;
+    const segmentIndex = Math.floor(segmentProgress);
+    const localProgress = segmentProgress - segmentIndex;
+
+    if (segmentIndex >= totalSegments) {
+      return { x: points[points.length - 1].x, y: points[points.length - 1].y };
+    }
+
+    const startPoint = points[segmentIndex];
+    const endPoint = points[segmentIndex + 1];
+
+    return {
+      x: startPoint.x + (endPoint.x - startPoint.x) * localProgress,
+      y: startPoint.y + (endPoint.y - startPoint.y) * localProgress
+    };
+  }
+
   // Create node groups with circles and text
   const node = svg.append("g")
     .attr("fill", "currentColor")
@@ -287,6 +425,7 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
     .attr("fill", nodeColor)
     .attr("role", "img")
     .attr("aria-label", d => `Node: ${d.name}`)
+    .attr("filter", d => d.id === 'Kiau Technologies' && !isMobile ? "url(#yellowGlow)" : null)
   
     node.each(function(d) {
       const nodeGroup = d3.select(this);
@@ -315,14 +454,42 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
         .attr("stroke", textStrokeColor)
         .attr("stroke-width", 5)
         .attr("stroke-linejoin", "round")
-        .attr("fill", "none"); // Stroke-only for the background glow
+        .attr("fill", "none") // Stroke-only for the background glow
+        .attr("filter", d.id === 'Kiau Technologies' && !isMobile ? "url(#yellowGlow)" : null);
     });
     
     
   
 
   let frameCount = 0;
+  let lastPulseTime = Date.now() - 3000; // Start with offset to trigger first pulse quickly
+  const pulseInterval = isMobile ? 1500 : 1000; // Spawn pulse every 1-1.5 seconds (more frequent)
   
+  // Independent pulse animation system - runs continuously regardless of simulation state
+  let pulseAnimationId;
+  
+  function pulseAnimationLoop() {
+    // Update all active pulses
+    updatePulses();
+    
+    // Spawn new pulses based on timing
+    const currentTime = Date.now();
+    if (currentTime - lastPulseTime > pulseInterval + Math.random() * 1000) {
+      spawnRandomPulse();
+      lastPulseTime = currentTime;
+    }
+    
+    // Continue the animation loop
+    pulseAnimationId = requestAnimationFrame(pulseAnimationLoop);
+  }
+  
+  // Start the independent pulse system
+  setTimeout(() => {
+    spawnRandomPulse();
+    console.log("Initial pulse spawned");
+    pulseAnimationLoop(); // Start the continuous animation loop
+  }, 1000);
+
   // Update rope and node positions during simulation ticks
   simulation.on("tick", () => {
     frameCount++;
@@ -432,6 +599,123 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
         ropeNode.vy += Math.sin(angle) * force;
       }
     });
+  }
+
+  // Update pulse animations
+  function updatePulses() {
+    activePulses = activePulses.filter(pulse => {
+      pulse.progress += pulse.speed;
+      
+      // Initialize position history if not exists
+      if (!pulse.positionHistory) {
+        pulse.positionHistory = [];
+      }
+      
+      if (pulse.progress >= 1) {
+        // Pulse reached end - fade out and remove all elements
+        pulse.element.transition()
+          .duration(300)
+          .attr("opacity", 0)
+          .attr("r", pulse.size * 1.5) // Expand as it fades
+          .remove();
+        
+        // Remove tail segments
+        pulse.tail.forEach(tailSegment => {
+          tailSegment.element.transition()
+            .duration(300)
+            .attr("opacity", 0)
+            .remove();
+        });
+        
+        return false; // Remove from active pulses
+      }
+      
+      // Update pulse position along path
+      const pos = getPositionAlongPath(pulse.link, pulse.progress);
+      
+      // Store position in history for tail
+      pulse.positionHistory.push({ x: pos.x, y: pos.y });
+      
+      // Keep only necessary history for tail length
+      const maxHistory = pulse.tail.length + 2;
+      if (pulse.positionHistory.length > maxHistory) {
+        pulse.positionHistory.shift();
+      }
+      
+      // Organic pulsing effect - size varies as it travels
+      const pulseFactor = 1 + 0.3 * Math.sin(pulse.progress * Math.PI * 4 + Date.now() * 0.005);
+      const currentSize = pulse.size * pulseFactor;
+      
+      // Update main pulse
+      pulse.element
+        .attr("cx", pos.x)
+        .attr("cy", pos.y)
+        .attr("r", currentSize);
+      
+      // Update tail segments
+      pulse.tail.forEach((tailSegment, index) => {
+        const historyIndex = pulse.positionHistory.length - 1 - tailSegment.delay;
+        
+        if (historyIndex >= 0 && pulse.positionHistory[historyIndex]) {
+          const tailPos = pulse.positionHistory[historyIndex];
+          const tailSize = (pulse.size * (0.8 - index * 0.15)) * pulseFactor;
+          
+          tailSegment.element
+            .attr("cx", tailPos.x)
+            .attr("cy", tailPos.y)
+            .attr("r", tailSize)
+            .attr("opacity", tailSegment.opacity);
+        } else {
+          // Hide tail segment if no history available yet
+          tailSegment.element.attr("opacity", 0);
+        }
+      });
+      
+      return true; // Keep pulse active
+    });
+  }
+
+  // Spawn a random pulse from Kiau Technologies
+  function spawnRandomPulse() {
+    if (!specialNode) {
+      console.log("No special node found");
+      return;
+    }
+    
+    // Find all links connected to Kiau Technologies
+    const connectedLinks = links.filter(link => 
+      link.source.id === 'Kiau Technologies' || link.target.id === 'Kiau Technologies'
+    );
+    
+    if (connectedLinks.length === 0) {
+      console.log("No connected links found");
+      return;
+    }
+    
+    // Pick random connection(s) - sometimes spawn multiple for organic feel
+    const numPulses = Math.random() < 0.7 ? 1 : 2; // 70% chance single pulse, 30% double
+    
+    console.log(`Spawning ${numPulses} pulse(s) from Kiau Technologies`);
+    
+    for (let i = 0; i < numPulses; i++) {
+      const randomLink = connectedLinks[Math.floor(Math.random() * connectedLinks.length)];
+      
+      // Ensure pulse travels away from Kiau Technologies
+      let pulseLink = randomLink;
+      if (randomLink.target.id === 'Kiau Technologies') {
+        // Reverse the link direction for pulse travel
+        pulseLink = {
+          source: randomLink.target,
+          target: randomLink.source,
+          ropeSegments: randomLink.ropeSegments ? [...randomLink.ropeSegments].reverse() : null
+        };
+      }
+      
+      setTimeout(() => {
+        createPulse(pulseLink);
+        console.log(`Pulse created traveling to: ${pulseLink.target.id}`);
+      }, i * 200); // Slight delay between multiple pulses
+    }
   }
 
   // Dragging behavior to allow movement of nodes
