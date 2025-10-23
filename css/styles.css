@@ -273,7 +273,7 @@ body {
  
  .hero-overlay {
      position: relative;
-     background: linear-gradient(135deg, rgba(34, 55, 41, 0.95) 0%, rgba(92, 134, 75, 0.85) 50%, rgba(34, 55, 41, 0.95) 100%);
+     background: rgba(34, 55, 41, 0.9);
      display: flex;
      min-height: 100vh;
      flex-direction: column;
