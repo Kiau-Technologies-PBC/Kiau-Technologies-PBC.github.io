@@ -328,7 +328,7 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
   // Function to create a pulse along a connection
   function createPulse(link) {
     const pulseId = ++pulseIdCounter;
-    const pulseColor = isDayMode ? "#4a9eff" : "#00ffaa";
+    const pulseColor = isDayMode ? "#7dd87f" : "#00ffaa"; // Light green for day, cyan-green for night
     const tailLength = isMobile ? 3 : 5; // Number of tail segments
     
     const pulseData = {
@@ -378,29 +378,44 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
     return pulseData;
   }
 
-  // Function to get position along a path
+  // Function to get position along a path - uses real-time positions
   function getPositionAlongPath(link, progress) {
-    if (!link.ropeSegments || link.ropeSegments.length === 0) {
-      // Direct line interpolation
+    // Get the original link reference if this is a reversed pulse link
+    const originalLink = link.originalLink || link;
+    
+    if (!originalLink.ropeSegments || originalLink.ropeSegments.length === 0) {
+      // Direct line interpolation using current node positions
       const x = link.source.x + (link.target.x - link.source.x) * progress;
       const y = link.source.y + (link.target.y - link.source.y) * progress;
       return { x, y };
     }
 
-    // Interpolate along rope segments
-    const points = [link.source, ...link.ropeSegments, link.target];
+    // Use the live rope segments from the original link, but respect direction
+    let segments = originalLink.ropeSegments;
+    let source = link.source;
+    let target = link.target;
+    
+    // If this is a reversed link (pulse going back to Kiau Tech), reverse the segment order
+    if (link.originalLink && link.source.id !== originalLink.source.id) {
+      segments = [...originalLink.ropeSegments].reverse();
+    }
+    
+    // Interpolate along rope segments using their current live positions
+    const points = [source, ...segments, target];
     const totalSegments = points.length - 1;
     const segmentProgress = progress * totalSegments;
     const segmentIndex = Math.floor(segmentProgress);
     const localProgress = segmentProgress - segmentIndex;
 
     if (segmentIndex >= totalSegments) {
-      return { x: points[points.length - 1].x, y: points[points.length - 1].y };
+      const lastPoint = points[points.length - 1];
+      return { x: lastPoint.x, y: lastPoint.y };
     }
 
     const startPoint = points[segmentIndex];
     const endPoint = points[segmentIndex + 1];
 
+    // Use current real-time positions of the rope segments
     return {
       x: startPoint.x + (endPoint.x - startPoint.x) * localProgress,
       y: startPoint.y + (endPoint.y - startPoint.y) * localProgress
@@ -703,12 +718,16 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
       // Ensure pulse travels away from Kiau Technologies
       let pulseLink = randomLink;
       if (randomLink.target.id === 'Kiau Technologies') {
-        // Reverse the link direction for pulse travel
+        // Reverse the link direction for pulse travel but keep reference to live segments
         pulseLink = {
           source: randomLink.target,
           target: randomLink.source,
-          ropeSegments: randomLink.ropeSegments ? [...randomLink.ropeSegments].reverse() : null
+          ropeSegments: randomLink.ropeSegments ? [...randomLink.ropeSegments].reverse() : null,
+          originalLink: randomLink // Keep reference to original for live updates
         };
+      } else {
+        // Keep reference to original link for live rope segment positions  
+        pulseLink.originalLink = randomLink;
       }
       
       setTimeout(() => {
