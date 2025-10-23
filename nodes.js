@@ -75,6 +75,46 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
     type: d.type
   }));
 
+  // Create elastic band physics - simple and performance-friendly
+  const bandSegments = isMobile ? 1 : 2; // Just 1-2 segments for elastic feel
+  const ropeNodes = [];
+  const ropeLinks = [];
+  
+  links.forEach((link, linkIndex) => {
+    const segments = [];
+    
+    // Create minimal intermediate nodes for elastic band effect
+    for (let i = 1; i <= bandSegments; i++) {
+      const segmentNode = {
+        id: `band_${linkIndex}_${i}`,
+        isRopeSegment: true,
+        parentLink: link,
+        segmentIndex: i
+      };
+      ropeNodes.push(segmentNode);
+      segments.push(segmentNode);
+    }
+    
+    // Create simple elastic connections: source -> segments -> target
+    const allPoints = [link.source, ...segments, link.target];
+    
+    for (let i = 0; i < allPoints.length - 1; i++) {
+      ropeLinks.push({
+        source: allPoints[i],
+        target: allPoints[i + 1],
+        isRope: true,
+        distance: settings.linkDistance / (bandSegments + 1),
+        strength: 0.8 // Strong elastic connection
+      });
+    }
+    
+    // Store segments on the original link for rendering
+    link.ropeSegments = segments;
+  });
+
+  // Combine all nodes (original + rope segments)
+  const allNodes = [...nodes, ...ropeNodes];
+
   console.log("Nodes:", nodes);
   console.log("Links:", links);
 
@@ -109,24 +149,42 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
     merge.append("feMergeNode").attr("in", "SourceGraphic");
   }
 
-  // Initialize the simulation with forces
-  const simulation = d3.forceSimulation(nodes)
-    .force("link", d3.forceLink(links).id(d => d.id).distance(settings.linkDistance))
-    .force("charge", d3.forceManyBody().strength(isMobile ? -50 : -100))
+  // Initialize the simulation with forces - focused on elastic band feel
+  const simulation = d3.forceSimulation(allNodes)
+    .force("link", d3.forceLink([...links, ...ropeLinks]).id(d => d.id)
+      .distance(d => d.isRope ? d.distance : settings.linkDistance)
+      .strength(d => d.isRope ? d.strength : 0.5))
+    .force("charge", d3.forceManyBody().strength(d => {
+      if (d.isRopeSegment) return isMobile ? -5 : -10; // Minimal repulsion for elastic segments
+      return isMobile ? -50 : -100;
+    }))
     .force("center", d3.forceCenter(settings.centerX, settings.centerY))
-    .force("collision", d3.forceCollide().radius(settings.nodeRadius * 2.5))
-    .force("directional", isMobile ? d3.forceX(settings.centerX).strength(.1) : null)
-    .alphaDecay(0.02); // Slower decay for smoother animation
+    .force("collision", d3.forceCollide().radius(d => {
+      if (d.isRopeSegment) return 1; // Very small collision for elastic segments
+      return settings.nodeRadius * 2.5;
+    }))
+    .force("directional", isMobile ? d3.forceX(settings.centerX).strength(.05) : null)
+    .force("gravity", d3.forceY().strength(d => {
+      // Very subtle gravity for elastic droop
+      return d.isRopeSegment ? 0.01 : 0;
+    }))
+    .alphaDecay(0.02) // Faster settling
+    .velocityDecay(0.6); // More damping for stable elastic feel
   
   let mouseX = settings.centerX, mouseY = settings.centerY;
+  let mouseInfluence = 0;
+  
   svg.on("mousemove", function() {
     const [x, y] = d3.mouse(this);
     mouseX = x;
     mouseY = y;
+    mouseInfluence = 1; // Mouse is active
+  }).on("mouseleave", function() {
+    mouseInfluence = 0; // Mouse left, reduce influence
   });
 
   // Special node position for "Kiau Technologies"
-  const specialNode = nodes.find(node => node.id === 'Kiau Technologies');
+  const specialNode = allNodes.find(node => node.id === 'Kiau Technologies');
   if (specialNode) {
     specialNode.fx = settings.centerX;
     specialNode.fy = settings.centerY;
@@ -147,8 +205,13 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
       // Update forces
       simulation
         .force("center", d3.forceCenter(settings.centerX, settings.centerY))
-        .force("link", d3.forceLink(links).id(d => d.id).distance(settings.linkDistance))
-        .force("collision", d3.forceCollide().radius(settings.nodeRadius * 2.5))
+        .force("link", d3.forceLink([...links, ...ropeLinks]).id(d => d.id)
+          .distance(d => d.isRope ? d.distance : settings.linkDistance)
+          .strength(d => d.isRope ? d.strength : 0.3))
+        .force("collision", d3.forceCollide().radius(d => {
+          if (d.isRopeSegment) return 1;
+          return settings.nodeRadius * 2.5;
+        }))
         .alpha(0.3)
         .restart();
       
@@ -168,6 +231,7 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
   const nodeColor = isDayMode ? getComputedStyle(root).getPropertyValue('--node-color-day').trim() : getComputedStyle(root).getPropertyValue('--node-color-night').trim();
   const linkColor = isDayMode ? getComputedStyle(root).getPropertyValue('--link-color-day').trim() : getComputedStyle(root).getPropertyValue('--link-color-night').trim();
   const textStrokeColor = isDayMode ? getComputedStyle(root).getPropertyValue('--text-stroke-color-day').trim() : getComputedStyle(root).getPropertyValue('--text-stroke-color-night').trim();
+  const textFillColor = isDayMode ? getComputedStyle(root).getPropertyValue('--text-fill-color-day').trim() : getComputedStyle(root).getPropertyValue('--text-fill-color-night').trim();
 
   // Set up markers for links
   svg.append("defs").selectAll("marker")
@@ -184,15 +248,26 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
       .attr("fill", linkColor)
       .attr("d", "M0,-5L10,0L0,5");
 
-  // Create link paths
-  const link = svg.append("g")
-    .attr("fill", "none")
-    .attr("stroke-width", settings.strokeSize)
-    .selectAll("path")
+  // Create rope paths (string-like connections)
+  const ropeGroup = svg.append("g").attr("class", "ropes");
+  
+  const ropes = ropeGroup.selectAll("path")
     .data(links)
     .enter().append("path")
-    .attr("stroke", linkColor) // Apply preset link color
-    .attr("filter", (!isDayMode && !isMobile) ? "url(#glow)" : null); // Disable glow on mobile
+    .attr("fill", "none")
+    .attr("stroke", linkColor)
+    .attr("stroke-width", settings.strokeSize * 0.8) // Slightly thinner for rope look
+    .attr("stroke-linecap", "round")
+    .attr("opacity", 0.8)
+    .attr("filter", (!isDayMode && !isMobile) ? "url(#glow)" : null);
+
+  // Create invisible rope segment nodes (for physics only, not visual)
+  const ropeSegmentNodes = svg.append("g")
+    .selectAll("circle")
+    .data(ropeNodes)
+    .enter().append("circle")
+    .attr("r", 0) // Invisible
+    .attr("fill", "transparent");
 
   // Create node groups with circles and text
   const node = svg.append("g")
@@ -222,19 +297,15 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
         .attr("tabindex", 0)
         .attr("aria-hidden", "true");
     
-      const offsetX = d.x < settings.centerX ? -8 : 8;
-      const offsetY = d.y < settings.centerY ? -8 : 8;
-      const textAnchor = d.x < settings.centerX ? "end" : "start";
-      const dy = d.y < settings.centerY ? "-0.0em" : "0.0em";
-    
+      // Use smooth circular positioning from the start
       const text = anchor.append("text")
         .attr("class", "main-text")
-        .attr("filter", (!isDayMode && !isMobile) ? "url(#glow)" : null)
-        .attr("x", offsetX)
-        .attr("y", offsetY)
-        .attr("dy", dy)
-        .attr("text-anchor", textAnchor)
+        .attr("x", 15) // Start with a default offset
+        .attr("y", 0)
+        .attr("text-anchor", "middle")
+        .attr("dominant-baseline", "central")
         .attr("font-size", isSpecialNode(d.id) ? settings.specialFontSize : settings.normalFontSize)
+        .attr("fill", textFillColor)
         .text(d.id);
     
       text.attr("aria-label", d.id);
@@ -243,57 +314,124 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
         .attr("class", "text-glow")
         .attr("stroke", textStrokeColor)
         .attr("stroke-width", 5)
-        .attr("stroke-linejoin", "round");
+        .attr("stroke-linejoin", "round")
+        .attr("fill", "none"); // Stroke-only for the background glow
     });
     
     
   
 
-  // Update link and node positions during simulation ticks
+  let frameCount = 0;
+  
+  // Update rope and node positions during simulation ticks
   simulation.on("tick", () => {
-    link.attr("d", linkArc);
+    frameCount++;
+    
+    // No anchor updates needed - simple elastic band physics
+    
+    // Update rope paths - throttle for performance
+    if (frameCount % 2 === 0) { // Update every other frame for better performance
+      ropes.attr("d", d => createRopePath(d));
+    }
+    
+    // Update rope segment positions (invisible nodes)
+    ropeSegmentNodes.attr("transform", d => `translate(${d.x},${d.y})`);
+    
     node.attr("transform", d => {
-      d.x = Math.max(settings.boundPaddingW, Math.min(width - settings.boundPaddingW, d.x));
-      d.y = Math.max(settings.boundPaddingH, Math.min(height - settings.boundPaddingH, d.y));
+      // Only constrain main nodes, let elastic segments move freely
+      if (!d.isRopeSegment) {
+        d.x = Math.max(settings.boundPaddingW, Math.min(width - settings.boundPaddingW, d.x));
+        d.y = Math.max(settings.boundPaddingH, Math.min(height - settings.boundPaddingH, d.y));
+      }
       return `translate(${d.x},${d.y})`;
     });
   
+    // Apply mouse forces to rope segments for interactive string physics
+    addMouseForceToRopes();
+    
     node.each(function(d) {
-      const anchor = d3.select(this).select("a");
-      const currentCenterX = width / 2;
-      const currentCenterY = height / 2;
-      
-      anchor.selectAll("text")
-        .transition()
-        .duration(50)
-        .attr("x", d.x < currentCenterX ? -8 : 8)
-        .attr("y", d => d.y < currentCenterY ? -8 : 8)
-        .attr("text-anchor", d.x < currentCenterX ? "end" : "start");
+      // Only update text for main nodes, not rope segments
+      if (!d.isRopeSegment) {
+        const anchor = d3.select(this).select("a");
+        const currentCenterX = width / 2;
+        const currentCenterY = height / 2;
+        
+        // Calculate angle and distance from center for smooth circular positioning
+        const deltaX = d.x - currentCenterX;
+        const deltaY = d.y - currentCenterY;
+        const angle = Math.atan2(deltaY, deltaX);
+        const distance = Math.hypot(deltaX, deltaY);
+        
+        // Base offset distance from node center
+        const baseOffset = 15;
+        const scaledOffset = Math.min(baseOffset + distance * 0.05, 25);
+        
+        // Calculate smooth circular positioning around the node
+        const textX = Math.cos(angle) * scaledOffset;
+        const textY = Math.sin(angle) * scaledOffset;
+        
+        // Always use middle anchor for true smooth gliding
+        anchor.selectAll("text")
+          .transition()
+          .duration(50)
+          .ease(d3.easeLinear)
+          .attr("x", textX)
+          .attr("y", textY)
+          .attr("text-anchor", "middle")
+          .attr("dominant-baseline", "central");
+      }
     });
   });
   
   
   
 
-  // Link arc function for curved links
-  function linkArc(d) {
-    const r = Math.hypot(d.target.x - d.source.x, d.target.y - d.source.y);
-    const numWaves = settings.waveCount;
-    const waveAmplitude = settings.waveAmp;
-    const points = [];
-
-    for (let i = 0; i <= numWaves; i++) {
-      const t = i / numWaves;
-      const x = (1 - t) * d.source.x + t * d.target.x;
-      const y = (1 - t) * d.source.y + t * d.target.y + Math.sin(t * Math.PI * 2) * waveAmplitude;
-      points.push([x, y]);
+  // Create elastic band path - simple and smooth
+  function createRopePath(link) {
+    if (!link.ropeSegments || link.ropeSegments.length === 0) {
+      return `M${link.source.x},${link.source.y}L${link.target.x},${link.target.y}`;
     }
-
+    
+    // Build path: source -> segments -> target (simple elastic band)
+    const points = [link.source, ...link.ropeSegments, link.target];
+    
     const path = d3.path();
-    path.moveTo(d.source.x, d.source.y);
-    points.forEach(point => path.lineTo(point[0], point[1]));
-    path.lineTo(d.target.x, d.target.y);
+    path.moveTo(points[0].x, points[0].y);
+    
+    if (points.length === 2) {
+      // Direct line
+      path.lineTo(points[1].x, points[1].y);
+    } else if (points.length === 3) {
+      // Single elastic curve through middle point
+      path.quadraticCurveTo(points[1].x, points[1].y, points[2].x, points[2].y);
+    } else {
+      // Multiple segments - smooth elastic curves
+      for (let i = 1; i < points.length - 1; i++) {
+        const current = points[i];
+        const next = points[i + 1];
+        path.quadraticCurveTo(current.x, current.y, 
+          (current.x + next.x) / 2, (current.y + next.y) / 2);
+      }
+      path.lineTo(points[points.length - 1].x, points[points.length - 1].y);
+    }
+    
     return path.toString();
+  }
+  
+  // Add mouse interaction for elastic band feel
+  function addMouseForceToRopes() {
+    // Only apply forces every few frames for performance
+    if (frameCount % 3 !== 0) return;
+    
+    ropeNodes.forEach(ropeNode => {
+      const distance = Math.hypot(mouseX - ropeNode.x, mouseY - ropeNode.y);
+      if (distance < 60 && mouseInfluence > 0) {
+        const force = Math.max(0, 1 - distance / 60) * 0.2; // Gentle elastic interaction
+        const angle = Math.atan2(ropeNode.y - mouseY, ropeNode.x - mouseX);
+        ropeNode.vx += Math.cos(angle) * force;
+        ropeNode.vy += Math.sin(angle) * force;
+      }
+    });
   }
 
   // Dragging behavior to allow movement of nodes
