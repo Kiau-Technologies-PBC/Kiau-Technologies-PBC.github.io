@@ -120,7 +120,7 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
 
   // Set up the SVG container with resizable options
   const root = document.documentElement;
-  const svg = d3.select("svg")
+  const svg = d3.select("#mainGraph")
     .attr("viewBox", `0 0 ${width} ${height}`)
     .attr("preserveAspectRatio", "xMidYMid meet")
     .attr("width", "100%")
