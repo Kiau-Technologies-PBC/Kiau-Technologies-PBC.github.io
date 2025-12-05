@@ -205,6 +205,7 @@
             padding: 5px;
             background: rgba(115, 89, 70, 0.5);
             font-size: 12px;
+            text-align: center;
         }
 
         .night-mode .cookieNotice {
@@ -227,19 +228,299 @@
         clip: rect(0, 0, 0, 0);
         overflow: hidden;
         }
+
+        /* Welcome Popup Styles */
+        .welcome-popup-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        .welcome-popup-overlay.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .welcome-popup {
+            background-color: var(--color-3);
+            border: 3px solid var(--color-2);
+            border-radius: 10px;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            animation: slideIn 0.4s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { 
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to { 
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .welcome-popup-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: var(--color-2);
+            color: var(--color-3);
+            border: none;
+            font-size: 24px;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            font-family: 'OCR_A', Arial, sans-serif;
+        }
+
+        .welcome-popup-close:hover {
+            background: var(--color-4);
+            transform: rotate(90deg);
+        }
+
+        .welcome-popup h2 {
+            font-family: 'OCR_A', Arial, sans-serif;
+            color: var(--color-2);
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-size: 28px;
+            text-align: center;
+        }
+
+        .welcome-popup-content {
+            color: var(--color-4);
+            font-family: 'OCR_A', Arial, sans-serif;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .welcome-popup-content p {
+            margin: 10px 0;
+            font-size: 14px;
+        }
+
+        .welcome-popup-graphic {
+            width: 100%;
+            max-width: 400px;
+            height: 250px;
+            margin: 20px auto;
+            display: block;
+            border: 2px solid var(--color-2);
+            border-radius: 8px;
+            background-color: var(--day-background);
+            overflow: visible;
+        }
+
+        .welcome-popup-link {
+            display: inline-block;
+            background-color: var(--color-2);
+            color: var(--color-3);
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-family: 'OCR_A', Arial, sans-serif;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            margin: 10px auto;
+            display: block;
+            text-align: center;
+            width: fit-content;
+        }
+
+        .welcome-popup-link:hover {
+            background-color: var(--color-1);
+            color: var(--color-4);
+            transform: scale(1.05);
+        }
+
+        /* Mobile adjustments */
+        @media (max-width: 768px) {
+            .welcome-popup {
+                padding: 20px;
+                max-width: 95%;
+            }
+
+            .welcome-popup h2 {
+                font-size: 22px;
+            }
+
+            .welcome-popup-content p {
+                font-size: 12px;
+            }
+
+            .welcome-popup-graphic {
+                height: 180px;
+            }
+        }
     </style>
 
 </head>
 <body>
+    <!-- Welcome Popup for First-Time Visitors -->
+    <div class="welcome-popup-overlay" id="welcomePopup">
+        <div class="welcome-popup">
+            <button class="welcome-popup-close" id="closePopup" aria-label="Close welcome popup">×</button>
+            <h2>Welcome to Kiau Technologies!</h2>
+            <div class="welcome-popup-content">
+                <p>Welcome to our interactive node-based website! Explore our projects and initiatives by clicking on the nodes below. The nodes are also draggable.</p>
+                <svg class="welcome-popup-graphic" id="popupGraphic"></svg>
+                <p><strong>How it works:</strong> Each node represents a different project or area of focus. Click on any node to learn more about our sustainable technology solutions.</p>
+                <p>The nodes dynamically adapt based on time of day, you'll see a day mode during daylight hours and night mode after dark!</p>
+                <a href="about.html" class="welcome-popup-link">Learn More About Kiau</a>
+            </div>
+        </div>
+    </div>
+    
     <div id="screenReaderMessage" class = "sr-only" role = "status" aria-live = "polite" role = "alert">
         Welcome to the Kiau Technologies website, this text is only read by screen readers. Use tab to navigate through the options of the menu. Each item is a link to a website and will be read twice, please bare with us while we fix this problem. Press enter when you hear the desired option. 
     </div>
     <div class="fpsCounter" id="fpsCounter" aria-hidden="true">FPS: 0</div>
     <div class="cookieNotice">We do not collect cookies or data about you on our website!</div>
-    <svg></svg>
+    <svg id="mainGraph"></svg>
       
     <script src="fps.js"></script>
     <script>
+        // Welcome Popup Logic
+        function initWelcomePopup() {
+            const popup = document.getElementById('welcomePopup');
+            const closeBtn = document.getElementById('closePopup');
+            const hasVisited = localStorage.getItem('kiauVisited');
+
+            // Show popup if first-time visitor
+            if (!hasVisited) {
+                setTimeout(() => {
+                    popup.classList.add('active');
+                    createPopupVisualization();
+                }, 500);
+            }
+
+            // Close popup handler
+            function closePopup() {
+                popup.classList.remove('active');
+                localStorage.setItem('kiauVisited', 'true');
+            }
+
+            closeBtn.addEventListener('click', closePopup);
+            
+            // Close on overlay click
+            popup.addEventListener('click', function(e) {
+                if (e.target === popup) {
+                    closePopup();
+                }
+            });
+
+            // Close on Escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && popup.classList.contains('active')) {
+                    closePopup();
+                }
+            });
+        }
+
+        // Create a simple mini node visualization in the popup (just 2 nodes as example)
+        function createPopupVisualization() {
+            const svgElement = document.getElementById('popupGraphic');
+            if (!svgElement) return;
+            
+            // Clear any existing content
+            svgElement.innerHTML = '';
+            
+            const width = 400;
+            const height = 250;
+
+            // Set dimensions
+            svgElement.setAttribute('width', width);
+            svgElement.setAttribute('height', height);
+            svgElement.setAttribute('viewBox', `0 0 ${width} ${height}`);
+
+            // Simple example with just 2 nodes
+            const node1X = width/2 - 60;
+            const node2X = width/2 + 60;
+            const nodeY = height/2;
+
+            // Create SVG namespace
+            const svgNS = "http://www.w3.org/2000/svg";
+
+            // Draw connecting line
+            const line = document.createElementNS(svgNS, 'line');
+            line.setAttribute('x1', node1X);
+            line.setAttribute('y1', nodeY);
+            line.setAttribute('x2', node2X);
+            line.setAttribute('y2', nodeY);
+            line.setAttribute('stroke', '#223729');
+            line.setAttribute('stroke-width', '3');
+            line.setAttribute('opacity', '0.6');
+            svgElement.appendChild(line);
+
+            // Draw first node group
+            const node1Group = document.createElementNS(svgNS, 'g');
+            node1Group.setAttribute('transform', `translate(${node1X},${nodeY})`);
+
+            const circle1 = document.createElementNS(svgNS, 'circle');
+            circle1.setAttribute('r', '12');
+            circle1.setAttribute('fill', '#223729');
+            circle1.setAttribute('stroke', '#c7cabd');
+            circle1.setAttribute('stroke-width', '3');
+            node1Group.appendChild(circle1);
+
+            const text1 = document.createElementNS(svgNS, 'text');
+            text1.setAttribute('dy', '30');
+            text1.setAttribute('text-anchor', 'middle');
+            text1.setAttribute('fill', '#1c1c1d');
+            text1.setAttribute('font-size', '13px');
+            text1.setAttribute('font-family', "'OCR_A', Arial, sans-serif");
+            text1.textContent = 'Kiau Tech';
+            node1Group.appendChild(text1);
+
+            svgElement.appendChild(node1Group);
+
+            // Draw second node group
+            const node2Group = document.createElementNS(svgNS, 'g');
+            node2Group.setAttribute('transform', `translate(${node2X},${nodeY})`);
+
+            const circle2 = document.createElementNS(svgNS, 'circle');
+            circle2.setAttribute('r', '12');
+            circle2.setAttribute('fill', '#223729');
+            circle2.setAttribute('stroke', '#c7cabd');
+            circle2.setAttribute('stroke-width', '3');
+            node2Group.appendChild(circle2);
+
+            const text2 = document.createElementNS(svgNS, 'text');
+            text2.setAttribute('dy', '30');
+            text2.setAttribute('text-anchor', 'middle');
+            text2.setAttribute('fill', '#1c1c1d');
+            text2.setAttribute('font-size', '13px');
+            text2.setAttribute('font-family', "'OCR_A', Arial, sans-serif");
+            text2.textContent = 'Projects';
+            node2Group.appendChild(text2);
+
+            svgElement.appendChild(node2Group);
+        }
+
         function timeMode() {
             const hour = new Date().getHours();
             const body = document.body;
@@ -258,7 +539,9 @@
         };
 
         function resizeSVG() {
-            const svg = document.querySelector('svg');
+            const svg = document.querySelector('#mainGraph');
+            if (!svg) return;
+            
             const width = window.innerWidth;
             const height = window.innerHeight;
     
@@ -282,6 +565,7 @@
         window.onload = function() {
             timeMode();
             resizeSVG();
+            initWelcomePopup();
         };
 
         // Debounced resize handler
