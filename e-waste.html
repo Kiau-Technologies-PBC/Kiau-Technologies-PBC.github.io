@@ -15,6 +15,7 @@
     <style>
         /* Override base styles for e-waste page layout */
         body {
+            padding-top: 70px;
             display: flex;
             flex-direction: column;
             min-height: 100vh;
@@ -31,6 +32,15 @@
             flex-direction: column;
             margin-top: 0;
             padding: 0;
+        }
+        
+        h1 {
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 2rem 1rem 1rem 1rem;
+            color: var(--color-3);
+            font-family: 'OCR_A', Arial, sans-serif;
         }
 
         /* Hero section with proper spacing */
@@ -286,14 +296,23 @@
 </head>
 <body>
     <header>
-        <nav style="padding: 1rem 5%; display: flex; justify-content: center; align-items: center; background: linear-gradient(135deg, var(--color-2) 0%, var(--color-4) 100%); box-shadow: 0 2px 10px rgba(0,0,0,0.2);">
-            <h1 style="font-size: 1.5rem; font-weight: 600; color: var(--color-1); font-family: 'OCR_A', Arial, sans-serif; text-shadow: 0 1px 2px rgba(0,0,0,0.3);">
-                Tackling E-Waste
-            </h1>
-        </nav>
+        <header style="position: fixed; top: 0; left: 0; right: 0; z-index: 9999; background: rgba(34, 55, 41, 0.95); backdrop-filter: blur(10px); padding: 1rem 2rem; box-shadow: 0 2px 10px rgba(0,0,0,0.3);">
+    <nav style="display: flex; justify-content: space-between; align-items: center; max-width: 1400px; margin: 0 auto;">
+        <a href="index.html" style="color: #c7cabd; font-size: 1.2rem; font-weight: bold; text-decoration: none;">
+            Kiau Technologies
+        </a>
+        <ul style="display: flex; gap: 2rem; list-style: none; margin: 0; padding: 0;">
+            <li><a href="index.html" style="color: #c7cabd; text-decoration: none;">Home</a></li>
+            <li><a href="about.html" style="color: #c7cabd; text-decoration: none;">About</a></li>
+        </ul>
+        <!-- Mobile hamburger menu here if needed -->
+    </nav>
     </header>
 
     <main>
+        <h1>
+        Tackling the E-Waste Crisis
+        </h1>
         <section id="hero">
             <div class="hero-overlay">
                 <figure class="video-figure loading" aria-labelledby="video-caption">
