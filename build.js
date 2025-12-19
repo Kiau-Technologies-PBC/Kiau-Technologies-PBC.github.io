@@ -457,12 +457,12 @@ function spawnNodeWindow(nodeName, descriptionHtml, previewCallback) {
     win.style.right = `${24 + offset}px`;
     win.style.width = '340px';
     win.style.minHeight = '180px';
-    win.style.background = '#1a2332';
+    win.style.background = 'var(--primary-color)';
     win.style.color = '#fff';
     win.style.borderRadius = '10px';
     win.style.boxShadow = '0 8px 32px rgba(0,0,0,0.28)';
     win.style.zIndex = 2000 + window._nodeWindowCount;
-    win.style.border = '2px solid #223729';
+    win.style.border = '2px solid var(--accent-color)';
     win.style.userSelect = 'none';
     win.style.display = 'flex';
     win.style.flexDirection = 'column';
@@ -470,7 +470,7 @@ function spawnNodeWindow(nodeName, descriptionHtml, previewCallback) {
     // Header bar for dragging
     const header = document.createElement('div');
     header.textContent = nodeName;
-    header.style.background = '#223729';
+    header.style.background = '#1b4a42';
     header.style.padding = '10px 14px';
     header.style.cursor = 'move';
     header.style.fontWeight = 'bold';
@@ -512,7 +512,7 @@ function spawnNodeWindow(nodeName, descriptionHtml, previewCallback) {
     previewBtn.style.padding = '8px';
     previewBtn.style.width = '100%';
     previewBtn.style.borderRadius = '6px';
-    previewBtn.style.background = '#223729';
+    previewBtn.style.background = '#1b4a42';
     previewBtn.style.color = '#fff';
     previewBtn.style.border = 'none';
     previewBtn.style.cursor = 'pointer';

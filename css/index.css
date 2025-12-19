@@ -1,11 +1,14 @@
 :root {
-    --text-color: #1c1c1d;
-    --background-color: #5c864b;
+    --background: #f9f5f2;
+    --primary-color: #145b4f;
+    --accent-color: #da99d6;
+    --background-color: var(--background);
+    --text-color: var(--primary-color);
 }
 
 /* General Styles */
 body {
-    background-color: var(--background-color); /* Matches --background-color from styles.css */
+    background-color: var(--primary-color); /* Matches --background-color from styles.css */
     margin: 0;
     font-family: 'Courier New', Courier, monospace; 
     color: var(--text-color); /* Matches --text-color from styles.css */
@@ -27,25 +30,25 @@ canvas {
     top: 0;
     width: 100%;
     height: 15vh; /* Adjust height as needed */
-    background-color: var(--background-color); /* Matches the background color */
+    background-color: var(--primary-color); /* Matches the background color */
     display: flex;
     flex-direction: column;
     align-items: center; /* Vertically center items */
     justify-content: center; /* Horizontally center items */
     gap: 20px; /* Add spacing between the text and button */
     z-index: 1000;
-    border-bottom: 1px solid var(--text-color); /* Optional: Add a border for separation */
+    border-bottom: 1px solid var(--background); /* Optional: Add a border for separation */
 }
 
 #heading h1 {
     margin: 0;
     font-size: 1.8em;
-    color: var(--text-color); /* Matches the text color */
+    color: var(--background); /* Matches the text color */
     text-align: center;
 }
 
 .border {
-    background: var(--color-3); /* Matches --color-3 from styles.css */
+    background: var(--accent-color); /* Matches --color-3 from styles.css */
     height: 2px;
     width: 50%;
     margin: 10px auto 0;
@@ -53,7 +56,7 @@ canvas {
 }
 
 h1 {
-    color: var(--text-color); /* Matches --text-color from styles.css */
+    color: var(--background); /* Matches --text-color from styles.css */
     font-size: 4em;
     margin: 0px;
 }
@@ -69,7 +72,7 @@ h1 {
 
 #progress {
     font-size: 3em;
-    color: var(--text-color); /* Matches --text-color from styles.css */
+    color: var(--background); /* Matches --text-color from styles.css */
 }
 
 /* Loading Screen */
@@ -79,7 +82,7 @@ h1 {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: var(--background-color); /* Matches --background-color from styles.css */
+    background-color: var(--primary-color); /* Matches --background-color from styles.css */
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -97,7 +100,7 @@ h1 {
 }
 
 #loading-screen p {
-    color: var(--text-color); /* Matches --text-color from styles.css */
+    color: var(--background); /* Matches --text-color from styles.css */
     margin-top: 15px;
     font-size: 1em;
     font-weight: 400;
@@ -107,21 +110,21 @@ h1 {
 /* Tooltip */
 #tooltip {
     position: absolute;
-    color: var(--text-color);
-    background-color: var(--background-color); 
+    color: var(--background);
+    background-color: var(--primary-color); 
     padding: 5px 8px;
-    border: 1px solid var(--color-3); 
+    border: 1px solid var(--accent-color); 
     border-radius: 3px;
     font-family: 'Courier New', Courier, monospace;
     font-size: 12px;
     text-align: center;
     pointer-events: none;
-    display: none;
+    display: none; /* hidden by default; JS toggles to flex when needed */
     z-index: 1000;
     transition: opacity 0.2s ease-in-out;
     min-width: 180px;
     max-width: 320px;
-    display: flex;
+    /* flex will be applied from JS when showing */
     flex-direction: column;
     gap: 8px;
     align-items: center;
@@ -142,7 +145,7 @@ h1 {
 }
 
 #tooltip .desc {
-    color: var(--text-color);
+    color: var(--background);
     font-size: 12px;
     text-align: center;
     align-items: center;
@@ -175,7 +178,7 @@ h1 {
 }
 
 #toggle-model:hover {
-    background-color: #007acc; /* Darker blue on hover */
+    background-color: var(--accent-color); /* Darker blue on hover */
     transform: scale(1.05); /* Slight zoom effect */
 }
 

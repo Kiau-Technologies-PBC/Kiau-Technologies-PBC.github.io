@@ -15,7 +15,7 @@
     <style>
         /* Override base styles for e-waste page layout */
         body {
-            padding-top: 30px;
+            padding-top: 50px;
             display: flex;
             flex-direction: column;
             min-height: 100vh;
@@ -39,7 +39,7 @@
             font-size: 2.5rem;
             font-weight: 700;
             margin: 2rem 1rem 1rem 1rem;
-            color: var(--color-3);
+            color: var(--background);
             font-family: 'OCR_A', Arial, sans-serif;
         }
 
@@ -55,7 +55,7 @@
 
         .hero-overlay {
             position: relative;
-            background-color: var(--background-color);
+            background-color: var(--primary-color);
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -123,7 +123,7 @@
             font-weight: 600;
             text-align: center;
             margin-bottom: 2rem;
-            color: var(--color-3);
+            color: var(--background);
             font-family: 'OCR_A', Arial, sans-serif;
         }
 
@@ -196,7 +196,7 @@
             flex-shrink: 0;
             margin-top: auto;
             background-color: var(--color-4);
-            color: var(--color-1);
+            color: var(--background);
             text-align: center;
             padding: 2rem 1rem;
             display: flex;
@@ -224,7 +224,7 @@
         }
 
         footer p {
-            color: var(--color-3);
+            color: var(--background);
             font-size: 0.9rem;
             margin: 0;
             text-align: center;
@@ -253,6 +253,7 @@
             }
 
             .section-title {
+                color: var(--background);
                 font-size: 2rem;
             }
 
@@ -282,6 +283,7 @@
 
             .section-title {
                 font-size: 1.5rem;
+                color: var(--background);
             }
 
             .info-card {
@@ -296,14 +298,14 @@
 </head>
 <body>
     <header>
-        <header style="position: fixed; top: 0; left: 0; right: 0; z-index: 9999; background: rgba(34, 55, 41, 0.95); backdrop-filter: blur(10px); padding: 1rem 2rem; box-shadow: 0 2px 10px rgba(0,0,0,0.3);">
+        <header style="position: fixed; top: 0; left: 0; right: 0; z-index: 9999; background: var(--primary-color); backdrop-filter: blur(10px); padding: 1rem 2rem; box-shadow: 0 2px 10px rgba(0,0,0,0.3);">
     <nav style="display: flex; justify-content: space-between; align-items: center; max-width: 1400px; margin: 0 auto;">
-        <a href="index.html" style="color: #c7cabd; font-size: 1.2rem; font-weight: bold; text-decoration: none;">
+        <a href="index.html" style="color: var(--background); font-size: 1.2rem; font-weight: bold; text-decoration: none;">
             Kiau Technologies
         </a>
         <ul style="display: flex; gap: 2rem; list-style: none; margin: 0; padding: 0;">
-            <li><a href="index.html" style="color: #c7cabd; text-decoration: none;">Home</a></li>
-            <li><a href="about.html" style="color: #c7cabd; text-decoration: none;">About</a></li>
+            <li><a href="index.html" style="color: var(--background); text-decoration: none;">Home</a></li>
+            <li><a href="about.html" style="color: var(--background); text-decoration: none;">About</a></li>
         </ul>
         <!-- Mobile hamburger menu here if needed -->
     </nav>
@@ -349,7 +351,7 @@
     </main>
     
     <footer>
-        <p>&copy; 2025 Kiau Technologies PBC. All rights reserved.</p>
+        <p>2025 Kiau Technologies PBC</p>
     </footer>
 
     <script>

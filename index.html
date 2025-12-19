@@ -19,34 +19,19 @@
           - More...
         */
         :root {
+            --background: #f9f5f2;
+            --primary-color: #145b4f;
+            --accent-color: #da99d6;
+            --background-color: var(--background);
+            --text-color: var(--primary-color);
+            /* Graph palette (single mode) */
+            --node-color-day: #0fff95;
+            --link-color-day: #06ba63;
+            --day-background: var(--primary-color);
+            --text-fill-color-day: var(--background);
+            --text-stroke-color-day: #1b4a42;
+
             font-family: 'OCR_A', Arial, sans-serif;
-            --color-1: #5c864b;
-            --color-2: #223729;
-            --color-3: #c7cabd;
-            --color-4: #1c1c1d;
-            --color-5: #271405;
-
-            --node-color-night: #47313b; 
-            --link-color-night: #9fb38d; 
-            --text-stroke-color-night: #2c3e17;
-            --text-fill-color-night: #9fb38d;
-
-            --node-color-day: #2C3E17;
-            --link-color-day: var(--color-2);
-            --text-stroke-color-day: var(--color-3);
-            --text-fill-color-day: var(--color-4);
-
-
-            --text-color: var(--color-3); /* Set text color to --color-3 */
-            --background-color: var(--color-1);
-            --night-background: #020f08;
-            --day-background: var(--color-1);
-            --night-node: ;
-            --day-node: #2c3e17 ;
-            --night-stroke: ;
-            --day-stroke: #595c31;
-            --night-text: ;
-            --day-text: ;
 
         
         
@@ -111,17 +96,7 @@
             src: url("fonts/OCR-A.ttf") format("truetype");
         }
        
-        .night-mode {
-            font-family: "OCR_A", Arial, sans-serif;
-            background-color: var(--night-background);
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-
-        .day-mode {
+        body {
             font-family: "OCR_A", Arial, sans-serif;
             background-color: var(--day-background);
             margin: 0;
@@ -130,54 +105,12 @@
             align-items: center;
         }
 
-
-
-        .day-mode svg {
+        svg {
             border-radius: 8px;
             background-color: var(--day-background);
         }
-        
 
-        .night-mode svg {
-        
-        border-radius: 8px;
-        background-color: var(--night-background);
-        }
-
-        .night-mode .node circle {
-            fill: brown;
-            stroke: white;
-            stroke-width: 10px;
-        }
-
-        .day-mode .node circle {
-            fill: brown;
-            stroke: white;
-            stroke-width: 10px;
-        }
-
-
-        .node text {
-            font-size: 12px;
-            fill: white;
-        }
-        .link {
-            stroke-opacity: 0.6;
-        }
-        /* .tooltip {
-            position: absolute;
-            text-align: center;
-            width: 100px;
-            padding: 4px;
-            font: 13px sans-serif;
-            background: lightgray;
-            border: 1px solid grey;
-            border-radius: 4px;
-            pointer-events: none;
-            opacity: 0;
-        } */
-
-        .day-mode .fpsCounter {
+        .fpsCounter {
             position: absolute;
             top: 10px;
             left:10px;
@@ -188,34 +121,14 @@
             font-size: 10px;
         }
 
-        .night-mode .fpsCounter {
-            position: absolute;
-            top: 10px;
-            left:10px;
-            background: rgba(110, 99, 89, 0.5);
-            color: '#6e6359';
-            padding: 5px;
-            border-radius: 5px;
-            font-size: 10px;
-        }
-        .day-mode .cookieNotice {
+        .cookieNotice {
             position:absolute;
             bottom: 10px;
             border-radius: 5px;
             padding: 5px;
-            background: rgba(115, 89, 70, 0.5);
+            background: rgba(6, 186, 99, 0.5);
             font-size: 12px;
             text-align: center;
-        }
-
-        .night-mode .cookieNotice {
-            position:absolute;
-            bottom: 10px;
-            border-radius: 5px;
-            padding: 5px;
-            color:white;
-            background: rgba(115, 89, 70, 0.5);
-            font-size: 12px;
         }
 
         .sr-only {
@@ -389,7 +302,6 @@
                 <p>Welcome to our interactive node-based website! Explore our projects and initiatives by clicking on the nodes below. The nodes are also draggable.</p>
                 <svg class="welcome-popup-graphic" id="popupGraphic"></svg>
                 <p><strong>How it works:</strong> Each node represents a different project or area of focus. Click on any node to learn more about our sustainable technology solutions.</p>
-                <p>The nodes dynamically adapt based on time of day, you'll see a day mode during daylight hours and night mode after dark!</p>
                 <a href="about.html" class="welcome-popup-link">Learn More About Kiau</a>
             </div>
         </div>
@@ -521,22 +433,11 @@
             svgElement.appendChild(node2Group);
         }
 
-        function timeMode() {
-            const hour = new Date().getHours();
-            const body = document.body;
-            const isDayMode = (hour >= 6 && hour < 18);
-
-            if (isDayMode) {
-                body.classList.add('day-mode');
-                body.classList.remove('night-mode');
-            } else {
-                body.classList.add('night-mode');
-                body.classList.remove('day-mode');
-            }
+        function loadGraph() {
             const scriptElement = document.createElement('script');
             scriptElement.src = "nodes.js";
             document.body.appendChild(scriptElement);
-        };
+        }
 
         function resizeSVG() {
             const svg = document.querySelector('#mainGraph');
@@ -563,7 +464,7 @@
 
         // Apply mode on page load
         window.onload = function() {
-            timeMode();
+            loadGraph();
             resizeSVG();
             initWelcomePopup();
         };

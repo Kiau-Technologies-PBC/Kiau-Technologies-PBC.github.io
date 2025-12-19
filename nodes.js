@@ -276,13 +276,11 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
     }, 250);
   });
 
-  // Determine day/night mode based on time
-  const hour = new Date().getHours();
-  const isDayMode = (hour >= 6 && hour < 18);
-  const nodeColor = isDayMode ? getComputedStyle(root).getPropertyValue('--node-color-day').trim() : getComputedStyle(root).getPropertyValue('--node-color-night').trim();
-  const linkColor = isDayMode ? getComputedStyle(root).getPropertyValue('--link-color-day').trim() : getComputedStyle(root).getPropertyValue('--link-color-night').trim();
-  const textStrokeColor = isDayMode ? getComputedStyle(root).getPropertyValue('--text-stroke-color-day').trim() : getComputedStyle(root).getPropertyValue('--text-stroke-color-night').trim();
-  const textFillColor = isDayMode ? getComputedStyle(root).getPropertyValue('--text-fill-color-day').trim() : getComputedStyle(root).getPropertyValue('--text-fill-color-night').trim();
+  // Single palette (no day/night switching)
+  const nodeColor = getComputedStyle(root).getPropertyValue('--node-color-day').trim();
+  const linkColor = getComputedStyle(root).getPropertyValue('--link-color-day').trim();
+  const textStrokeColor = getComputedStyle(root).getPropertyValue('--text-stroke-color-day').trim();
+  const textFillColor = getComputedStyle(root).getPropertyValue('--text-fill-color-day').trim();
 
   // Set up markers for links
   svg.append("defs").selectAll("marker")
@@ -310,7 +308,7 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
     .attr("stroke-width", settings.strokeSize * 0.8) // Slightly thinner for rope look
     .attr("stroke-linecap", "round")
     .attr("opacity", 0.8)
-    .attr("filter", (!isDayMode && !isMobile) ? "url(#glow)" : null);
+    .attr("filter", !isMobile ? "url(#glow)" : null);
 
   // Create invisible rope segment nodes (for physics only, not visual)
   const ropeSegmentNodes = svg.append("g")
@@ -328,7 +326,7 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
   // Function to create a pulse along a connection
   function createPulse(link) {
     const pulseId = ++pulseIdCounter;
-    const pulseColor = isDayMode ? "#7dd87f" : "#00ffaa"; // Light green for day, cyan-green for night
+    const pulseColor = "#DA99D6"; // Fixed pulse color (no day/night switching)
     const tailLength = isMobile ? 3 : 5; // Number of tail segments
     
     const pulseData = {
