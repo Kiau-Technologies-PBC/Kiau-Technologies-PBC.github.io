@@ -24,6 +24,7 @@
             --accent-color: #da99d6;
             --background-color: var(--background);
             --text-color: var(--primary-color);
+
             /* Graph palette (single mode) */
             --node-color-day: #0fff95;
             --link-color-day: #06ba63;
@@ -91,45 +92,6 @@
                 --wave-amp: 8;
             }
         }
-        @font-face {
-            font-family: "OCR_A";
-            src: url("fonts/OCR-A.ttf") format("truetype");
-        }
-       
-        body {
-            font-family: "OCR_A", Arial, sans-serif;
-            background-color: var(--day-background);
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        svg {
-            border-radius: 8px;
-            background-color: var(--day-background);
-        }
-
-        .fpsCounter {
-            position: absolute;
-            top: 10px;
-            left:10px;
-            background: rgba(0, 0, 0, 0.5);
-            color: white;
-            padding: 5px;
-            border-radius: 5px;
-            font-size: 10px;
-        }
-
-        .cookieNotice {
-            position:absolute;
-            bottom: 10px;
-            border-radius: 5px;
-            padding: 5px;
-            background: rgba(6, 186, 99, 0.5);
-            font-size: 12px;
-            text-align: center;
-        }
 
         .sr-only {
         position: absolute;
@@ -157,6 +119,10 @@
             animation: fadeIn 0.3s ease-in;
         }
 
+        .welcome-popup-overlay.fullscreen {
+            background-color: transparent;
+        }
+
         .welcome-popup-overlay.active {
             display: flex;
         }
@@ -167,8 +133,8 @@
         }
 
         .welcome-popup {
-            background-color: var(--color-3);
-            border: 3px solid var(--color-2);
+            background-color: var(--primary-color);
+            border: 3px solid var(--accent-color);
             border-radius: 10px;
             padding: 30px;
             max-width: 600px;
@@ -178,6 +144,21 @@
             position: relative;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
             animation: slideIn 0.4s ease-out;
+        }
+
+        .welcome-popup.fullscreen {
+            width: 100vw;
+            height: 100vh;
+            max-width: none;
+            max-height: none;
+            padding: 0;
+            border: none;
+            border-radius: 0;
+            background: transparent;
+            box-shadow: none;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
         }
 
         @keyframes slideIn {
@@ -195,8 +176,8 @@
             position: absolute;
             top: 15px;
             right: 15px;
-            background: var(--color-2);
-            color: var(--color-3);
+            color: var(--accent-color);
+            background: transparent;
             border: none;
             font-size: 24px;
             width: 35px;
@@ -211,13 +192,13 @@
         }
 
         .welcome-popup-close:hover {
-            background: var(--color-4);
+            background: var(--background);
             transform: rotate(90deg);
         }
 
         .welcome-popup h2 {
             font-family: 'OCR_A', Arial, sans-serif;
-            color: var(--color-2);
+            color: var(--background);
             margin-top: 0;
             margin-bottom: 15px;
             font-size: 28px;
@@ -231,9 +212,22 @@
             margin-bottom: 20px;
         }
 
+        .welcome-popup.fullscreen .welcome-popup-content {
+            width: 100%;
+            height: 100%;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            background: transparent;
+        }
+
         .welcome-popup-content p {
             margin: 10px 0;
             font-size: 14px;
+            color: var(--background);
         }
 
         .welcome-popup-graphic {
@@ -244,13 +238,41 @@
             display: block;
             border: 2px solid var(--color-2);
             border-radius: 8px;
-            background-color: var(--day-background);
-            overflow: visible;
+            background-color: #1b4a42;
+            overflow: hidden;
+            transform-origin: center;
+            transition: transform 0.35s ease, opacity 0.35s ease, height 0.35s ease, margin 0.35s ease;
+        }
+
+        .popup-graphic-hidden {
+            opacity: 0;
+            transform: scale(0.82);
+            height: 0;
+            margin: 0 auto;
+            pointer-events: none;
+        }
+
+        .popup-graphic-show {
+            opacity: 1;
+            transform: scale(1);
+            height: 250px;
+            margin: 20px auto;
+        }
+
+        .popup-graphic-window {
+            opacity: 1;
+            transform: scale(1);
+            height: 60vh;
+            max-width: 90vw;
+            width: 90vw;
+            margin: 10vh auto;
+            border: 2px solid var(--accent-color);
+            background: transparent;
         }
 
         .welcome-popup-link {
             display: inline-block;
-            background-color: var(--color-2);
+            background-color: var(--accent-color);
             color: var(--color-3);
             padding: 12px 24px;
             text-decoration: none;
@@ -265,10 +287,71 @@
         }
 
         .welcome-popup-link:hover {
-            background-color: var(--color-1);
+            background-color: #1b4a42;
             color: var(--color-4);
             transform: scale(1.05);
         }
+
+        /* Popup slideshow helpers */
+        .popup-slide-text {
+            color: var(--background);
+            text-align: center;
+            margin: 10px 0 6px;
+            font-size: 13px;
+            line-height: 1.5;
+            min-height: 42px;
+        }
+
+        .popup-text-large {
+            font-size: 22px;
+            line-height: 1.6;
+            min-height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .popup-text-normal {
+            font-size: 13px;
+            line-height: 1.5;
+            min-height: 42px;
+            display: block;
+        }
+
+        .popup-slide-nav {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .popup-btn {
+            background: var(--accent-color);
+            color: var(--background);
+            border: none;
+            border-radius: 6px;
+            padding: 8px 14px;
+            font-family: 'OCR_A', Arial, sans-serif;
+            cursor: pointer;
+            transition: transform 0.15s ease, box-shadow 0.2s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+        }
+
+        .popup-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .popup-btn:hover:not(:disabled) {
+            transform: translateY(-1px);
+        }
+
+        /* Slide visuals */
+        .pop-node { transform-origin: center; transition: transform 0.4s ease, fill 0.3s ease, stroke 0.3s ease; }
+        .pop-node.pop { transform: scale(1.08); }
+        .pop-link { stroke-dasharray: 180; stroke-dashoffset: 180; transition: stroke-dashoffset 0.6s ease; }
 
         /* Mobile adjustments */
         @media (max-width: 768px) {
@@ -297,12 +380,13 @@
     <div class="welcome-popup-overlay" id="welcomePopup">
         <div class="welcome-popup">
             <button class="welcome-popup-close" id="closePopup" aria-label="Close welcome popup">×</button>
-            <h2>Welcome to Kiau Technologies!</h2>
             <div class="welcome-popup-content">
-                <p>Welcome to our interactive node-based website! Explore our projects and initiatives by clicking on the nodes below. The nodes are also draggable.</p>
                 <svg class="welcome-popup-graphic" id="popupGraphic"></svg>
-                <p><strong>How it works:</strong> Each node represents a different project or area of focus. Click on any node to learn more about our sustainable technology solutions.</p>
-                <a href="about.html" class="welcome-popup-link">Learn More About Kiau</a>
+                <div class="popup-slide-text" id="popupSlideText"></div>
+                <div class="popup-slide-nav">
+                    <button class="popup-btn" id="popupPrev" aria-label="Previous slide">Previous</button>
+                    <button class="popup-btn" id="popupNext" aria-label="Next slide">Next</button>
+                </div>
             </div>
         </div>
     </div>
@@ -320,20 +404,28 @@
         function initWelcomePopup() {
             const popup = document.getElementById('welcomePopup');
             const closeBtn = document.getElementById('closePopup');
-            const hasVisited = localStorage.getItem('kiauVisited');
-
-            // Show popup if first-time visitor
-            if (!hasVisited) {
-                setTimeout(() => {
-                    popup.classList.add('active');
-                    createPopupVisualization();
-                }, 500);
-            }
+            // Always show popup on load
+            setTimeout(() => {
+                popup.classList.add('active');
+                createPopupVisualization();
+            }, 500);
 
             // Close popup handler
             function closePopup() {
                 popup.classList.remove('active');
-                localStorage.setItem('kiauVisited', 'true');
+                // Reset fullscreen/window state if it was the last slide
+                popup.classList.remove('fullscreen');
+                const popupContainer = document.querySelector('.welcome-popup');
+                popupContainer?.classList.remove('fullscreen');
+                const overlayEl = document.getElementById('welcomePopup');
+                overlayEl?.classList.remove('fullscreen');
+                const svgEl = document.getElementById('popupGraphic');
+                if (svgEl) {
+                    svgEl.classList.remove('popup-graphic-window');
+                    svgEl.classList.remove('popup-graphic-show');
+                    svgEl.classList.add('popup-graphic-hidden');
+                    while (svgEl.firstChild) svgEl.removeChild(svgEl.firstChild);
+                }
             }
 
             closeBtn.addEventListener('click', closePopup);
@@ -353,84 +445,167 @@
             });
         }
 
-        // Create a simple mini node visualization in the popup (just 2 nodes as example)
+        // Slideshow for the popup mini-graph
         function createPopupVisualization() {
-            const svgElement = document.getElementById('popupGraphic');
-            if (!svgElement) return;
-            
-            // Clear any existing content
-            svgElement.innerHTML = '';
-            
+            const svg = document.getElementById('popupGraphic');
+            const textEl = document.getElementById('popupSlideText');
+            const btnPrev = document.getElementById('popupPrev');
+            const btnNext = document.getElementById('popupNext');
+            const overlay = document.getElementById('welcomePopup');
+            const popup = overlay ? overlay.querySelector('.welcome-popup') : null;
+            if (!svg || !textEl || !btnPrev || !btnNext) return;
+
             const width = 400;
             const height = 250;
-
-            // Set dimensions
-            svgElement.setAttribute('width', width);
-            svgElement.setAttribute('height', height);
-            svgElement.setAttribute('viewBox', `0 0 ${width} ${height}`);
-
-            // Simple example with just 2 nodes
-            const node1X = width/2 - 60;
-            const node2X = width/2 + 60;
-            const nodeY = height/2;
-
-            // Create SVG namespace
             const svgNS = "http://www.w3.org/2000/svg";
+            svg.setAttribute('width', width);
+            svg.setAttribute('height', height);
+            svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
 
-            // Draw connecting line
-            const line = document.createElementNS(svgNS, 'line');
-            line.setAttribute('x1', node1X);
-            line.setAttribute('y1', nodeY);
-            line.setAttribute('x2', node2X);
-            line.setAttribute('y2', nodeY);
-            line.setAttribute('stroke', '#223729');
-            line.setAttribute('stroke-width', '3');
-            line.setAttribute('opacity', '0.6');
-            svgElement.appendChild(line);
+            const baseNodes = [
+                { id: 'Kiau Tech', x: width/2 - 80, y: height/2 + 10 },
+                { id: 'Projects', x: width/2 + 60, y: height/2 + 10 },
+                { id: 'Systems', x: width/2 - 10, y: height/2 - 60 }
+            ];
+            const baseLinks = [
+                { source: 0, target: 1 },
+                { source: 0, target: 2 }
+            ];
 
-            // Draw first node group
-            const node1Group = document.createElementNS(svgNS, 'g');
-            node1Group.setAttribute('transform', `translate(${node1X},${nodeY})`);
+            const slides = [
+                {
+                    text: "Welcome!",
+                    draw: () => {
+                        // No SVG shown on this slide
+                        svg.classList.add('popup-graphic-hidden');
+                        svg.classList.remove('popup-graphic-show');
 
-            const circle1 = document.createElementNS(svgNS, 'circle');
-            circle1.setAttribute('r', '12');
-            circle1.setAttribute('fill', '#223729');
-            circle1.setAttribute('stroke', '#c7cabd');
-            circle1.setAttribute('stroke-width', '3');
-            node1Group.appendChild(circle1);
+                        textEl.classList.add('popup-text-large');
+                        textEl.classList.remove('popup-text-normal');
+                    }
+                },
+                {
+                    text: "This is a node. It represents a page on our website. Each page covers an important topic for us.",
+                    draw: () => {
+                        svg.classList.remove('popup-graphic-hidden');
+                        svg.classList.add('popup-graphic-show');
 
-            const text1 = document.createElementNS(svgNS, 'text');
-            text1.setAttribute('dy', '30');
-            text1.setAttribute('text-anchor', 'middle');
-            text1.setAttribute('fill', '#1c1c1d');
-            text1.setAttribute('font-size', '13px');
-            text1.setAttribute('font-family', "'OCR_A', Arial, sans-serif");
-            text1.textContent = 'Kiau Tech';
-            node1Group.appendChild(text1);
+                        textEl.classList.remove('popup-text-large');
+                        textEl.classList.add('popup-text-normal');
 
-            svgElement.appendChild(node1Group);
+                        const n = baseNodes[0];
+                        const circle = document.createElementNS(svgNS, 'circle');
+                        circle.setAttribute('class', 'pop-node pop');
+                        circle.setAttribute('cx', n.x);
+                        circle.setAttribute('cy', n.y);
+                        circle.setAttribute('r', 18);
+                        circle.setAttribute('fill', '#0fff95');
+                        circle.setAttribute('stroke', '#1b4a42');
+                        circle.setAttribute('stroke-width', '3');
+                        svg.appendChild(circle);
 
-            // Draw second node group
-            const node2Group = document.createElementNS(svgNS, 'g');
-            node2Group.setAttribute('transform', `translate(${node2X},${nodeY})`);
+                        const label = document.createElementNS(svgNS, 'text');
+                        label.setAttribute('x', n.x);
+                        label.setAttribute('y', n.y + 34);
+                        label.setAttribute('text-anchor', 'middle');
+                        label.setAttribute('fill', '#f9f5f2');
+                        label.setAttribute('font-size', '13');
+                        label.setAttribute('font-family', "'OCR_A', Arial, sans-serif");
+                        label.textContent = n.id;
+                        svg.appendChild(label);
+                    }
+                },
+                {
+                    text: "This is a link, connecting two nodes sort of like a vine. Displays interrelated topics.",
+                    draw: () => {
+                        svg.classList.remove('popup-graphic-hidden');
+                        svg.classList.add('popup-graphic-show');
 
-            const circle2 = document.createElementNS(svgNS, 'circle');
-            circle2.setAttribute('r', '12');
-            circle2.setAttribute('fill', '#223729');
-            circle2.setAttribute('stroke', '#c7cabd');
-            circle2.setAttribute('stroke-width', '3');
-            node2Group.appendChild(circle2);
+                        textEl.classList.remove('popup-text-large');
+                        textEl.classList.add('popup-text-normal');
 
-            const text2 = document.createElementNS(svgNS, 'text');
-            text2.setAttribute('dy', '30');
-            text2.setAttribute('text-anchor', 'middle');
-            text2.setAttribute('fill', '#1c1c1d');
-            text2.setAttribute('font-size', '13px');
-            text2.setAttribute('font-family', "'OCR_A', Arial, sans-serif");
-            text2.textContent = 'Projects';
-            node2Group.appendChild(text2);
+                        const n1 = baseNodes[0];
+                        const n2 = baseNodes[1];
 
-            svgElement.appendChild(node2Group);
+                        const line = document.createElementNS(svgNS, 'line');
+                        line.setAttribute('class', 'pop-link');
+                        line.setAttribute('x1', n1.x);
+                        line.setAttribute('y1', n1.y);
+                        line.setAttribute('x2', n2.x);
+                        line.setAttribute('y2', n2.y);
+                        line.setAttribute('stroke', '#da99d6');
+                        line.setAttribute('stroke-width', '5');
+                        svg.appendChild(line);
+                        requestAnimationFrame(() => { line.style.strokeDashoffset = '0'; });
+
+                        [n1, n2].forEach((n, idx) => {
+                            const circle = document.createElementNS(svgNS, 'circle');
+                            circle.setAttribute('class', 'pop-node');
+                            circle.setAttribute('cx', n.x);
+                            circle.setAttribute('cy', n.y);
+                            circle.setAttribute('r', 16);
+                            circle.setAttribute('fill', idx === 0 ? '#0b1220' : '#0b1220');
+                            circle.setAttribute('stroke', '#0b1220');
+                            circle.setAttribute('stroke-width', '3');
+                            svg.appendChild(circle);
+
+                            const label = document.createElementNS(svgNS, 'text');
+                            label.setAttribute('x', n.x);
+                            label.setAttribute('y', n.y + 30);
+                            label.setAttribute('text-anchor', 'middle');
+                            label.setAttribute('fill', '#0b1220');
+                            label.setAttribute('font-size', '13');
+                            label.setAttribute('font-family', "'OCR_A', Arial, sans-serif");
+                            label.textContent = n.id;
+                            svg.appendChild(label);
+                        });
+                    }
+                },
+                {
+                    text: "This is the network: nodes are topics, links are how they connect.",
+                    draw: () => {
+                        if (overlay && popup) {
+                            overlay.classList.add('fullscreen');
+                            popup.classList.add('fullscreen');
+                        }
+
+                        svg.classList.remove('popup-graphic-hidden');
+                        svg.classList.remove('popup-graphic-show');
+                        svg.classList.add('popup-graphic-window');
+
+                        // Clear inline SVG so you see the page behind
+                        while (svg.firstChild) svg.removeChild(svg.firstChild);
+
+                        textEl.classList.remove('popup-text-large');
+                        textEl.classList.add('popup-text-normal');
+                    }
+                }
+            ];
+
+            let current = 0;
+
+            function renderSlide(idx) {
+                current = Math.max(0, Math.min(idx, slides.length - 1));
+                // Reset popup/window state for non-final slides
+                if (overlay && popup) {
+                    overlay.classList.remove('fullscreen');
+                    popup.classList.remove('fullscreen');
+                }
+                svg.classList.remove('popup-graphic-window');
+                svg.classList.remove('popup-graphic-show');
+                svg.classList.remove('popup-graphic-hidden');
+
+                while (svg.firstChild) svg.removeChild(svg.firstChild);
+                slides[current].draw();
+                textEl.textContent = slides[current].text;
+                btnPrev.disabled = current === 0;
+                btnNext.disabled = current === slides.length - 1;
+            }
+
+            btnPrev.onclick = () => renderSlide(current - 1);
+            btnNext.onclick = () => renderSlide(current + 1);
+
+            renderSlide(0);
         }
 
         function loadGraph() {
