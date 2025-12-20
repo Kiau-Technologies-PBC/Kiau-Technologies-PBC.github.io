@@ -221,6 +221,9 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
     }))
     .alphaDecay(0.02) // Faster settling
     .velocityDecay(0.6); // More damping for stable elastic feel
+
+  // Expose simulation globally for resize/tour helpers
+  window.simulation = simulation;
   
   let mouseX = settings.centerX, mouseY = settings.centerY;
   let mouseInfluence = 0;
@@ -272,6 +275,7 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
         specialNode.fy = settings.centerY;
       }
       
+      updateTutorialPosition();
       console.log("Resized to:", settings);
     }, 250);
   });
@@ -430,6 +434,315 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
     .enter().append("g")
     .call(drag(simulation));
 
+  // Tutorial/highlight state for focusing a single node
+  const tutorialState = {
+    active: false,
+    nodeId: null,
+    overlay: null,
+    highlight: null,
+    targetSelection: null,
+    step: 1,
+    linkRef: null,
+    options: {}
+  };
+
+  const TUTORIAL_LS_KEY = 'kiauTutorialLast';
+
+  function hideAllNodeText() {
+    node.selectAll('text').attr('opacity', 0);
+  }
+
+  function findTutorialLink(options) {
+    const preferredTarget = options && options.linkTargetId;
+    if (preferredTarget) {
+      const matchPreferred = links.find(l => l.source.id === preferredTarget || l.target.id === preferredTarget);
+      if (matchPreferred) return matchPreferred;
+    }
+    const connected = links.find(l => l.source.id === tutorialState.nodeId || l.target.id === tutorialState.nodeId);
+    return connected || links[0];
+  }
+
+  function dimAllLinksExcept(linkToKeep) {
+    if (!linkToKeep) return;
+    node.select('circle')
+      .attr('fill', '#000')
+      .attr('stroke', '#000');
+
+    ropes
+      .attr('stroke', '#000')
+      .attr('opacity', 0.6);
+
+    ropes
+      .filter(d => d === linkToKeep)
+      .attr('stroke', linkColor)
+      .attr('opacity', 1);
+  }
+
+  function emphasizePulsesOnly() {
+    // Clear any tutorial target styling
+    node.classed('tutorial-target', false);
+
+    node.select('circle')
+      .attr('fill', '#000')
+      .attr('stroke', '#000')
+      .attr('filter', null); // remove any glow (e.g., Kiau yellow)
+
+    ropes
+      .attr('stroke', '#000')
+      .attr('opacity', 0.25);
+  }
+
+  function restoreGraphDefaults() {
+    node.select('circle')
+      .attr('fill', nodeColor)
+      .attr('stroke', '#c3f8cf')
+      .attr('filter', d => d.id === 'Kiau Technologies' && !isMobile ? "url(#yellowGlow)" : null);
+
+    ropes
+      .attr('stroke', linkColor)
+      .attr('opacity', 0.8);
+
+    node.selectAll('text').attr('opacity', 1);
+  }
+
+  function finishTutorial() {
+    restoreGraphDefaults();
+
+    if (tutorialState.highlight) tutorialState.highlight.attr('display', 'none');
+    const arrowEl = tutorialState.overlay ? tutorialState.overlay.querySelector('.node-tutorial-arrow') : null;
+    if (arrowEl) arrowEl.style.display = 'none';
+    if (tutorialState.overlay) tutorialState.overlay.style.display = 'none';
+
+    tutorialState.active = false;
+    tutorialState.linkRef = null;
+    tutorialState.targetSelection = null;
+    tutorialState.step = 4;
+
+    try {
+      localStorage.setItem(TUTORIAL_LS_KEY, Date.now().toString());
+    } catch (e) {
+      // ignore storage failures
+    }
+  }
+
+  function ensureTutorialElements(options) {
+    const { title = 'What is a node?', body = 'Nodes are draggable connection points you can click to learn more about a project.', nextLabel = 'Next' } = options || {};
+
+    if (!tutorialState.overlay) {
+      const card = document.createElement('div');
+      card.id = 'nodeTutorialCard';
+      card.className = 'node-tutorial-card';
+      card.innerHTML = `
+        <div class="node-tutorial-title"></div>
+        <p class="node-tutorial-body"></p>
+        <button class="node-tutorial-next" type="button" disabled>Next</button>
+        <button class="node-tutorial-skip" type="button">Skip</button>
+        <div class="node-tutorial-arrow" aria-hidden="true"></div>
+      `;
+      document.body.appendChild(card);
+      tutorialState.overlay = card;
+    }
+
+    tutorialState.overlay.querySelector('.node-tutorial-title').textContent = title;
+    tutorialState.overlay.querySelector('.node-tutorial-body').textContent = body;
+    const nextBtn = tutorialState.overlay.querySelector('.node-tutorial-next');
+    const skipBtn = tutorialState.overlay.querySelector('.node-tutorial-skip');
+    const arrowEl = tutorialState.overlay.querySelector('.node-tutorial-arrow');
+    if (arrowEl) arrowEl.style.display = 'none';
+    nextBtn.textContent = nextLabel;
+    nextBtn.title = 'Next step';
+    nextBtn.disabled = false;
+    nextBtn.onclick = function() {
+      if (tutorialState.step === 1) {
+        tutorialState.step = 2;
+        tutorialState.linkRef = findTutorialLink(options);
+        tutorialState.overlay.querySelector('.node-tutorial-title').textContent = options.linkTitle || 'This is a link.';
+        tutorialState.overlay.querySelector('.node-tutorial-body').textContent = options.linkBody || 'Links signify the connection between different important topics.';
+        dimAllLinksExcept(tutorialState.linkRef);
+        hideAllNodeText();
+        updateTutorialPosition();
+      } else if (tutorialState.step === 2) {
+        tutorialState.step = 3;
+        tutorialState.overlay.querySelector('.node-tutorial-title').textContent = options.pulseTitle || 'These are pulses.';
+        tutorialState.overlay.querySelector('.node-tutorial-body').textContent = options.pulseBody || 'Pulses are the glowing blips traveling along links to show activity.';
+        emphasizePulsesOnly();
+        nextBtn.textContent = options.finishLabel || 'Finish';
+        nextBtn.title = 'Finish tutorial';
+        updateTutorialPosition();
+      } else if (tutorialState.step === 3) {
+        finishTutorial();
+      }
+    };
+
+    // Skip handler: immediately restore graph and hide tutorial
+    if (skipBtn) {
+      skipBtn.onclick = function() {
+        finishTutorial();
+      };
+    }
+
+    if (!tutorialState.highlight) {
+      tutorialState.highlight = svg.append('circle')
+        .attr('class', 'node-tutorial-highlight')
+        .attr('fill', 'none')
+        .attr('pointer-events', 'none');
+    }
+    tutorialState.highlight
+      .attr('r', settings.nodeRadius * 4)
+      .attr('stroke', '#ffd66b')
+      .attr('stroke-width', 3.5)
+        .attr('opacity', 0.9);
+  }
+
+  function updateTutorialPosition() {
+    if (!tutorialState.active || !tutorialState.nodeId) return;
+    const overlayArrow = tutorialState.overlay ? tutorialState.overlay.querySelector('.node-tutorial-arrow') : null;
+    if (tutorialState.step === 3) {
+      if (tutorialState.highlight) {
+        tutorialState.highlight.attr('display', 'none');
+      }
+      if (overlayArrow) overlayArrow.style.display = 'none';
+      if (tutorialState.overlay) {
+        tutorialState.overlay.style.left = 'auto';
+        tutorialState.overlay.style.right = '16px';
+        tutorialState.overlay.style.top = '16px';
+        tutorialState.overlay.style.bottom = 'auto';
+      }
+      return;
+    }
+    if (tutorialState.step === 2 && tutorialState.linkRef) {
+      const link = tutorialState.linkRef;
+      if (!link || typeof link.source.x !== 'number' || typeof link.target.x !== 'number') return;
+      const midX = (link.source.x + link.target.x) / 2;
+      const midY = (link.source.y + link.target.y) / 2;
+      // Offset the overlay off the straight line to avoid sitting on the rope path
+      const dx = link.target.x - link.source.x;
+      const dy = link.target.y - link.source.y;
+      const len = Math.hypot(dx, dy) || 1;
+      const offset = 40; // px in SVG space
+      const offX = (-dy / len) * offset;
+      const offY = (dx / len) * offset;
+      const anchorX = midX + offX;
+      const anchorY = midY + offY;
+
+      if (tutorialState.highlight) {
+        tutorialState.highlight
+          .attr('cx', anchorX)
+          .attr('cy', anchorY)
+          .attr('r', settings.nodeRadius * 3.2)
+          .attr('opacity', 0) // no circle/glow on link step
+          .attr('display', 'none');
+      }
+
+      if (tutorialState.overlay) {
+        const svgRect = svg.node().getBoundingClientRect();
+        const scaleX = svgRect.width / width;
+        const scaleY = svgRect.height / height;
+        const pageX = svgRect.left + (anchorX * scaleX);
+        const pageY = svgRect.top + (anchorY * scaleY);
+        const offsetX = 24;
+        const offsetY = -10;
+        tutorialState.overlay.style.left = `${pageX + offsetX}px`;
+        tutorialState.overlay.style.top = `${pageY + offsetY}px`;
+
+        // Position dynamic arrow to point toward anchor
+        if (overlayArrow) {
+          const cardRect = tutorialState.overlay.getBoundingClientRect();
+          const cardCenterX = cardRect.left + cardRect.width / 2;
+          const cardCenterY = cardRect.top + cardRect.height / 2;
+          const dx = pageX - cardCenterX;
+          const dy = pageY - cardCenterY;
+          const absDx = Math.abs(dx);
+          const absDy = Math.abs(dy);
+          let posX = cardRect.width / 2;
+          let posY = cardRect.height / 2;
+          let rotation = 45;
+
+          if (absDx > absDy) {
+            // Left or right side
+            if (dx > 0) {
+              posX = cardRect.width - 6;
+              posY = cardRect.height / 2;
+              rotation = 45; // pointing right
+            } else {
+              posX = -6;
+              posY = cardRect.height / 2;
+              rotation = 225; // pointing left
+            }
+          } else {
+            // Top or bottom
+            if (dy > 0) {
+              posX = cardRect.width / 2;
+              posY = cardRect.height - 6;
+              rotation = 135; // pointing down
+            } else {
+              posX = cardRect.width / 2;
+              posY = -6;
+              rotation = -45; // pointing up
+            }
+          }
+
+          overlayArrow.style.display = 'block';
+          overlayArrow.style.left = `${posX}px`;
+          overlayArrow.style.top = `${posY}px`;
+          overlayArrow.style.transform = `translate(-50%, -50%) rotate(${rotation}deg)`;
+        }
+      }
+      return;
+    }
+
+    const targetNode = nodes.find(n => n.id === tutorialState.nodeId);
+    if (!targetNode || typeof targetNode.x !== 'number' || typeof targetNode.y !== 'number') return;
+
+    if (!tutorialState.targetSelection) {
+      tutorialState.targetSelection = node.filter(d => d.id === tutorialState.nodeId);
+      tutorialState.targetSelection.classed('tutorial-target', true).raise();
+    }
+
+    if (tutorialState.highlight) {
+      tutorialState.highlight
+        .attr('cx', targetNode.x)
+        .attr('cy', targetNode.y)
+        .attr('opacity', 0.9)
+        .attr('display', 'block');
+    }
+
+    if (overlayArrow) {
+      overlayArrow.style.display = 'none';
+    }
+
+    if (tutorialState.overlay) {
+      const svgRect = svg.node().getBoundingClientRect();
+      const scaleX = svgRect.width / width;
+      const scaleY = svgRect.height / height;
+      const pageX = svgRect.left + (targetNode.x * scaleX);
+      const pageY = svgRect.top + (targetNode.y * scaleY);
+      const offsetX = 24;
+      const offsetY = -10;
+      tutorialState.overlay.style.left = `${pageX + offsetX}px`;
+      tutorialState.overlay.style.top = `${pageY + offsetY}px`;
+    }
+  }
+
+  // Public starter to highlight a specific node with a floating card
+  window.startNodeTutorial = function(options = {}) {
+    tutorialState.nodeId = options.nodeId || 'Kiau Technologies';
+    tutorialState.active = true;
+    tutorialState.step = 1;
+    tutorialState.linkRef = null;
+    tutorialState.options = options;
+    tutorialState.targetSelection = null;
+    node.select('circle')
+      .attr('fill', nodeColor)
+      .attr('stroke', '#c3f8cf');
+    if (tutorialState.overlay) {
+      tutorialState.overlay.style.display = 'block';
+    }
+    ensureTutorialElements(options);
+    updateTutorialPosition();
+    simulation.alphaTarget(0.2).restart();
+  };
+
     node.append("circle")
     .attr("aria-hidden", "true")
     .attr("stroke", "#c3f8cf")
@@ -562,6 +875,9 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
           .attr("dominant-baseline", "central");
       }
     });
+
+    // Keep tutorial overlay/marker in sync with live positions
+    updateTutorialPosition();
   });
   
   
@@ -770,5 +1086,13 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
       .on("drag", dragged)
       .on("end", dragended);
   }
+
+  // Notify the main page that the graph is ready for tutorials/highlights
+  window.dispatchEvent(new CustomEvent('kiauGraphReady', {
+    detail: {
+      nodes,
+      svg: svg.node()
+    }
+  }));
 
 });
