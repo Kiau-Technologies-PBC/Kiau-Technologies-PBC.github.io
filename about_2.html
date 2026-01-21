@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/about.css">
+    <title>About Us</title>
+</head>
+<body>
+    <nav>
+        <p>Home</p>
+        <p>Projects</p>
+        <p>Inquiries</p>
+        <p>Contact</p>
+    </nav>
+
+
+    <div class = "header">
+        <h1>About Us..</h1>
+    </div>
+    <div class = "subheader">
+        <div class = "logo">
+            <img src = "images/Kiau Assets/asset_kiau_logo_1.png" alt = "Kiau Technologies">
+        </div>
+        <div>
+            <p class = "description">Technologies</p>
+        </div>
+    </div>
+
+
+    <div class="container">
+        <div class = "asset_box">
+            <img src = "images/Kiau Assets/asset_box_1.png" alt = "Kiau Box">
+        </div>
+        <div class = "asset_box">
+            <img src = "images/Kiau Assets/asset_box_1.png" alt = "Kiau Box">
+        </div>
+        <div class = "asset_box">
+            <img src = "images/Kiau Assets/asset_box_1.png" alt = "Kiau Box">
+        </div>
+        <div class = "asset_box">
+            <img src = "images/Kiau Assets/asset_box_1.png" alt = "Kiau Box">
+        </div>
+    </div>
+    </container>
+
+
+    <container class = "info_section">
+        <div class="asset_box_2">
+            <img src="images/Kiau Assets/asset_box_2.png" alt="Kiau Box 2">
+        </div>
+
+        <div class="info_header">
+            <p>What is <br>"Kiau"?</p>
+        </div>
+
+    </container>
+    <container class = "info_text_section">
+        <div class = "text_box_1">
+            <p>Kiau, loosely translated to “Suiting
+                trees” is a both nod to revering trees
+                and the role they play in ecosystems
+                across the world, as well as Japanese woodworking.
+            </p>
+        </div>
+        <div class="text_box_2">
+            <p>Specifically, Japanese joinery does not go
+                against the grain of the wood, and instead works in harmony with the natural grain and inherent material properties of the wood. Japanese joinery acknowledges that wood is not a dead, static material, and expands or contracts with changes in humidity and temperature.
+            </p>
+        </div>
+        <div class = "text_box_3">
+            <p>By using interlocking joints that rely on
+                friction and compression instead of glue
+                or nails, structures built with joinery can
+                shift without losing integrity.
+            </p>
+        </div>
+
+    </container>
+
+    <contianer class = "info_section_2_header">
+        <p>Our Mission</p>
+    </contianer>
+    <container class = "info_section_2_subheader">
+        <p>Similary, Kiau Technologies PBC is a project committed imagining technology designed in harmony with the natural environment. Our mission is to: </p>
+    </container>
+
+    <container class = "info_section_2">
+        <div class = "number_box">
+            <p>1</p>
+        </div>
+        <div class = "info_box">
+            Radically rethink our everyday interactions with technology.
+        </div>
+        <div class = "number_box">
+            <p>2</p>
+        </div>
+        <div class = "info_box">
+            Design tools and tech as living companions instead of tools of servaillance and extraction.
+        </div>
+        <div class = "number_box">
+            <p>3</p>
+        </div>
+        <div class = "info_box">
+            Challenge the notion/dichotomy that man and nature are seperate.
+        </div>
+    </container>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const assetBoxes = document.querySelectorAll('.asset_box');
+            assetBoxes.forEach(box => {
+                box.addEventListener('mousemove', function(e) {
+                    const rect = box.getBoundingClientRect();
+                    const boxCenterX = rect.left + rect.width /2;
+                    const boxCenterY = rect.top + rect.height /2;
+
+                    const mouseX = e.clientX;
+                    const mouseY = e.clientY;
+
+                    const deltaX = (mouseX - boxCenterX) / (rect.width / 2);
+                    const deltaY = (mouseY - boxCenterY) / (rect.height / 2);
+
+                    const rotateY = deltaX * -15
+                    const rotateX = deltaY * 15;
+
+                    box.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.05)`;
+
+                });
+
+                box.addEventListener('mouseleave', function() {
+                    box.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1)';
+                });
+            });
+        });
+    </script>
+
+
+</body>
+</html>
