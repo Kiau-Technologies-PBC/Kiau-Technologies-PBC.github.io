@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kiau Technologies | Public Benefit Corporation</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <style>
+    :root {
+      --pbcs-bg: rgba(20, 91, 79, 0.96);
+      --pbcs-card: rgba(255, 255, 255, 0.04);
+      --pbcs-border: rgba(195, 248, 207, 0.4);
+      --pbcs-text: #f9f5f2;
+      --pbcs-accent: #da99d6;
+    }
+
+    body {
+      background: var(--primary-color);
+      color: var(--pbcs-text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .pbcs-shell {
+      width: min(1100px, 92vw);
+      margin: 0 auto;
+      padding: 80px 0 120px;
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+    }
+
+    .pbcs-hero {
+      background: var(--pbcs-bg);
+      border: 1px solid var(--pbcs-border);
+      border-radius: 16px;
+      padding: clamp(28px, 6vw, 48px);
+      box-shadow: 0 18px 38px rgba(0, 0, 0, 0.35);
+    }
+
+    .pbcs-kicker {
+      font-size: 0.9rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--pbcs-accent);
+      margin-bottom: 10px;
+    }
+
+    .pbcs-hero h1 {
+      font-size: clamp(2.2rem, 4vw, 3.2rem);
+      margin-bottom: 14px;
+      color: var(--pbcs-text);
+      line-height: 1.2;
+    }
+
+    .pbcs-hero p {
+      max-width: 820px;
+      margin-bottom: 18px;
+    }
+
+    .pbcs-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .pbcs-btn {
+      background: transparent;
+      color: var(--pbcs-text);
+      border: 1px solid var(--pbcs-border);
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-family: 'OCR_A', Arial, sans-serif;
+      cursor: pointer;
+      text-decoration: none;
+      transition: transform 0.15s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    }
+
+    .pbcs-btn.primary {
+      background: var(--pbcs-accent);
+      color: #0f140f;
+      border-color: var(--pbcs-accent);
+      font-weight: 700;
+    }
+
+    .pbcs-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.25);
+      border-color: #c3f8cf;
+    }
+
+    .pbcs-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+    }
+
+    .pbcs-card {
+      background: var(--pbcs-card);
+      border: 1px solid var(--pbcs-border);
+      border-radius: 12px;
+      padding: clamp(18px, 3vw, 24px);
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
+    }
+
+    .pbcs-card h2 {
+      margin-bottom: 12px;
+      font-size: clamp(1.4rem, 3vw, 1.8rem);
+      color: var(--pbcs-text);
+    }
+
+    .pbcs-pill-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .pbcs-pill-list li {
+      border: 1px solid var(--pbcs-border);
+      border-radius: 999px;
+      padding: 8px 12px;
+      background: rgba(255, 255, 255, 0.04);
+      font-size: 0.95rem;
+    }
+
+    .pbcs-callout {
+      border-left: 3px solid var(--pbcs-accent);
+      padding-left: 14px;
+      margin: 12px 0;
+      color: var(--pbcs-text);
+    }
+
+    .pbcs-section {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 18px;
+      align-items: start;
+    }
+
+    .pbcs-list {
+      list-style: decimal;
+      padding-left: 18px;
+      margin: 0;
+      display: grid;
+      gap: 10px;
+    }
+
+    .pbcs-footer-cta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 10px;
+    }
+
+    @media (max-width: 720px) {
+      .pbcs-shell {
+        padding: 64px 0 96px;
+      }
+      .pbcs-hero {
+        padding: 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="pbcs-shell">
+    <section class="pbcs-hero">
+      <div class="pbcs-kicker">Public Benefit Corporation</div>
+      <h1>Our Commitment as a Public Benefit Corporation</h1>
+      <p>Kiau Technologies is a Delaware Public Benefit Corporation (PBC): a legal structure that lets us deliver environmental and social impact while pursuing sustainable financial growth.</p>
+      <p>Unlike traditional corporations, which prioritize returns to shareholders above all else, or nonprofits, which heavily rely on charitable donations, our PBC status allows us to build a self-supporting business that balances the interests of our soils, our partner farms, our communities, our shareholders and our company, and our planet.</p>
+      <div class="pbcs-actions">
+        <a class="pbcs-btn primary" href="index.html#mainGraph">Explore the graph</a>
+        <a class="pbcs-btn" href="about.html">Meet the team</a>
+      </div>
+    </section>
+
+    <section class="pbcs-grid" aria-label="What a PBC means for us">
+      <article class="pbcs-card">
+        <h2>What a PBC means for us</h2>
+        <p>Our charter commits us to advancing environmental resilience through developing tools that help farmers regenerate soil health, reduce waste, and strengthen local food systems.</p>
+        <p class="pbcs-callout">By choosing the PBC model, we're flipping the script on how tech companies operate. We're exploring non-traditional, mission-aligned business models that put long-term ecological health and community benefit at the center.</p>
+        <p>Our aim is to create tools that not only serve farmers directly but also improve the transparency, longevity, and accessibility of the local food supply.</p>
+      </article>
+      <article class="pbcs-card">
+        <h2>Who we serve</h2>
+        <ul class="pbcs-pill-list">
+          <li>Our soils</li>
+          <li>Our partner farms</li>
+          <li>Our communities</li>
+          <li>Our shareholders and company</li>
+          <li>Our planet</li>
+        </ul>
+      </article>
+    </section>
+
+    <section class="pbcs-card" aria-label="How we deliver benefit">
+      <h2>How we deliver benefit</h2>
+      <div class="pbcs-section">
+        <p>We provide benefit to the public by empowering others to work with the land, not against it.</p>
+        <ol class="pbcs-list">
+          <li>Design tools that help farmers regenerate soil health and reduce waste.</li>
+          <li>Keep solutions transparent, durable, and accessible to local food systems.</li>
+          <li>Balance ecological impact with sustainable financial growth so the mission endures.</li>
+        </ol>
+      </div>
+      <div class="pbcs-footer-cta">
+        <a class="pbcs-btn" href="index.html">Back to the graph</a>
+        <a class="pbcs-btn" href="contact.html">Partner with us</a>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
