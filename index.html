@@ -19,34 +19,19 @@
           - More...
         */
         :root {
+            --background: #f9f5f2;
+            --primary-color: #145b4f;
+            --accent-color: #da99d6;
+            --background-color: var(--background);
+            --text-color: var(--primary-color);
+            /* Graph palette (single mode) */
+            --node-color-day: #0fff95;
+            --link-color-day: #06ba63;
+            --day-background: var(--primary-color);
+            --text-fill-color-day: var(--background);
+            --text-stroke-color-day: #1b4a42;
+
             font-family: 'OCR_A', Arial, sans-serif;
-            --color-1: #5c864b;
-            --color-2: #223729;
-            --color-3: #c7cabd;
-            --color-4: #1c1c1d;
-            --color-5: #271405;
-
-            --node-color-night: #47313b; 
-            --link-color-night: #9fb38d; 
-            --text-stroke-color-night: #2c3e17;
-            --text-fill-color-night: #9fb38d;
-
-            --node-color-day: #2C3E17;
-            --link-color-day: var(--color-2);
-            --text-stroke-color-day: var(--color-3);
-            --text-fill-color-day: var(--color-4);
-
-
-            --text-color: var(--color-3); /* Set text color to --color-3 */
-            --background-color: var(--color-1);
-            --night-background: #020f08;
-            --day-background: var(--color-1);
-            --night-node: ;
-            --day-node: #2c3e17 ;
-            --night-stroke: ;
-            --day-stroke: #595c31;
-            --night-text: ;
-            --day-text: ;
 
         
         
@@ -111,17 +96,7 @@
             src: url("fonts/OCR-A.ttf") format("truetype");
         }
        
-        .night-mode {
-            font-family: "OCR_A", Arial, sans-serif;
-            background-color: var(--night-background);
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-
-        .day-mode {
+        body {
             font-family: "OCR_A", Arial, sans-serif;
             background-color: var(--day-background);
             margin: 0;
@@ -130,54 +105,12 @@
             align-items: center;
         }
 
-
-
-        .day-mode svg {
+        svg {
             border-radius: 8px;
             background-color: var(--day-background);
         }
-        
 
-        .night-mode svg {
-        
-        border-radius: 8px;
-        background-color: var(--night-background);
-        }
-
-        .night-mode .node circle {
-            fill: brown;
-            stroke: white;
-            stroke-width: 10px;
-        }
-
-        .day-mode .node circle {
-            fill: brown;
-            stroke: white;
-            stroke-width: 10px;
-        }
-
-
-        .node text {
-            font-size: 12px;
-            fill: white;
-        }
-        .link {
-            stroke-opacity: 0.6;
-        }
-        /* .tooltip {
-            position: absolute;
-            text-align: center;
-            width: 100px;
-            padding: 4px;
-            font: 13px sans-serif;
-            background: lightgray;
-            border: 1px solid grey;
-            border-radius: 4px;
-            pointer-events: none;
-            opacity: 0;
-        } */
-
-        .day-mode .fpsCounter {
+        .fpsCounter {
             position: absolute;
             top: 10px;
             left:10px;
@@ -188,33 +121,14 @@
             font-size: 10px;
         }
 
-        .night-mode .fpsCounter {
-            position: absolute;
-            top: 10px;
-            left:10px;
-            background: rgba(110, 99, 89, 0.5);
-            color: '#6e6359';
-            padding: 5px;
-            border-radius: 5px;
-            font-size: 10px;
-        }
-        .day-mode .cookieNotice {
+        .cookieNotice {
             position:absolute;
             bottom: 10px;
             border-radius: 5px;
             padding: 5px;
-            background: rgba(115, 89, 70, 0.5);
+            background: rgba(6, 186, 99, 0.5);
             font-size: 12px;
-        }
-
-        .night-mode .cookieNotice {
-            position:absolute;
-            bottom: 10px;
-            border-radius: 5px;
-            padding: 5px;
-            color:white;
-            background: rgba(115, 89, 70, 0.5);
-            font-size: 12px;
+            text-align: center;
         }
 
         .sr-only {
@@ -227,38 +141,419 @@
         clip: rect(0, 0, 0, 0);
         overflow: hidden;
         }
+
+        /* Welcome Popup Styles */
+        .welcome-popup-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        .welcome-popup-overlay.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .welcome-popup {
+            background-color: var(--primary-color);
+            border: 3px solid var(--accent-color);
+            border-radius: 10px;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            animation: slideIn 0.4s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { 
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to { 
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .welcome-popup-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: invisible;
+            color: var(--accent-color);
+            border: none;
+            font-size: 24px;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            font-family: 'OCR_A', Arial, sans-serif;
+        }
+
+        .welcome-popup-close:hover {
+            background: var(--primary-color);
+            transform: rotate(90deg);
+        }
+
+        .welcome-popup h2 {
+            font-family: 'OCR_A', Arial, sans-serif;
+            color: var(--background);
+            text-shadow: var(--accent-color) 2px 2px 4px;
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-size: 28px;
+            text-align: center;
+        }
+
+        .welcome-popup-content {
+            color: var(--color-4);
+            font-family: 'OCR_A', Arial, sans-serif;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .welcome-popup-content p {
+            color: var(--background);
+            margin: 10px 0;
+            font-size: 14px;
+        }
+
+        .welcome-popup-graphic {
+            width: 100%;
+            max-width: 400px;
+            height: 250px;
+            margin: 20px auto;
+            display: block;
+            border: 2px solid var(--color-2);
+            border-radius: 8px;
+            background-color: var(--day-background);
+            overflow: visible;
+        }
+
+        .welcome-popup-link {
+            display: inline-block;
+            background-color: var(--primary-color);
+            color: var(--accent-color);
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-family: 'OCR_A', Arial, sans-serif;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            margin: 10px auto;
+            display: block;
+            text-align: center;
+            width: fit-content;
+        }
+
+        .welcome-popup-link:hover {
+            background-color: var(--accent-color);
+            color: var(--background);
+            transform: scale(1.05);
+        }
+
+        /* Mobile adjustments */
+        @media (max-width: 768px) {
+            .welcome-popup {
+                padding: 20px;
+                max-width: 95%;
+            }
+
+            .welcome-popup h2 {
+                font-size: 22px;
+            }
+
+            .welcome-popup-content p {
+                font-size: 12px;
+            }
+
+            .welcome-popup-graphic {
+                height: 180px;
+            }
+        }
+
+        /* Node tutorial overlay */
+        .node-tutorial-card {
+            position: fixed;
+            z-index: 11000;
+            background: rgba(10, 46, 40, 0.94);
+            color: #f7f2ec;
+            border: 2px solid var(--accent-color);
+            border-radius: 12px;
+            padding: 14px 16px 12px 16px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+            max-width: 260px;
+            backdrop-filter: blur(4px);
+        }
+
+        .node-tutorial-arrow {
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            background: inherit;
+            border: 2px solid var(--accent-color);
+            transform: rotate(45deg);
+            box-shadow: -2px 2px 8px rgba(0, 0, 0, 0.25);
+            display: none;
+        }
+
+        .node-tutorial-title {
+            margin: 0 0 8px 0;
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--accent-color);
+        }
+
+        .node-tutorial-body {
+            margin: 0 0 10px 0;
+            font-size: 13px;
+            line-height: 1.4;
+            color: #e7e2d7;
+        }
+
+        .node-tutorial-next {
+            border: 2px solid var(--accent-color);
+            background: transparent;
+            color: var(--accent-color);
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-family: 'OCR_A', Arial, sans-serif;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .node-tutorial-skip {
+            border: none;
+            background: transparent;
+            color: #e7e2d7;
+            font-family: 'OCR_A', Arial, sans-serif;
+            font-size: 12px;
+            opacity: 0.8;
+            cursor: pointer;
+            margin-left: 8px;
+        }
+
+        .node-tutorial-next:disabled {
+            opacity: 0.7;
+        }
+
+        .node-tutorial-highlight {
+            stroke-dasharray: 6 6;
+            animation: tutorialPulse 1.8s ease-in-out infinite;
+        }
+
+        .tutorial-target circle {
+            stroke: #ffd66b;
+            stroke-width: 2.5;
+        }
+
+        @keyframes tutorialPulse {
+            0% { opacity: 0.55; stroke-width: 2.5; }
+            50% { opacity: 1; stroke-width: 4; }
+            100% { opacity: 0.55; stroke-width: 2.5; }
+        }
     </style>
 
 </head>
 <body>
+    <!-- Welcome Popup for First-Time Visitors -->
+    <div class="welcome-popup-overlay" id="welcomePopup">
+        <div class="welcome-popup">
+            <button class="welcome-popup-close" id="closePopup" aria-label="Close welcome popup">×</button>
+            <h2>Welcome to Kiau Technologies!</h2>
+            <div class="welcome-popup-content">
+                <p>Welcome to our interactive node-based website! Explore our projects and initiatives by clicking on the nodes below. The nodes are also draggable.</p>
+                <svg class="welcome-popup-graphic" id="popupGraphic"></svg>
+                <p><strong>How it works:</strong> Each node represents a different project or area of focus. Click on any node to learn more about our sustainable technology solutions.</p>
+                <a href="about.html" class="welcome-popup-link">Learn More About Kiau</a>
+            </div>
+        </div>
+    </div>
+    
     <div id="screenReaderMessage" class = "sr-only" role = "status" aria-live = "polite" role = "alert">
         Welcome to the Kiau Technologies website, this text is only read by screen readers. Use tab to navigate through the options of the menu. Each item is a link to a website and will be read twice, please bare with us while we fix this problem. Press enter when you hear the desired option. 
     </div>
     <div class="fpsCounter" id="fpsCounter" aria-hidden="true">FPS: 0</div>
     <div class="cookieNotice">We do not collect cookies or data about you on our website!</div>
-    <svg></svg>
+    <svg id="mainGraph"></svg>
       
     <script src="fps.js"></script>
     <script>
-        function timeMode() {
-            const hour = new Date().getHours();
-            const body = document.body;
-            const isDayMode = (hour >= 6 && hour < 18);
+        // Welcome Popup Logic
+        function initWelcomePopup() {
+            const popup = document.getElementById('welcomePopup');
+            const closeBtn = document.getElementById('closePopup');
+            // Always show the tutorial popup shortly after load
+            setTimeout(() => {
+                popup.classList.add('active');
+                createPopupVisualization();
+            }, 500);
 
-            if (isDayMode) {
-                body.classList.add('day-mode');
-                body.classList.remove('night-mode');
-            } else {
-                body.classList.add('night-mode');
-                body.classList.remove('day-mode');
+            // Close popup handler
+            function closePopup() {
+                popup.classList.remove('active');
             }
+
+            closeBtn.addEventListener('click', closePopup);
+            
+            // Close on overlay click
+            popup.addEventListener('click', function(e) {
+                if (e.target === popup) {
+                    closePopup();
+                }
+            });
+
+            // Close on Escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && popup.classList.contains('active')) {
+                    closePopup();
+                }
+            });
+        }
+
+        // Create a simple mini node visualization in the popup (just 2 nodes as example)
+        function createPopupVisualization() {
+            const svgElement = document.getElementById('popupGraphic');
+            if (!svgElement) return;
+            
+            // Clear any existing content
+            svgElement.innerHTML = '';
+            
+            const width = 400;
+            const height = 250;
+
+            // Set dimensions
+            svgElement.setAttribute('width', width);
+            svgElement.setAttribute('height', height);
+            svgElement.setAttribute('viewBox', `0 0 ${width} ${height}`);
+
+            // Simple example with just 2 nodes
+            const node1X = width/2 - 60;
+            const node2X = width/2 + 60;
+            const nodeY = height/2;
+
+            // Create SVG namespace
+            const svgNS = "http://www.w3.org/2000/svg";
+
+            // Draw connecting line
+            const line = document.createElementNS(svgNS, 'line');
+            line.setAttribute('x1', node1X);
+            line.setAttribute('y1', nodeY);
+            line.setAttribute('x2', node2X);
+            line.setAttribute('y2', nodeY);
+            line.setAttribute('stroke', '#223729');
+            line.setAttribute('stroke-width', '3');
+            line.setAttribute('opacity', '0.6');
+            svgElement.appendChild(line);
+
+            // Draw first node group
+            const node1Group = document.createElementNS(svgNS, 'g');
+            node1Group.setAttribute('transform', `translate(${node1X},${nodeY})`);
+
+            const circle1 = document.createElementNS(svgNS, 'circle');
+            circle1.setAttribute('r', '12');
+            circle1.setAttribute('fill', '#223729');
+            circle1.setAttribute('stroke', '#c7cabd');
+            circle1.setAttribute('stroke-width', '3');
+            node1Group.appendChild(circle1);
+
+            const text1 = document.createElementNS(svgNS, 'text');
+            text1.setAttribute('dy', '30');
+            text1.setAttribute('text-anchor', 'middle');
+            text1.setAttribute('fill', '#1c1c1d');
+            text1.setAttribute('font-size', '13px');
+            text1.setAttribute('font-family', "'OCR_A', Arial, sans-serif");
+            text1.textContent = 'Kiau Tech';
+            node1Group.appendChild(text1);
+
+            svgElement.appendChild(node1Group);
+
+            // Draw second node group
+            const node2Group = document.createElementNS(svgNS, 'g');
+            node2Group.setAttribute('transform', `translate(${node2X},${nodeY})`);
+
+            const circle2 = document.createElementNS(svgNS, 'circle');
+            circle2.setAttribute('r', '12');
+            circle2.setAttribute('fill', '#223729');
+            circle2.setAttribute('stroke', '#c7cabd');
+            circle2.setAttribute('stroke-width', '3');
+            node2Group.appendChild(circle2);
+
+            const text2 = document.createElementNS(svgNS, 'text');
+            text2.setAttribute('dy', '30');
+            text2.setAttribute('text-anchor', 'middle');
+            text2.setAttribute('fill', '#1c1c1d');
+            text2.setAttribute('font-size', '13px');
+            text2.setAttribute('font-family', "'OCR_A', Arial, sans-serif");
+            text2.textContent = 'Projects';
+            node2Group.appendChild(text2);
+
+            svgElement.appendChild(node2Group);
+        }
+
+        function loadGraph() {
             const scriptElement = document.createElement('script');
             scriptElement.src = "nodes.js";
             document.body.appendChild(scriptElement);
-        };
+        }
+
+
+        function initNodeTutorial() {
+            const TEN_MIN_MS = 10 * 60 * 1000;
+            const key = 'kiauTutorialLast';
+            let shouldShow = true;
+            try {
+                const last = parseInt(localStorage.getItem(key), 10);
+                if (last && (Date.now() - last) < TEN_MIN_MS) {
+                    shouldShow = false;
+                }
+            } catch (e) {
+                shouldShow = true;
+            }
+
+            if (!shouldShow) return;
+
+            window.addEventListener('kiauGraphReady', function() {
+                if (window.startNodeTutorial) {
+                    window.startNodeTutorial({
+                        nodeId: 'Kiau Technologies',
+                        title: 'This is a node.',
+                        body: 'Each node represents an important topic to Kiau Tech. Click on a node to explore more or try dragging it around!',
+                        nextLabel: 'Next',
+                        linkTitle: 'This is a link.',
+                        linkBody: 'Links signify the connection between different important topics.',
+                        pulseTitle: 'These are pulses.',
+                        pulseBody: 'Pulses indicate the "activity" flow from our main focus (Kiau Technologies) to other areas.',
+                        finishLabel: 'Finish'
+                    });
+                }
+            }, { once: true });
+        }
 
         function resizeSVG() {
-            const svg = document.querySelector('svg');
+            const svg = document.querySelector('#mainGraph');
+            if (!svg) return;
+            
             const width = window.innerWidth;
             const height = window.innerHeight;
     
@@ -280,8 +575,9 @@
 
         // Apply mode on page load
         window.onload = function() {
-            timeMode();
+            loadGraph();
             resizeSVG();
+            initNodeTutorial();
         };
 
         // Debounced resize handler

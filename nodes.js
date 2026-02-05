@@ -120,7 +120,7 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
 
   // Set up the SVG container with resizable options
   const root = document.documentElement;
-  const svg = d3.select("svg")
+  const svg = d3.select("#mainGraph")
     .attr("viewBox", `0 0 ${width} ${height}`)
     .attr("preserveAspectRatio", "xMidYMid meet")
     .attr("width", "100%")
@@ -221,6 +221,9 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
     }))
     .alphaDecay(0.02) // Faster settling
     .velocityDecay(0.6); // More damping for stable elastic feel
+
+  // Expose simulation globally for resize/tour helpers
+  window.simulation = simulation;
   
   let mouseX = settings.centerX, mouseY = settings.centerY;
   let mouseInfluence = 0;
@@ -272,17 +275,16 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
         specialNode.fy = settings.centerY;
       }
       
+      updateTutorialPosition();
       console.log("Resized to:", settings);
     }, 250);
   });
 
-  // Determine day/night mode based on time
-  const hour = new Date().getHours();
-  const isDayMode = (hour >= 6 && hour < 18);
-  const nodeColor = isDayMode ? getComputedStyle(root).getPropertyValue('--node-color-day').trim() : getComputedStyle(root).getPropertyValue('--node-color-night').trim();
-  const linkColor = isDayMode ? getComputedStyle(root).getPropertyValue('--link-color-day').trim() : getComputedStyle(root).getPropertyValue('--link-color-night').trim();
-  const textStrokeColor = isDayMode ? getComputedStyle(root).getPropertyValue('--text-stroke-color-day').trim() : getComputedStyle(root).getPropertyValue('--text-stroke-color-night').trim();
-  const textFillColor = isDayMode ? getComputedStyle(root).getPropertyValue('--text-fill-color-day').trim() : getComputedStyle(root).getPropertyValue('--text-fill-color-night').trim();
+  // Single palette (no day/night switching)
+  const nodeColor = getComputedStyle(root).getPropertyValue('--node-color-day').trim();
+  const linkColor = getComputedStyle(root).getPropertyValue('--link-color-day').trim();
+  const textStrokeColor = getComputedStyle(root).getPropertyValue('--text-stroke-color-day').trim();
+  const textFillColor = getComputedStyle(root).getPropertyValue('--text-fill-color-day').trim();
 
   // Set up markers for links
   svg.append("defs").selectAll("marker")
@@ -310,7 +312,7 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
     .attr("stroke-width", settings.strokeSize * 0.8) // Slightly thinner for rope look
     .attr("stroke-linecap", "round")
     .attr("opacity", 0.8)
-    .attr("filter", (!isDayMode && !isMobile) ? "url(#glow)" : null);
+    .attr("filter", !isMobile ? "url(#glow)" : null);
 
   // Create invisible rope segment nodes (for physics only, not visual)
   const ropeSegmentNodes = svg.append("g")
@@ -321,14 +323,19 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
     .attr("fill", "transparent");
 
   // Bioluminescent pulse system
+  const pulseConnectorGroup = svg.append("g").attr("class", "pulse-connectors");
   const pulseGroup = svg.append("g").attr("class", "pulses");
   let activePulses = [];
   let pulseIdCounter = 0;
 
+  // Tutorial-controlled pulse flags
+  let pulsesEnabled = false;
+  let pulseSystemStarted = false;
+
   // Function to create a pulse along a connection
   function createPulse(link) {
     const pulseId = ++pulseIdCounter;
-    const pulseColor = isDayMode ? "#7dd87f" : "#00ffaa"; // Light green for day, cyan-green for night
+    const pulseColor = "#DA99D6"; // Fixed pulse color (no day/night switching)
     const tailLength = isMobile ? 3 : 5; // Number of tail segments
     
     const pulseData = {
@@ -339,7 +346,8 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
       intensity: 0.6 + Math.random() * 0.4, // Varying glow intensity
       size: isMobile ? 3 : 4 + Math.random() * 3,
       color: pulseColor,
-      tail: [] // Array to store tail elements
+      tail: [], // Array to store tail elements
+      connector: null
     };
 
     // Create the main pulse element
@@ -367,6 +375,15 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
         opacity: pulseData.intensity * (0.7 - i * 0.12) // Decreasing opacity
       });
     }
+
+    // Create a connector line for fancy display in pulse tutorial step
+    const connector = pulseConnectorGroup.append("line")
+      .attr("class", "pulse-connector")
+      .attr("stroke", "#999")
+      .attr("stroke-width", 1)
+      .attr("stroke-opacity", 0.0); // start invisible
+
+    pulseData.connector = connector;
 
     activePulses.push(pulseData);
 
@@ -432,6 +449,334 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
     .enter().append("g")
     .call(drag(simulation));
 
+  const ORIGIN_NODE_ID = 'Kiau Technologies';
+
+  // Tutorial/highlight state for focusing a single node
+  const tutorialState = {
+    active: false,
+    nodeId: null,
+    overlay: null,
+    highlight: null,
+    targetSelection: null,
+    step: 1,
+    linkRef: null,
+    options: {}
+  };
+
+  const TUTORIAL_LS_KEY = 'kiauTutorialLast';
+
+  function hideAllNodeText() {
+    node.selectAll('text').attr('opacity', 0);
+  }
+
+  function findTutorialLink(options) {
+    const preferredTarget = options && options.linkTargetId;
+    if (preferredTarget) {
+      const matchPreferred = links.find(l => l.source.id === preferredTarget || l.target.id === preferredTarget);
+      if (matchPreferred) return matchPreferred;
+    }
+    const connected = links.find(l => l.source.id === tutorialState.nodeId || l.target.id === tutorialState.nodeId);
+    return connected || links[0];
+  }
+
+  function dimAllLinksExcept(linkToKeep) {
+    if (!linkToKeep) return;
+    node.select('circle')
+      .attr('fill', '#000')
+      .attr('stroke', '#000');
+
+    ropes
+      .attr('stroke', '#000')
+      .attr('opacity', 0.6);
+
+    ropes
+      .filter(d => d === linkToKeep)
+      .attr('stroke', linkColor)
+      .attr('opacity', 1);
+  }
+
+  function emphasizePulsesOnly() {
+    // Clear any tutorial target styling
+    node.classed('tutorial-target', false);
+
+    node.select('circle')
+      .attr('fill', '#000')
+      .attr('stroke', '#000')
+      .attr('filter', null); // remove any glow (e.g., Kiau yellow)
+
+    ropes
+      .attr('stroke', '#000')
+      .attr('opacity', 0.25);
+  }
+
+  function restoreGraphDefaults() {
+    node.select('circle')
+      .attr('fill', nodeColor)
+      .attr('stroke', '#c3f8cf')
+      .attr('filter', d => d.id === 'Kiau Technologies' && !isMobile ? "url(#yellowGlow)" : null);
+
+    ropes
+      .attr('stroke', linkColor)
+      .attr('opacity', 0.8);
+
+    node.selectAll('text').attr('opacity', 1);
+  }
+
+  function finishTutorial() {
+    restoreGraphDefaults();
+
+    if (tutorialState.highlight) tutorialState.highlight.attr('display', 'none');
+    const arrowEl = tutorialState.overlay ? tutorialState.overlay.querySelector('.node-tutorial-arrow') : null;
+    if (arrowEl) arrowEl.style.display = 'none';
+    if (tutorialState.overlay) tutorialState.overlay.style.display = 'none';
+
+    tutorialState.active = false;
+    tutorialState.linkRef = null;
+    tutorialState.targetSelection = null;
+    tutorialState.step = 4;
+
+    try {
+      localStorage.setItem(TUTORIAL_LS_KEY, Date.now().toString());
+    } catch (e) {
+      // ignore storage failures
+    }
+  }
+
+  function ensureTutorialElements(options) {
+    const { title = 'What is a node?', body = 'Nodes are draggable connection points you can click to learn more about a project.', nextLabel = 'Next' } = options || {};
+
+    if (!tutorialState.overlay) {
+      const card = document.createElement('div');
+      card.id = 'nodeTutorialCard';
+      card.className = 'node-tutorial-card';
+      card.innerHTML = `
+        <div class="node-tutorial-title"></div>
+        <p class="node-tutorial-body"></p>
+        <button class="node-tutorial-next" type="button" disabled>Next</button>
+        <button class="node-tutorial-skip" type="button">Skip</button>
+        <div class="node-tutorial-arrow" aria-hidden="true"></div>
+      `;
+      document.body.appendChild(card);
+      tutorialState.overlay = card;
+    }
+
+    tutorialState.overlay.querySelector('.node-tutorial-title').textContent = title;
+    tutorialState.overlay.querySelector('.node-tutorial-body').textContent = body;
+    const nextBtn = tutorialState.overlay.querySelector('.node-tutorial-next');
+    const skipBtn = tutorialState.overlay.querySelector('.node-tutorial-skip');
+    const arrowEl = tutorialState.overlay.querySelector('.node-tutorial-arrow');
+    if (arrowEl) arrowEl.style.display = 'none';
+    nextBtn.textContent = nextLabel;
+    nextBtn.title = 'Next step';
+    nextBtn.disabled = false;
+    nextBtn.onclick = function() {
+      if (tutorialState.step === 1) {
+        // STEP 2: reveal one connected node and single link, everything else hidden/black
+        tutorialState.step = 2;
+        tutorialState.linkRef = findTutorialLink(options);
+
+        const link = tutorialState.linkRef;
+        const originId = tutorialState.nodeId;
+        const otherNodeId = link
+          ? (link.source.id === originId ? link.target.id : link.source.id)
+          : null;
+
+        // Only show the origin node and the connected node
+        node.style('display', d => {
+          if (!otherNodeId) return d.id === originId ? null : 'none';
+          return (d.id === originId || d.id === otherNodeId) ? null : 'none';
+        });
+
+        // Only show the rope corresponding to this link
+        ropes.style('display', d => (d === link ? null : 'none'));
+
+        // Make everything black except the focused link
+        if (link) dimAllLinksExcept(link);
+
+        // Hide labels while explaining the link
+        hideAllNodeText();
+
+        tutorialState.overlay.querySelector('.node-tutorial-title').textContent = options.linkTitle || 'This is a link.';
+        tutorialState.overlay.querySelector('.node-tutorial-body').textContent = options.linkBody || 'Links signify the connection between different important topics.';
+        updateTutorialPosition();
+      } else if (tutorialState.step === 2) {
+        // STEP 3: reveal full graph, black out nodes/links, and enable pulses
+        tutorialState.step = 3;
+
+        // Show all nodes and ropes
+        node.style('display', null);
+        ropes.style('display', null);
+
+        // Make nodes "spawn" from center and pop out
+        nodes.forEach(n => {
+          if (!n.isRopeSegment) {
+            n.x = settings.centerX;
+            n.y = settings.centerY;
+          }
+        });
+        simulation.alpha(1).restart();
+
+        // Black out nodes and links and hide labels to emphasize pulses
+        emphasizePulsesOnly();
+        hideAllNodeText();
+
+        // Enable pulses for this final step
+        enablePulses();
+
+        tutorialState.overlay.querySelector('.node-tutorial-title').textContent = options.pulseTitle || 'These are pulses.';
+        tutorialState.overlay.querySelector('.node-tutorial-body').textContent = options.pulseBody || 'Pulses are the glowing blips traveling along links to show activity.';
+        nextBtn.textContent = options.finishLabel || 'Finish';
+        nextBtn.title = 'Finish tutorial';
+        updateTutorialPosition();
+      } else if (tutorialState.step === 3) {
+        // Finish: keep pulses running, just clear tutorial UI/state
+        finishTutorial();
+      }
+    };
+
+    // Skip handler: immediately restore graph and hide tutorial
+    if (skipBtn) {
+      skipBtn.onclick = function() {
+        finishTutorial();
+      };
+    }
+
+    if (!tutorialState.highlight) {
+      tutorialState.highlight = svg.append('circle')
+        .attr('class', 'node-tutorial-highlight')
+        .attr('fill', 'none')
+        .attr('pointer-events', 'none');
+    }
+    tutorialState.highlight
+      .attr('r', settings.nodeRadius * 4)
+      .attr('stroke', '#ffd66b')
+      .attr('stroke-width', 3.5)
+      .attr('opacity', 0.9);
+  }
+
+  function updateTutorialPosition() {
+    if (!tutorialState.active || !tutorialState.nodeId) return;
+    const overlayArrow = tutorialState.overlay ? tutorialState.overlay.querySelector('.node-tutorial-arrow') : null;
+    if (tutorialState.step === 3) {
+      if (tutorialState.highlight) {
+        tutorialState.highlight.attr('display', 'none');
+      }
+      if (overlayArrow) overlayArrow.style.display = 'none';
+      if (tutorialState.overlay) {
+        if (isMobile) {
+          // On phones, center the pulse explanation box at the top
+          tutorialState.overlay.style.left = '50%';
+          tutorialState.overlay.style.right = 'auto';
+          tutorialState.overlay.style.top = '16px';
+          tutorialState.overlay.style.bottom = 'auto';
+          tutorialState.overlay.style.transform = 'translateX(-50%)';
+        } else {
+          // On larger screens, keep it top-right
+          tutorialState.overlay.style.left = 'auto';
+          tutorialState.overlay.style.right = '16px';
+          tutorialState.overlay.style.top = '16px';
+          tutorialState.overlay.style.bottom = 'auto';
+          tutorialState.overlay.style.transform = '';
+        }
+      }
+      return;
+    }
+    if (tutorialState.step === 2 && tutorialState.linkRef) {
+      const link = tutorialState.linkRef;
+      if (!link || typeof link.source.x !== 'number' || typeof link.target.x !== 'number') return;
+
+      // Hide any highlight circle during link step
+      if (tutorialState.highlight) {
+        tutorialState.highlight
+          .attr('opacity', 0)
+          .attr('display', 'none');
+      }
+
+      // Pin the card to the top of the page to keep it away from the link
+      if (tutorialState.overlay) {
+        tutorialState.overlay.style.left = '50%';
+        tutorialState.overlay.style.right = 'auto';
+        tutorialState.overlay.style.top = '16px';
+        tutorialState.overlay.style.bottom = 'auto';
+        tutorialState.overlay.style.transform = 'translateX(-50%)';
+      }
+
+      if (overlayArrow) {
+        overlayArrow.style.display = 'none';
+      }
+
+      return;
+    }
+
+    const targetNode = nodes.find(n => n.id === tutorialState.nodeId);
+    if (!targetNode || typeof targetNode.x !== 'number' || typeof targetNode.y !== 'number') return;
+
+    if (!tutorialState.targetSelection) {
+      tutorialState.targetSelection = node.filter(d => d.id === tutorialState.nodeId);
+      tutorialState.targetSelection.classed('tutorial-target', true).raise();
+    }
+
+    if (tutorialState.highlight) {
+      tutorialState.highlight
+        .attr('cx', targetNode.x)
+        .attr('cy', targetNode.y)
+        .attr('opacity', 0.9)
+        .attr('display', 'block');
+    }
+
+    if (overlayArrow) {
+      overlayArrow.style.display = 'none';
+    }
+
+    if (tutorialState.overlay) {
+      const svgRect = svg.node().getBoundingClientRect();
+      const scaleX = svgRect.width / width;
+      const scaleY = svgRect.height / height;
+      const pageX = svgRect.left + (targetNode.x * scaleX);
+      const pageY = svgRect.top + (targetNode.y * scaleY);
+
+      if (tutorialState.step === 1) {
+        // For the first stage, place the card clearly underneath the node
+        const verticalOffset = 80; // pixels below the node
+        const cardRect = tutorialState.overlay.getBoundingClientRect();
+        const cardWidth = cardRect.width || 0;
+        const left = pageX - cardWidth / 2;
+        tutorialState.overlay.style.left = `${left}px`;
+        tutorialState.overlay.style.top = `${pageY + verticalOffset}px`;
+      } else {
+        const offsetX = 24;
+        const offsetY = -10;
+        tutorialState.overlay.style.left = `${pageX + offsetX}px`;
+        tutorialState.overlay.style.top = `${pageY + offsetY}px`;
+      }
+    }
+  }
+
+  // Public starter to highlight a specific node with a floating card
+  window.startNodeTutorial = function(options = {}) {
+    tutorialState.nodeId = options.nodeId || ORIGIN_NODE_ID;
+    tutorialState.active = true;
+    tutorialState.step = 1;
+    tutorialState.linkRef = null;
+    tutorialState.options = options;
+    tutorialState.targetSelection = null;
+
+    // STEP 1: only show the origin node (Kiau Tech)
+    node.style('display', d => (d.id === tutorialState.nodeId ? null : 'none'));
+    ropes.style('display', 'none');
+
+    node.select('circle')
+      .attr('fill', nodeColor)
+      .attr('stroke', '#c3f8cf');
+
+    if (tutorialState.overlay) {
+      tutorialState.overlay.style.display = 'block';
+    }
+    ensureTutorialElements(options);
+    updateTutorialPosition();
+    simulation.alphaTarget(0.2).restart();
+  };
+
     node.append("circle")
     .attr("aria-hidden", "true")
     .attr("stroke", "#c3f8cf")
@@ -477,34 +822,42 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
   
 
   let frameCount = 0;
-  let lastPulseTime = Date.now() - 2000; // Start with offset to trigger first pulse quickly
+  let lastPulseTime = Date.now();
   const pulseInterval = isMobile ? 800 : 600; // Spawn pulses every 0.6-0.8 seconds (much more frequent)
   
   // Independent pulse animation system - runs continuously regardless of simulation state
   let pulseAnimationId;
   
   function pulseAnimationLoop() {
-    // Update all active pulses
-    updatePulses();
-    
-    // Spawn new pulses based on timing with organic variation
-    const currentTime = Date.now();
-    const timingVariation = Math.random() * 400; // 0-400ms variation
-    if (currentTime - lastPulseTime > pulseInterval + timingVariation) {
-      spawnRandomPulse();
-      lastPulseTime = currentTime;
+    if (pulsesEnabled) {
+      // Update all active pulses
+      updatePulses();
+
+      // Spawn new pulses based on timing with organic variation
+      const currentTime = Date.now();
+      const timingVariation = Math.random() * 400; // 0-400ms variation
+      if (currentTime - lastPulseTime > pulseInterval + timingVariation) {
+        spawnRandomPulse();
+        lastPulseTime = currentTime;
+      }
     }
-    
+
     // Continue the animation loop
     pulseAnimationId = requestAnimationFrame(pulseAnimationLoop);
   }
-  
-  // Start the independent pulse system
-  setTimeout(() => {
+
+  function startPulseSystem() {
+    if (pulseSystemStarted) return;
+    pulseSystemStarted = true;
+    lastPulseTime = Date.now();
+    pulseAnimationLoop();
+  }
+
+  function enablePulses() {
+    pulsesEnabled = true;
+    startPulseSystem();
     spawnRandomPulse();
-    console.log("Initial pulse spawned");
-    pulseAnimationLoop(); // Start the continuous animation loop
-  }, 1000);
+  }
 
   // Update rope and node positions during simulation ticks
   simulation.on("tick", () => {
@@ -564,6 +917,9 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
           .attr("dominant-baseline", "central");
       }
     });
+
+    // Keep tutorial overlay/marker in sync with live positions
+    updateTutorialPosition();
   });
   
   
@@ -642,6 +998,11 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
             .attr("opacity", 0)
             .remove();
         });
+
+        // Remove connector line
+        if (pulse.connector) {
+          pulse.connector.remove();
+        }
         
         return false; // Remove from active pulses
       }
@@ -667,6 +1028,32 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
         .attr("cx", pos.x)
         .attr("cy", pos.y)
         .attr("r", currentSize);
+
+      // Update connector line to tutorial overlay during pulses step
+      if (pulse.connector) {
+        if (tutorialState.active && tutorialState.step === 3 && tutorialState.overlay) {
+          const svgRect = svg.node().getBoundingClientRect();
+          const overlayRect = tutorialState.overlay.getBoundingClientRect();
+          const scaleX = svgRect.width / width;
+          const scaleY = svgRect.height / height;
+
+          const overlayCenterPageX = overlayRect.left + overlayRect.width / 2;
+          const overlayCenterPageY = overlayRect.top + overlayRect.height / 2;
+
+          const overlayCenterSvgX = (overlayCenterPageX - svgRect.left) / scaleX;
+          const overlayCenterSvgY = (overlayCenterPageY - svgRect.top) / scaleY;
+
+          pulse.connector
+            .attr("x1", pos.x)
+            .attr("y1", pos.y)
+            .attr("x2", overlayCenterSvgX)
+            .attr("y2", overlayCenterSvgY)
+            .attr("stroke-opacity", 0.35);
+        } else {
+          // Hide connector outside pulses explanation step
+          pulse.connector.attr("stroke-opacity", 0);
+        }
+      }
       
       // Update tail segments
       pulse.tail.forEach((tailSegment, index) => {
@@ -772,5 +1159,13 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
       .on("drag", dragged)
       .on("end", dragended);
   }
+
+  // Notify the main page that the graph is ready for tutorials/highlights
+  window.dispatchEvent(new CustomEvent('kiauGraphReady', {
+    detail: {
+      nodes,
+      svg: svg.node()
+    }
+  }));
 
 });

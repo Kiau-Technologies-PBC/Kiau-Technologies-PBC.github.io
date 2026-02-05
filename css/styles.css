@@ -4,14 +4,12 @@
  */
  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
  :root {
-    --color-1: #5c864b;
-    --color-2: #223729;
-    --color-3: #c7cabd;
-    --color-4: #1c1c1d;
-    --color-5: #271405;
-    --text-color: var(--color-3);
-    --background-color: var(--color-1);
-  
+    
+    --background: #f9f5f2;
+    --primary-color: #145b4f;
+    --accent-color: #da99d6;
+    --background-color: var(--background);
+    --text-color: var(--primary-color);
  }
  @font-face {
     font-family: "OCR_A";
@@ -29,8 +27,8 @@
      font-family: 'OCR_A', Arial, sans-serif;
      font-style: normal;
      line-height: 1.6;
-     color: var(--text-color);
-     background-color: var(--background-color);
+     color: var(--background);
+     background-color: var(--primary-color);
      width: 100%;
      height: 100%;
      /* overflow-x: hidden; */
@@ -40,6 +38,7 @@
  }
  
 body {
+    padding-top: 40px;
      overflow-y: auto;
      cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><circle cx="5" cy="5" r="5" fill="white"/></svg>') 5 5, auto;
  }
@@ -78,7 +77,7 @@ body {
  .team-member h2 {
      font-size: 1.5rem;
      margin-bottom: 0.5rem;
-     color: var(--color-3);
+     color: var(--background);
  }
  
  .team-member p {
@@ -108,7 +107,7 @@ body {
      width: 100%;
      top: 0;
      z-index: 1000;
-     background-color: rgba(143, 198, 156, 0.757);
+     background-color: var(--primary-color);
  }
  
  main {
@@ -117,14 +116,14 @@ body {
  }
  
  footer {
-     background: linear-gradient(to top, #1c1c1d 0%, #2a2a2b 100%);
-     color: var(--color-1);
+     background: var(--primary-color);
+     color: var(--background);
      text-align: center;
      padding: 2rem 1rem;
      position: relative;
      bottom: 0;
      width: 100%;
-     border-top: 2px solid var(--color-1);
+     border-top: 2px solid var(--primary-color);
      box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
  }
  
@@ -196,7 +195,7 @@ body {
  
  .feature-list li i {
      margin-right: 0.5rem;
-     color: var(--color-3);
+     color: var(--background);
  }
  
  .client-logos {
@@ -240,16 +239,16 @@ body {
      padding: 0.8rem 1.2rem;
      background: rgba(92, 134, 75, 0.15);
      border-radius: 10px;
-     border-left: 4px solid var(--color-1);
+     border-left: 4px solid var(--accent-color);
      transition: all 0.3s ease;
      font-size: clamp(0.95rem, 2vw, 1.1rem);
-     color: var(--color-3);
+     color: var(--background);
  }
 
  .goal-list li:hover {
      background: rgba(92, 134, 75, 0.25);
      transform: translateX(10px);
-     border-left-color: var(--color-3);
+     border-left-color: #0fff95;
  }
  
  .goal-list li i {
@@ -273,7 +272,7 @@ body {
  
  .hero-overlay {
      position: relative;
-     background: rgba(34, 55, 41, 0.9);
+     background: var(--primary-color);
      display: flex;
      min-height: 100vh;
      flex-direction: column;
@@ -387,7 +386,7 @@ body {
  
  .nav-links a {
      text-decoration: none;
-     color: var(--color-3);
+     color: var(--background);
      font-weight: 400;
      transition: color 0.3s ease;
  }

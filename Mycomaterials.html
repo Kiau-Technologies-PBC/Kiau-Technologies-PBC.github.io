@@ -18,22 +18,39 @@
 }
 
   :root{
+
+    --background: #f9f5f2;
+    --primary-color: #145b4f;
+    --accent-color: #da99d6;
+    --background-color: var(--background);
+    --text-color: var(--primary-color);
+
+
     --bg:#223729;
     --card-bg: #0b1220;
     --accent: #8cd37c;
     --text:#e6eef8;
   }
-  html,body{height:100%;margin:0;background:var(--bg);color:var(--text);
+  html,body{height:100%;margin:0;background:var(--primary-color);color:var(--background);
     font-family: 'OCR A', 'Roboto Mono', monospace;
+    padding-top: 70px;
   }
     .page {
       max-width:1200px;
       margin:0 auto;
-      padding:40px 20px;
+      padding:0px 20px;
     }
 
     header {text-align:center;margin-bottom:28px}
-    header h1{margin:0;font-size:clamp(20px,3.2vw,34px);letter-spacing:-0.02em}
+    h1 {
+      text-align: center;
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin: 1rem 1rem 1rem 1rem;
+      color: var(--background);
+      text-shadow: 0 4px 6px var(--accent-color);
+      font-family: 'OCR A', Arial, sans-serif;
+    }
     header p{opacity:.9;margin-top:8px;font-size:14px}
 
     /* Horizontal scroller wrapper (pinned while scrolling) */
@@ -116,7 +133,7 @@
       box-sizing: border-box;
     }
 
-    .caption h3{margin:0 0 6px 0;font-size:16px;color:var(--accent)}
+    .caption h3{margin:0 0 6px 0;font-size:16px;color:var(--accent-color)}
     .caption p{margin:0;opacity:0.92;font-size:13px}
 
     /* small screens: slide becomes full width */
@@ -152,14 +169,14 @@
 
     /* Additional styles for the content below the scroller */
     .below-content {
-      color: var(--text);
+      color: var(--background);
       font-size: 16px;
       line-height: 1.6;
       margin-top: 40px;
     }
 
     .below-content h2 {
-      color: var(--accent);
+      color: var(--accent-color);
       font-size: clamp(18px, 2.2vw, 26px);
       margin-top: 0;
     }
@@ -169,7 +186,7 @@
     }
 
     .below-content article {
-      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.04));
+      border-color: var(--accent-color);
       padding: 12px;
       border-radius: 10px;
     }
@@ -192,13 +209,45 @@
       gap: 16px;
       margin-top: 18px;
     }
+
+    footer {
+          flex-shrink: 0;
+          margin-top: auto;
+          background-color: var(--primary-color);
+          color: var(--background);
+          text-align: center;
+          padding: 2rem 1rem;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+      }
+
+      footer p {
+      color: var(--background);
+      font-size: 0.9rem;
+      margin: 0;
+      text-align: center;
+  }
   </style>
 </head>
 <body>
   <div class="page">
-    <header>
-      <h1>Mycomaterials</h1>
+    <header style="position: fixed; top: 0; left: 0; right: 0; z-index: 9999; background: var(--primary-color); backdrop-filter: blur(10px); padding: 1rem 2rem; box-shadow: 0 2px 10px rgba(0,0,0,0.3);">
+    <nav style="display: flex; justify-content: space-between; align-items: center; max-width: 1400px; margin: 0 auto;">
+        <a href="index.html" style="color: var(--background); font-size: 1.2rem; font-weight: bold; text-decoration: none;">
+            Kiau Technologies
+        </a>
+        <ul style="display: flex; gap: 2rem; list-style: none; margin: 0; padding: 0;">
+            <li><a href="index.html" style="color: var(--background); text-decoration: none;">Home</a></li>
+            <li><a href="about.html" style="color: var(--background); text-decoration: none;">About</a></li>
+        </ul>
+        <!-- Mobile hamburger menu here if needed -->
+    </nav>
     </header>
+    <h1>
+      Mycomaterials Gallery
+    </h1>
 
     <section class="scroller-wrap" id="scroller">
       <div class="track" id="track" role="list">
@@ -266,11 +315,11 @@
         </article>
       </div>
     </section>
-        <footer style="background-color:#0b1220; text-align:center; color:#8cd37c">
+        <footer>
         <div class="social-links">
             <!-- Add social media links here -->
         </div>
-        <p>&copy; 2025 Kiau Technologies PBC. All rights reserved.</p>
+        <p>2025 Kiau Technologies PBC</p>
     </footer>
   </main>
   <!-- /additional content -->
@@ -490,41 +539,39 @@
     const lastSlide = slides[slides.length - 1];
     const lastRect = lastSlide.getBoundingClientRect();
     
-    // Calculate distance needed to center the last slide
+    // Calculate distance needed to center the last slide in the viewport
     const lastCenter = (lastRect.left - trackRect.left) + lastRect.width / 2;
     const desiredToCenterLast = Math.max(0, lastCenter - window.innerWidth / 2);
-    
-    // Add extra padding to ensure last slide is fully visible and centered
-    const extraPadding = lastRect.width * 0.5; // Half slide width as buffer
-    const minPixels = Math.round(window.innerWidth * 0.8);
-    const total = Math.max(overflow + extraPadding, desiredToCenterLast + extraPadding, minPixels);
+
+    // Move only as far as needed to center the last slide (no overshoot)
+    const total = desiredToCenterLast;
 
     try {
       const tween = gsap.to(track, {
         x: () => `-${total}px`,
         ease: "none",
         force3D: true,
-        scrollTrigger: {
-          id: 'horizontal',
-          trigger: scroller,
-          start: "top top",
-          end: () => `+=${total}`,
-          scrub: 0.6,
-          pin: true,
-          pinSpacing: true,
-          anticipatePin: 1,
-          invalidateOnRefresh: true,
-          snap: {
-            snapTo: 1 / Math.max(1, slides.length - 1),
-            duration: 0.12,
-            ease: "power2.inOut"
-          },
-          onUpdate(self) {
-            const index = Math.round(self.progress * (slides.length - 1));
-            currentIndex = index;
-            if (dotsContainer) Array.from(dotsContainer.children).forEach((dot, i) => dot.classList.toggle('active', i === index));
+          scrollTrigger: {
+            id: 'horizontal',
+            trigger: scroller,
+            start: "top 20%", // begin pinning a bit sooner in the viewport
+            end: () => `+=${Math.round(total)}`,
+            scrub: 1,
+            pin: true,
+            pinSpacing: true,
+            anticipatePin: 0.5,
+            invalidateOnRefresh: true,
+            snap: {
+              snapTo: 1 / Math.max(1, slides.length - 1),
+              duration: 0.12,
+              ease: "power2.inOut"
+            },
+            onUpdate(self) {
+              const index = Math.round(self.progress * (slides.length - 1));
+              currentIndex = index;
+              if (dotsContainer) Array.from(dotsContainer.children).forEach((dot, i) => dot.classList.toggle('active', i === index));
+            }
           }
-        }
       });
       window.__myco_tween = tween;
     } catch (err) {
