@@ -675,11 +675,14 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
         // STEP 3: reveal full graph, black out nodes/links, and enable pulses
         tutorialState.step = 3;
 
-        // Show all nodes and ropes
-        node.style('display', null);
-        ropes.style('display', null);
+        // Sequentially spawn nodes from center for a pop-in effect
+        node.style('display', 'none');
+        ropes.style('display', 'none');
 
-        // Make nodes "spawn" from center and pop out
+        node.selectAll('text').attr('opacity', 0);
+        node.select('circle').attr('r', settings.nodeRadius * 0.35);
+
+        // Reset positions to center before popping out
         nodes.forEach(n => {
           if (!n.isRopeSegment) {
             n.x = settings.centerX;
@@ -688,12 +691,51 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
         });
         simulation.alpha(1).restart();
 
-        // Black out nodes and links and hide labels to emphasize pulses
-        emphasizePulsesOnly();
-        hideAllNodeText();
+        const originId = tutorialState.nodeId;
+        const revealOrder = nodes.filter(n => !n.isRopeSegment && n.id !== originId);
+        const originSel = node.filter(d => d.id === originId);
+        originSel.style('display', null);
 
-        // Enable pulses for this final step
-        enablePulses();
+        originSel.select('circle')
+          .attr('r', settings.nodeRadius * 0.35)
+          .transition()
+          .duration(320)
+          .ease(d3.easeBackOut)
+          .attr('r', settings.nodeRadius);
+
+        originSel.selectAll('text')
+          .transition()
+          .duration(220)
+          .attr('opacity', 1);
+
+        const revealDelay = 140;
+        revealOrder.forEach((n, idx) => {
+          const delay = (idx + 1) * revealDelay;
+          setTimeout(() => {
+            const sel = node.filter(d => d.id === n.id);
+            sel.style('display', null);
+
+            sel.select('circle')
+              .attr('r', settings.nodeRadius * 0.35)
+              .transition()
+              .duration(320)
+              .ease(d3.easeBackOut)
+              .attr('r', settings.nodeRadius);
+
+            sel.selectAll('text')
+              .transition()
+              .duration(220)
+              .attr('opacity', 1);
+          }, delay);
+        });
+
+        const totalRevealTime = (revealOrder.length + 1) * revealDelay + 320;
+        setTimeout(() => {
+          ropes.style('display', null);
+          emphasizePulsesOnly();
+          hideAllNodeText();
+          enablePulses();
+        }, totalRevealTime);
 
         tutorialState.overlay.querySelector('.node-tutorial-title').textContent = options.pulseTitle || 'These are pulses.';
         tutorialState.overlay.querySelector('.node-tutorial-body').textContent = options.pulseBody || 'Pulses are the glowing blips traveling along links to show activity.';
