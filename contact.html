@@ -6,6 +6,108 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="css/styles.css">
+    <style>
+        body {
+            background-color: var(--primary-color);
+            font-family: 'OCR_A', 'Roboto Mono', monospace;
+            color: #fff;
+        }
+        header {
+            background-color: var(--primary-color);
+            box-shadow: 0 2px 10px rgba(20,91,79,0.07);
+        }
+        nav {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1.2em 2em;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .nav-links {
+            display: flex;
+            gap: 2em;
+        }
+        .nav-links a {
+            color: var(--accent-color);
+            font-weight: 600;
+            text-decoration: none;
+            font-size: 1.08em;
+            padding: 0.2em 0.6em;
+            border-radius: 8px;
+            transition: background 0.2s, color 0.2s;
+        }
+        .nav-links a:hover {
+            background: var(--accent-color);
+            color: var(--primary-color);
+        }
+        .container {
+            background: rgba(255,255,255,0.05);
+            border-radius: 18px;
+            padding: 2.5em 2em;
+            margin-bottom: 2em;
+            color: #fff;
+        }
+       
+        h2 {
+            font-size: 2.1em;
+            font-weight: 700;
+            color: var(--accent-color);
+            margin-bottom: 0.5em;
+            text-shadow: 0 3px 6px rgba(218,153,214,0.18);
+        }
+        .contact-email {
+            display: flex;
+            align-items: center;
+            gap: 0.7em;
+            background: rgba(218,153,214,0.12);
+            border-radius: 12px;
+            padding: 0.7em 1.2em;
+            font-size: 1.1em;
+            font-weight: 500;
+            margin: 2em 0 1em 0;
+            box-shadow: 0 2px 8px rgba(218,153,214,0.07);
+            color: var(--primary-color);
+        }
+        ul.team-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        ul.team-list li {
+            background: rgba(218,153,214,0.08);
+            border-radius: 14px;
+            margin-bottom: 1.2em;
+            padding: 1.2em 1em;
+            color: #fff;
+        }
+        ul.team-list li span {
+            color: var(--accent-color);
+            font-weight: 700;
+        }
+        ul.team-list li br + span,
+        ul.team-list li > span + br + span,
+        ul.team-list li > span + br + span + br + span {
+            color: #fff !important;
+            font-weight: 400;
+        }
+        .privacy-note {
+            text-align: center;
+            font-size: 1em;
+            margin-top: 2em;
+            background: linear-gradient(90deg, rgba(218,153,214,0.22) 0%, rgba(20,91,79,0.22) 100%);
+            border-radius: 12px;
+            padding: 1.2em 1em;
+            color: #fff;
+            font-weight: 500;
+            letter-spacing: 0.02em;
+        }
+        @media (max-width: 700px) {
+            nav { padding: 1em 0.5em; }
+            .container { padding: 1.2em 0.7em; }
+            h2 { font-size: 1.3em; }
+        }
+    </style>
     <title>Contact us</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap" rel="stylesheet">
     <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
@@ -14,77 +116,61 @@
 </head>
 
 <body>
-    <header>
-        <nav>
-            <!-- <div class="logo">
-                <img src="images/" alt="" class="logo-image">
-                <span class="logo-text"></span>
-            </div> -->
-            <ul class="nav-links">
-                <li><a href="index.html">Home</a></li>
-                <li><a href="blog.html">Blog</a></li>
-                <li><a href="about.html">About Us</a></li>
-                <!-- <li><a href="contact.html">Contact & Team</a></li> -->
+    <header style="position: fixed; top: 0; left: 0; right: 0; z-index: 9999; backdrop-filter: blur(10px); padding: 1% 5%; box-shadow: 0 2px 10px rgba(0,0,0,0.3);">
+        <nav style="display: flex; justify-content: space-between; align-items: center; max-width: 1400px; margin: 0 auto;">
+            <a href="index.html" style="color: var(--background); font-size: 1.2rem; font-weight: bold; text-decoration: none;">
+                Kiau Technologies
+            </a>
+            <ul style="display: flex; gap: 2rem; list-style: none; margin: 0; padding: 0;">
+                <li><a href="index.html" style="color: var(--background); text-decoration: none;">Home</a></li>
+                <li><a href="about.html" style="color: var(--background); text-decoration: none;">About</a></li>
             </ul>
-            <div class="burger">
-                <div class="line1"></div>
-                <div class="line2"></div>
-                <div class="line3"></div>
-            </div>
         </nav>
     </header>
     <main>
         <section id="content">
             <div class="container">
                 <h2>Contact Us</h2>
-                <p>If you have any questions or would like more information about our projects and services, please feel free to contact us at:</p>
-                <p><i class="fas fa-envelope"></i> <span id="email"></span></p>
-                <script>
-                  const user = "brandon";
-                  const domain = "kiau.tech";
-                  const email = user + "@" + domain;
-                  const mailto = "mailto:" + email;
-                  document.getElementById("email").innerHTML = `<a href="${mailto}">Contact Brandon here</a>`;
-                </script>
-
-            </div>
-
-            <div class="divider"></div>
-
-            <div class="container">
-                <h2>Meet Our Team</h2>
-                <div class="team-grid">
-                    <div class="team-member">
-                        <img src="../images/memberprofilepics/Coming_soon_better.png" alt="Brandon Bunt">
-                        <h2>Brandon Bunt</h2>
-                        <p>Founder & Mechanical Engineer</p>
-                        <p>Brandon uses his background in mechanical engineering, design, hydroponics, and mycomaterials to transform environmental data into actionable farm management decisions.</p>
-                    </div>
-                    <div class="team-member">
-                        <img src="../images/memberprofilepics/Coming_soon_better.png" alt="Ani Vardanyan">
-                        <h2>Ani Vardanyan</h2>
-                        <p>Lead Electrical Engineer</p>
-                        <p>Ani is focused on designing proprietary low-cost sensors using e-waste.</p>
-                    </div>
-                    <div class="team-member">
-                        <img src="../images/memberprofilepics/Coming_soon_better.png" alt="Manhim Liu">
-                        <h2>Manhim Liu</h2>
-                        <p>Renewable Energy Specialist</p>
-                        <p>Manhim is working on the design of sensors while also focusing on powering the modules using renewable sources of energy.</p>
-                    </div>
-                    <div class="team-member">
-                        <img src="../images/memberprofilepics/Coming_soon_better.png" alt="Jonghyeok (Burt) Kim">
-                        <h2>Jonghyeok (Burt) Kim</h2>
-                        <p>Embedded Engineer</p>
-                        <p>Burt is working on developing the central point where all the data is traveling to while also focusing on the user interface for easy data reading.</p>
-                    </div>
-                    <div class="team-member">
-                        <img src="../images/memberprofilepics/Coming_soon_better.png" alt="Spencer Kirsch">
-                        <h2>Spencer Kirsch</h2>
-                        <p>Hardware Specialist</p>
-                        <p>Spencer brings everything together by focusing on modular housing that protects all the electronics we expose to the environment.</p>
-                    </div>
+                <p style="font-size:1.1em;opacity:0.92;">For inquiries about our projects, collaborations, or services, please reach out using the email below. We value thoughtful connections and will respond promptly.</p>
+                <div class="contact-email">
+                    <i class="fas fa-envelope" aria-hidden="true"></i>
+                    <span id="email"></span>
                 </div>
+                <script>
+                  // Obfuscated email to prevent scraping
+                  const u = "brandon";
+                  const d = "kiau";
+                  const t = "tech";
+                  const e = u + "@" + d + "." + t;
+                  const m = "mailto:" + e;
+                  document.getElementById("email").innerHTML = `<a href="${m}" rel="nofollow" style="color:#6c3fa7;text-decoration:underline;">Contact Brandon here</a>`;
+                </script>
+                <noscript><span style="color:#6c3fa7;">Enable JavaScript to view email address.</span></noscript>
+            </div>
+            <div class="container">
+                <h2>Our Team</h2>
+                <ul class="team-list">
+                    <li>
+                        <span style="font-weight:600;">Brandon Bunt</span> — Founder & Mechanical Engineer<br>
+                        <span style="opacity:0.85;">Mechanical engineering, design, hydroponics, mycomaterials, and actionable farm management.</span>
+                    </li>
+                    <li>
+                        <span style="font-weight:600;">Manhim Liu</span> — Renewable Energy Specialist<br>
+                        <span style="opacity:0.85;">Designs sensors and focuses on renewable energy for modules.</span>
+                    </li>
+                    <li>
+                        <span style="font-weight:600;">Spencer Kirsch</span> — Hardware Specialist<br>
+                        <span style="opacity:0.85;">Focuses on modular housing to protect electronics in the environment.</span>
+                    </li>
+                    <li>
+                        <span style="font-weight:600;">Max Van Dorn</span> — Website & Software Engineer<br>
+                        <span style="opacity:0.85;">Handles web development and software engineering for our digital platforms.</span>
+                    </li>
+
+                </ul>
+            </div>
+            <div class="privacy-note">
+                <em>For privacy and security, automated scraping and bots are discouraged. Please use the contact form or email for genuine inquiries only.</em>
             </div>
         </section>
     </main>

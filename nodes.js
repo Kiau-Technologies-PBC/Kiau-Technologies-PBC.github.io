@@ -28,7 +28,8 @@ const urlMap = {
   'Local Plastic Recycling': 'localPlasticRecycling.html',
   'E-Waste Projects': 'e-waste.html',
   'Mycomaterials': 'Mycomaterials.html',
-  'Design Thinking': 'designThinking.html'
+  'Design Thinking': 'designThinking.html',
+  'Mottai-nai': 'mottai-nai.html'
 };
 
 // Get URL for a node - returns default if not found
