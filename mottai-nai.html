@@ -31,7 +31,34 @@
 			z-index: 1;
 		}
 
+		body {
+			background: radial-gradient(circle at 20% 20%, rgba(218, 153, 214, 0.12), transparent 30%),
+				radial-gradient(circle at 80% 0%, rgba(255, 255, 255, 0.06), transparent 35%),
+				var(--primary-color);
+			color: var(--background);
+		}
+
+		.page-shell {
+			max-width: 1200px;
+			margin: 0 auto;
+			padding: 120px 24px 80px 24px;
+			position: relative;
+			z-index: 1;
+		}
+
 		.mottainai-hero {
+			display: grid;
+			grid-template-columns: 1fr;
+			gap: 1.5rem;
+			align-items: center;
+			padding: 48px;
+			border-radius: 28px;
+			background: linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(218, 153, 214, 0.18));
+			box-shadow: 0 15px 50px rgba(0, 0, 0, 0.25);
+			overflow: hidden;
+		}
+		.hero-topline {
+			display: inline-flex;
 			display: grid;
 			grid-template-columns: 1fr;
 			gap: 1.5rem;
@@ -58,12 +85,29 @@
 			font-size: clamp(2.2rem, 4vw, 3.2rem);
 			line-height: 1.1;
 			letter-spacing: 0.04em;
+			gap: 10px;
+			font-size: 0.95rem;
+			letter-spacing: 0.08em;
+			text-transform: uppercase;
+			background: rgba(255, 255, 255, 0.08);
+			padding: 8px 14px;
+			border-radius: 999px;
+			width: fit-content;
 		}
+		.hero-title {
+			font-size: clamp(2.2rem, 4vw, 3.2rem);
+			line-height: 1.1;
+			letter-spacing: 0.04em;
+		}
+		.hero-kanji {
+			font-size: clamp(3.5rem, 7vw, 5.5rem);
 		.hero-kanji {
 			font-size: clamp(3.5rem, 7vw, 5.5rem);
 			font-family: 'OCR_A', 'Roboto Mono', monospace;
 			letter-spacing: 0.14em;
+			letter-spacing: 0.14em;
 			color: var(--accent-color);
+			text-shadow: 0 4px 18px rgba(0, 0, 0, 0.3);
 			text-shadow: 0 4px 18px rgba(0, 0, 0, 0.3);
 		}
 		.hero-footnote {
@@ -92,14 +136,55 @@
 			border-radius: 22px;
 			border: 1px solid rgba(255, 255, 255, 0.12);
 			box-shadow: 0 10px 36px rgba(0, 0, 0, 0.2);
+		.hero-footnote {
+			opacity: 0.85;
+			max-width: 640px;
 		}
+		.hero-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+			gap: 16px;
+			margin-top: 12px;
+		}
+		.hero-chip {
+			background: rgba(255, 255, 255, 0.06);
+			border: 1px solid rgba(255, 255, 255, 0.15);
+			border-radius: 14px;
+			padding: 12px 14px;
+			font-size: 0.95rem;
+			line-height: 1.4;
+		}
+
+		.section {
+			margin-top: 56px;
+			padding: 40px;
+			background: rgba(255, 255, 255, 0.05);
+			border-radius: 22px;
+			border: 1px solid rgba(255, 255, 255, 0.12);
+			box-shadow: 0 10px 36px rgba(0, 0, 0, 0.2);
+		}
+		.section-header {
 		.section-header {
 			display: flex;
 			align-items: center;
 			justify-content: space-between;
 			gap: 16px;
 			margin-bottom: 20px;
+			align-items: center;
+			justify-content: space-between;
+			gap: 16px;
+			margin-bottom: 20px;
 			flex-wrap: wrap;
+		}
+		.section-title {
+			font-size: clamp(1.6rem, 3vw, 2.2rem);
+			letter-spacing: 0.03em;
+		}
+		.section-kicker {
+			font-size: 0.95rem;
+			text-transform: uppercase;
+			letter-spacing: 0.08em;
+			opacity: 0.72;
 		}
 		.section-title {
 			font-size: clamp(1.6rem, 3vw, 2.2rem);
@@ -123,20 +208,66 @@
 			background: rgba(255, 255, 255, 0.06);
 			border: 1px solid rgba(255, 255, 255, 0.16);
 			border-radius: 16px;
+		.section p { opacity: 0.92; }
+
+		.issue-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+			gap: 18px;
+			margin-top: 16px;
+		}
+		.issue-card {
+			background: rgba(255, 255, 255, 0.06);
+			border: 1px solid rgba(255, 255, 255, 0.16);
+			border-radius: 16px;
 			overflow: hidden;
+			display: flex;
+			flex-direction: column;
+			min-height: 100%;
 			display: flex;
 			flex-direction: column;
 			min-height: 100%;
 		}
 		.issue-card img {
+		.issue-card img {
 			width: 100%;
+			height: 180px;
 			height: 180px;
 			object-fit: cover;
 			filter: saturate(0.95) contrast(1.05);
 		}
 		.issue-card .body {
 			padding: 14px 16px 18px 16px;
+			filter: saturate(0.95) contrast(1.05);
 		}
+		.issue-card .body {
+			padding: 14px 16px 18px 16px;
+		}
+		.issue-tag {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			background: rgba(0, 0, 0, 0.22);
+			border-radius: 999px;
+			padding: 6px 12px;
+			font-size: 0.85rem;
+			margin-bottom: 8px;
+		}
+		.issue-card h3 { margin-bottom: 8px; }
+		.issue-card p { margin-bottom: 0; }
+
+		.principle-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+			gap: 14px;
+			margin-top: 14px;
+		}
+		.principle-card {
+			background: rgba(218, 153, 214, 0.12);
+			border: 1px solid rgba(255, 255, 255, 0.18);
+			border-radius: 14px;
+			padding: 14px 16px;
+			min-height: 100%;
 		.issue-tag {
 			display: inline-flex;
 			align-items: center;
@@ -208,7 +339,55 @@
 			font-size: 0.96rem;
 		}
 
+		.principle-card h4 { margin-bottom: 6px; color: var(--accent-color); }
+
+		.pipeline {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+			gap: 14px;
+			margin-top: 16px;
+		}
+		.pipeline-step {
+			background: rgba(255, 255, 255, 0.06);
+			border: 1px dashed rgba(255, 255, 255, 0.25);
+			border-radius: 14px;
+			padding: 16px;
+			min-height: 100%;
+		}
+		.step-label {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			padding: 6px 10px;
+			border-radius: 10px;
+			background: rgba(218, 153, 214, 0.2);
+			font-size: 0.9rem;
+			margin-bottom: 10px;
+		}
+		.wip-pill {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			padding: 8px 12px;
+			border-radius: 999px;
+			background: rgba(255, 255, 255, 0.08);
+			border: 1px solid rgba(255, 255, 255, 0.2);
+			font-size: 0.92rem;
+		}
+
+		.footer-note {
+			margin-top: 28px;
+			display: flex;
+			align-items: center;
+			gap: 10px;
+			opacity: 0.8;
+			font-size: 0.96rem;
+		}
+
 		@media (max-width: 800px) {
+			.page-shell { padding: 110px 16px 64px 16px; }
+			.mottainai-hero { padding: 28px; }
+			.section { padding: 26px; }
 			.page-shell { padding: 110px 16px 64px 16px; }
 			.mottainai-hero { padding: 28px; }
 			.section { padding: 26px; }
@@ -228,6 +407,7 @@
 		</nav>
 	</header>
 
+	<main class="page-shell">
 	<main class="page-shell">
 		<section class="mottainai-hero">
 			<div class="hero-topline">Waste is not inevitable</div>
@@ -333,6 +513,34 @@
 				<span>Curious or want to collaborate?</span>
 				<a href="contact.html" style="color: var(--accent-color); text-decoration: underline;">Reach out to the team</a>
 			</div>
+
+		<section class="section" id="solution">
+			<div class="section-header">
+				<div>
+					<div class="section-kicker">Solution (in progress)</div>
+					<h2 class="section-title">Design upstream, so downstream disappears</h2>
+				</div>
+				<div class="wip-pill">We are prototyping this right now</div>
+			</div>
+			<p>We are building practices and tools that catch waste at the sketch stage. Every experiment here is aimed at making reuse the default and disposal the rare exception.</p>
+			<div class="pipeline">
+				<div class="pipeline-step">
+					<div class="step-label">1. Material intelligence</div>
+					<p>Trace inputs, score their circularity, and swap in regenerative options before procurement locks in.</p>
+				</div>
+				<div class="pipeline-step">
+					<div class="step-label">2. Modularity by default</div>
+					<p>Architect products for repair, upgrade, and remanufacture. Components live multiple lives across programs.</p>
+				</div>
+				<div class="pipeline-step">
+					<div class="step-label">3. Circular service model</div>
+					<p>Build take-back and refurbishment into the business model so users never face waste decisions alone.</p>
+				</div>
+			</div>
+			<div class="footer-note">
+				<span>Curious or want to collaborate?</span>
+				<a href="contact.html" style="color: var(--accent-color); text-decoration: underline;">Reach out to the team</a>
+			</div>
 		</section>
 	</main>
 
@@ -346,7 +554,19 @@
 			ease: "power2.out"
 		});
 		gsap.from(".hero-chip", { opacity: 0, y: 20, duration: 0.9, stagger: 0.08, delay: 0.4 });
+		// Intro animations
+		gsap.from([".hero-topline", ".hero-title", ".hero-kanji", ".hero-footnote"], {
+			opacity: 0,
+			y: 40,
+			stagger: 0.15,
+			duration: 1.1,
+			ease: "power2.out"
+		});
+		gsap.from(".hero-chip", { opacity: 0, y: 20, duration: 0.9, stagger: 0.08, delay: 0.4 });
 
+		// Scroll reveals
+		const revealSections = gsap.utils.toArray([".section", ".issue-card", ".principle-card", ".pipeline-step"]);
+		revealSections.forEach((el, i) => {
 		// Scroll reveals
 		const revealSections = gsap.utils.toArray([".section", ".issue-card", ".principle-card", ".pipeline-step"]);
 		revealSections.forEach((el, i) => {
@@ -355,10 +575,15 @@
 				y: 50,
 				duration: 0.9,
 				delay: i * 0.04,
+				opacity: 0,
+				y: 50,
+				duration: 0.9,
+				delay: i * 0.04,
 				scrollTrigger: {
 					trigger: el,
 					start: "top 85%",
 					toggleActions: "play none none none"
+				}
 				}
 			});
 		});

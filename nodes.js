@@ -29,7 +29,8 @@ const urlMap = {
   'E-Waste Projects': 'e-waste.html',
   'Mycomaterials': 'Mycomaterials.html',
   'Design Thinking': 'designThinking.html',
-  'Mottai-nai': 'mottai-nai.html'
+  'Mottai-nai': 'mottai-nai.html',
+  "PBC's": 'pbcs.html'
 };
 
 // Get URL for a node - returns default if not found
@@ -304,6 +305,7 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
 
   // Create rope paths (string-like connections)
   const ropeGroup = svg.append("g").attr("class", "ropes");
+  const linkPathMap = new Map();
   
   const ropes = ropeGroup.selectAll("path")
     .data(links)
@@ -313,7 +315,8 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
     .attr("stroke-width", settings.strokeSize * 0.8) // Slightly thinner for rope look
     .attr("stroke-linecap", "round")
     .attr("opacity", 0.8)
-    .attr("filter", !isMobile ? "url(#glow)" : null);
+    .attr("filter", !isMobile ? "url(#glow)" : null)
+    .each(function(d) { linkPathMap.set(d, this); });
 
   // Create invisible rope segment nodes (for physics only, not visual)
   const ropeSegmentNodes = svg.append("g")
@@ -326,6 +329,11 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
   // Bioluminescent pulse system
   const pulseConnectorGroup = svg.append("g").attr("class", "pulse-connectors");
   const pulseGroup = svg.append("g").attr("class", "pulses");
+  const tutorialLinkConnector = pulseConnectorGroup.append("line")
+    .attr("class", "tutorial-link-connector")
+    .attr("stroke", "#999")
+    .attr("stroke-width", 1)
+    .attr("stroke-opacity", 0);
   let activePulses = [];
   let pulseIdCounter = 0;
 
@@ -343,7 +351,7 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
       id: pulseId,
       link: link,
       progress: 0,
-      speed: 0.008 + Math.random() * 0.012, // Organic variation in speed
+      speed: 0.004 + Math.random() * 0.006, // Slower travel speed for readability
       intensity: 0.6 + Math.random() * 0.4, // Varying glow intensity
       size: isMobile ? 3 : 4 + Math.random() * 3,
       color: pulseColor,
@@ -480,6 +488,50 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
     return connected || links[0];
   }
 
+  function updateLinkConnectorPosition() {
+    if (!tutorialLinkConnector) return;
+    if (!(tutorialState.active && tutorialState.step === 2 && tutorialState.linkRef && tutorialState.overlay)) {
+      tutorialLinkConnector.attr("stroke-opacity", 0);
+      return;
+    }
+
+    const link = tutorialState.linkRef;
+    if (!link || typeof link.source.x !== 'number' || typeof link.target.x !== 'number') {
+      tutorialLinkConnector.attr("stroke-opacity", 0);
+      return;
+    }
+
+    let midX = (link.source.x + link.target.x) / 2;
+    let midY = (link.source.y + link.target.y) / 2;
+
+    // Prefer the actual rendered rope path midpoint so the connector hits the visible curve
+    const pathEl = linkPathMap.get(link);
+    if (pathEl && pathEl.getTotalLength) {
+      const len = pathEl.getTotalLength();
+      if (len > 0) {
+        const midPoint = pathEl.getPointAtLength(len / 2);
+        midX = midPoint.x;
+        midY = midPoint.y;
+      }
+    }
+
+    const svgRect = svg.node().getBoundingClientRect();
+    const overlayRect = tutorialState.overlay.getBoundingClientRect();
+    const scaleX = svgRect.width / width;
+    const scaleY = svgRect.height / height;
+    const overlayCenterPageX = overlayRect.left + overlayRect.width / 2;
+    const overlayCenterPageY = overlayRect.top + overlayRect.height / 2;
+    const overlayCenterSvgX = (overlayCenterPageX - svgRect.left) / scaleX;
+    const overlayCenterSvgY = (overlayCenterPageY - svgRect.top) / scaleY;
+
+    tutorialLinkConnector
+      .attr("x1", midX)
+      .attr("y1", midY)
+      .attr("x2", overlayCenterSvgX)
+      .attr("y2", overlayCenterSvgY)
+      .attr("stroke-opacity", 0.35);
+  }
+
   function dimAllLinksExcept(linkToKeep) {
     if (!linkToKeep) return;
     node.select('circle')
@@ -524,6 +576,11 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
   }
 
   function finishTutorial() {
+    // Always restore full graph visibility/state when closing the tutorial
+    node.style('display', null);
+    ropes.style('display', null);
+    node.classed('tutorial-target', false);
+
     restoreGraphDefaults();
 
     if (tutorialState.highlight) tutorialState.highlight.attr('display', 'none');
@@ -535,6 +592,20 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
     tutorialState.linkRef = null;
     tutorialState.targetSelection = null;
     tutorialState.step = 4;
+
+    // Keep pulses running after finishing or skipping the tutorial
+    enablePulses();
+
+    // Reset motion so nodes ease back without exploding outward
+    nodes.forEach(n => {
+      n.vx = 0;
+      n.vy = 0;
+      if (!n.isRopeSegment) {
+        n.fx = null;
+        n.fy = null;
+      }
+    });
+    simulation.alpha(0.18).alphaTarget(0).restart();
 
     try {
       localStorage.setItem(TUTORIAL_LS_KEY, Date.now().toString());
@@ -600,15 +671,19 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
         tutorialState.overlay.querySelector('.node-tutorial-title').textContent = options.linkTitle || 'This is a link.';
         tutorialState.overlay.querySelector('.node-tutorial-body').textContent = options.linkBody || 'Links signify the connection between different important topics.';
         updateTutorialPosition();
+        updateLinkConnectorPosition();
       } else if (tutorialState.step === 2) {
         // STEP 3: reveal full graph, black out nodes/links, and enable pulses
         tutorialState.step = 3;
 
-        // Show all nodes and ropes
-        node.style('display', null);
-        ropes.style('display', null);
+        // Sequentially spawn nodes from center for a pop-in effect
+        node.style('display', 'none');
+        ropes.style('display', 'none');
 
-        // Make nodes "spawn" from center and pop out
+        node.selectAll('text').attr('opacity', 0);
+        node.select('circle').attr('r', settings.nodeRadius * 0.35);
+
+        // Reset positions to center before popping out
         nodes.forEach(n => {
           if (!n.isRopeSegment) {
             n.x = settings.centerX;
@@ -617,18 +692,58 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
         });
         simulation.alpha(1).restart();
 
-        // Black out nodes and links and hide labels to emphasize pulses
-        emphasizePulsesOnly();
-        hideAllNodeText();
+        const originId = tutorialState.nodeId;
+        const revealOrder = nodes.filter(n => !n.isRopeSegment && n.id !== originId);
+        const originSel = node.filter(d => d.id === originId);
+        originSel.style('display', null);
 
-        // Enable pulses for this final step
-        enablePulses();
+        originSel.select('circle')
+          .attr('r', settings.nodeRadius * 0.35)
+          .transition()
+          .duration(320)
+          .ease(d3.easeBackOut)
+          .attr('r', settings.nodeRadius);
+
+        originSel.selectAll('text')
+          .transition()
+          .duration(220)
+          .attr('opacity', 1);
+
+        const revealDelay = 140;
+        revealOrder.forEach((n, idx) => {
+          const delay = (idx + 1) * revealDelay;
+          setTimeout(() => {
+            const sel = node.filter(d => d.id === n.id);
+            sel.style('display', null);
+
+            sel.select('circle')
+              .attr('r', settings.nodeRadius * 0.35)
+              .transition()
+              .duration(320)
+              .ease(d3.easeBackOut)
+              .attr('r', settings.nodeRadius);
+
+            sel.selectAll('text')
+              .transition()
+              .duration(220)
+              .attr('opacity', 1);
+          }, delay);
+        });
+
+        const totalRevealTime = (revealOrder.length + 1) * revealDelay + 320;
+        setTimeout(() => {
+          ropes.style('display', null);
+          emphasizePulsesOnly();
+          hideAllNodeText();
+          enablePulses();
+        }, totalRevealTime);
 
         tutorialState.overlay.querySelector('.node-tutorial-title').textContent = options.pulseTitle || 'These are pulses.';
         tutorialState.overlay.querySelector('.node-tutorial-body').textContent = options.pulseBody || 'Pulses are the glowing blips traveling along links to show activity.';
         nextBtn.textContent = options.finishLabel || 'Finish';
         nextBtn.title = 'Finish tutorial';
         updateTutorialPosition();
+        updateLinkConnectorPosition();
       } else if (tutorialState.step === 3) {
         // Finish: keep pulses running, just clear tutorial UI/state
         finishTutorial();
@@ -706,6 +821,8 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
         overlayArrow.style.display = 'none';
       }
 
+      updateLinkConnectorPosition();
+
       return;
     }
 
@@ -750,11 +867,16 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
         tutorialState.overlay.style.left = `${pageX + offsetX}px`;
         tutorialState.overlay.style.top = `${pageY + offsetY}px`;
       }
+
+      updateLinkConnectorPosition();
     }
   }
 
   // Public starter to highlight a specific node with a floating card
   window.startNodeTutorial = function(options = {}) {
+    // Hide pulses during early tutorial steps; they will be re-enabled at step 3
+    disablePulses();
+
     tutorialState.nodeId = options.nodeId || ORIGIN_NODE_ID;
     tutorialState.active = true;
     tutorialState.step = 1;
@@ -828,6 +950,17 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
   
   // Independent pulse animation system - runs continuously regardless of simulation state
   let pulseAnimationId;
+
+  function clearActivePulses() {
+    activePulses.forEach(pulse => {
+      if (pulse.element) pulse.element.remove();
+      if (pulse.connector) pulse.connector.remove();
+      if (pulse.tail) {
+        pulse.tail.forEach(t => t.element && t.element.remove());
+      }
+    });
+    activePulses = [];
+  }
   
   function pulseAnimationLoop() {
     if (pulsesEnabled) {
@@ -858,6 +991,11 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
     pulsesEnabled = true;
     startPulseSystem();
     spawnRandomPulse();
+  }
+
+  function disablePulses() {
+    pulsesEnabled = false;
+    clearActivePulses();
   }
 
   // Update rope and node positions during simulation ticks
@@ -921,6 +1059,7 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
 
     // Keep tutorial overlay/marker in sync with live positions
     updateTutorialPosition();
+      updateLinkConnectorPosition();
   });
   
   
@@ -1135,6 +1274,9 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
       }, i * 200); // Slight delay between multiple pulses
     }
   }
+
+  // Start pulses by default so the graph is lively even when tutorial is skipped/absent
+  enablePulses();
 
   // Dragging behavior to allow movement of nodes
   function drag(simulation) {

@@ -1,0 +1,3 @@
+Primary: #145B4F
+Background: #f9f5f2
+Accent: #db9cd7

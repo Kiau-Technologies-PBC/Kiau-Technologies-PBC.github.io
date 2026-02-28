@@ -367,6 +367,25 @@
             stroke-width: 2.5;
         }
 
+        .tutorial-replay-btn {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            z-index: 1100;
+            background: #1c1c1d;
+            color: #c3f8cf;
+            border: 1px solid #c3f8cf;
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-family: 'OCR_A', Arial, sans-serif;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .tutorial-replay-btn:hover {
+            background: #223729;
+        }
+
         @keyframes tutorialPulse {
             0% { opacity: 0.55; stroke-width: 2.5; }
             50% { opacity: 1; stroke-width: 4; }
@@ -395,6 +414,7 @@
     </div>
     <div class="fpsCounter" id="fpsCounter" aria-hidden="true">FPS: 0</div>
     <div class="cookieNotice">We do not collect cookies or data about you on our website!</div>
+    <button id="tutorialReplayBtn" class="tutorial-replay-btn" type="button">Replay tutorial</button>
     <svg id="mainGraph"></svg>
       
     <script src="fps.js"></script>
@@ -518,6 +538,35 @@
         }
 
 
+        const tutorialOptions = {
+            nodeId: 'Kiau Technologies',
+            title: 'This is a node.',
+            body: 'Each node represents an important topic to Kiau Tech. Click on a node to explore more or try dragging it around!',
+            nextLabel: 'Next',
+            linkTitle: 'This is a link.',
+            linkBody: 'Links signify the connection between different important topics.',
+            pulseTitle: 'These are pulses.',
+            pulseBody: 'Pulses indicate the "activity" flow from our main focus (Kiau Technologies) to other areas.',
+            finishLabel: 'Finish'
+        };
+
+        let graphReady = false;
+        window.addEventListener('kiauGraphReady', function() {
+            graphReady = true;
+        }, { once: true });
+
+        function startTutorialWithOptions() {
+            if (graphReady && window.startNodeTutorial) {
+                window.startNodeTutorial(tutorialOptions);
+            } else {
+                window.addEventListener('kiauGraphReady', function() {
+                    if (window.startNodeTutorial) {
+                        window.startNodeTutorial(tutorialOptions);
+                    }
+                }, { once: true });
+            }
+        }
+
         function initNodeTutorial() {
             const TEN_MIN_MS = 10 * 60 * 1000;
             const key = 'kiauTutorialLast';
@@ -534,19 +583,7 @@
             if (!shouldShow) return;
 
             window.addEventListener('kiauGraphReady', function() {
-                if (window.startNodeTutorial) {
-                    window.startNodeTutorial({
-                        nodeId: 'Kiau Technologies',
-                        title: 'This is a node.',
-                        body: 'Each node represents an important topic to Kiau Tech. Click on a node to explore more or try dragging it around!',
-                        nextLabel: 'Next',
-                        linkTitle: 'This is a link.',
-                        linkBody: 'Links signify the connection between different important topics.',
-                        pulseTitle: 'These are pulses.',
-                        pulseBody: 'Pulses indicate the "activity" flow from our main focus (Kiau Technologies) to other areas.',
-                        finishLabel: 'Finish'
-                    });
-                }
+                startTutorialWithOptions();
             }, { once: true });
         }
 
@@ -578,6 +615,13 @@
             loadGraph();
             resizeSVG();
             initNodeTutorial();
+
+            const replayBtn = document.getElementById('tutorialReplayBtn');
+            if (replayBtn) {
+                replayBtn.addEventListener('click', function() {
+                    startTutorialWithOptions();
+                });
+            }
         };
 
         // Debounced resize handler
