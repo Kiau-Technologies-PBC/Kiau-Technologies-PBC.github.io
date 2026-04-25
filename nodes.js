@@ -30,9 +30,9 @@ const urlMap = {
   'Mycomaterials': 'Mycomaterials.html',
   'Design Thinking': 'designThinking.html',
   'Mottai-nai': 'mottai-nai.html',
-  "PBC's": 'pbcs.html'
+  "PBC's": 'pbcs.html',
   'Soil Sensors': 'example.html', //will swap soon
-  'Mesh Networking': 'mesh-guide.html'
+  'Mesh Networking': 'mesh-guide-v2.html'
 };
 
 // Get URL for a node - returns default if not found
