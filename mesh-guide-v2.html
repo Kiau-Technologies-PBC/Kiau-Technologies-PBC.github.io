@@ -1,0 +1,1639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Community Mesh Networks — Kiau Technologies</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Space+Grotesk:wght@300;400;500;600&display=swap');
+
+  :root {
+    --bg: #083d2e;
+    --bg-deep: #051f18;
+    --bg-card: rgba(255,255,255,0.035);
+    --bg-card-hover: rgba(255,255,255,0.065);
+    --node: #3effa8;
+    --node-dim: rgba(62,255,168,0.5);
+    --node-glow: rgba(62,255,168,0.15);
+    --text: #c8ffe8;
+    --text-dim: rgba(200,255,232,0.55);
+    --text-faint: rgba(200,255,232,0.28);
+    --border: rgba(62,255,168,0.1);
+    --border-bright: rgba(62,255,168,0.3);
+    --meshtastic: #3effa8;
+    --meshcore: #3eb8ff;
+    --reticulum: #c87eff;
+    --sensor: #ffca3e;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Space Grotesk', sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg-deep);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 15px;
+    line-height: 1.7;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  #bg-canvas {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.35;
+  }
+
+  .page-wrap {
+    position: relative;
+    z-index: 1;
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 0 2rem 6rem;
+  }
+
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    background: rgba(5,31,24,0.88);
+    backdrop-filter: blur(14px);
+    margin: 0 -2rem;
+    padding: 1rem 2rem;
+  }
+
+  .nav-back {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--node-dim);
+    text-decoration: none;
+    letter-spacing: 0.08em;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: color 0.2s;
+  }
+  .nav-back:hover { color: var(--node); }
+  .nav-back::before { content: '←'; }
+
+  .nav-title {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-faint);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .toc {
+    position: fixed;
+    left: max(1rem, calc(50% - 510px));
+    top: 50%;
+    transform: translateY(-50%);
+    width: 130px;
+    z-index: 50;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  @media (max-width: 1150px) { .toc { display: none; } }
+
+  .toc-item {
+    font-size: 10px;
+    font-family: var(--mono);
+    color: var(--text-faint);
+    letter-spacing: 0.08em;
+    text-decoration: none;
+    padding: 4px 8px;
+    border-left: 1px solid transparent;
+    transition: all 0.2s;
+    line-height: 1.4;
+  }
+  .toc-item:hover, .toc-item.active {
+    color: var(--node);
+    border-left-color: var(--node);
+  }
+
+  /* HERO */
+  .hero {
+    padding: 5rem 0 3.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .hero-tag {
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    color: var(--node-dim);
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .hero-tag::before {
+    content: '';
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--node);
+    box-shadow: 0 0 10px var(--node);
+    animation: pulse-dot 2.5s ease-in-out infinite;
+  }
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; box-shadow: 0 0 10px var(--node); }
+    50% { opacity: 0.5; box-shadow: 0 0 3px var(--node); }
+  }
+
+  h1 {
+    font-family: var(--mono);
+    font-size: clamp(2.2rem, 5vw, 3.2rem);
+    font-weight: 700;
+    line-height: 1.08;
+    letter-spacing: -0.025em;
+    color: var(--node);
+    margin-bottom: 1.5rem;
+  }
+
+  .hero-sub {
+    font-family: var(--sans);
+    font-size: 1.1rem;
+    color: var(--text-dim);
+    max-width: 580px;
+    line-height: 1.75;
+    font-weight: 300;
+  }
+
+  .hero-meta {
+    margin-top: 2rem;
+    display: flex;
+    gap: 2rem;
+    font-size: 11px;
+    color: var(--text-faint);
+    letter-spacing: 0.08em;
+    flex-wrap: wrap;
+  }
+
+  section {
+    padding: 4rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section-tag {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--text-faint);
+    text-transform: uppercase;
+    margin-bottom: 0.6rem;
+  }
+
+  h2 {
+    font-family: var(--mono);
+    font-size: 1.65rem;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 1.75rem;
+    letter-spacing: -0.01em;
+  }
+
+  h3 {
+    font-family: var(--mono);
+    font-size: 1.05rem;
+    font-weight: 500;
+    margin-bottom: 0.9rem;
+    margin-top: 2.25rem;
+  }
+  h3:first-child { margin-top: 0; }
+
+  p {
+    font-family: var(--sans);
+    color: var(--text-dim);
+    font-weight: 300;
+    margin-bottom: 1.1rem;
+  }
+  p:last-child { margin-bottom: 0; }
+
+  /* PROTOCOL TABS */
+  .proto-tabs {
+    display: flex;
+    gap: 0;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 0;
+  }
+
+  .proto-tab {
+    flex: 1;
+    background: var(--bg-card);
+    border: none;
+    cursor: pointer;
+    padding: 1.1rem 1rem;
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    color: var(--text-faint);
+    transition: all 0.2s;
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+  }
+  .proto-tab:last-child { border-right: none; }
+  .proto-tab:hover { background: var(--bg-card-hover); }
+  .proto-tab.active.m { color: var(--meshtastic); background: rgba(62,255,168,0.06); }
+  .proto-tab.active.mc { color: var(--meshcore); background: rgba(62,184,255,0.06); }
+  .proto-tab.active.r { color: var(--reticulum); background: rgba(200,126,255,0.06); }
+
+  .proto-tab-sub {
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    opacity: 0.6;
+  }
+
+  /* DIAGRAM AREA */
+  .diagram-wrap {
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 10px 10px;
+    overflow: hidden;
+    background: rgba(0,0,0,0.2);
+    position: relative;
+  }
+
+  .diagram-svg-wrap {
+    width: 100%;
+    height: 340px;
+    position: relative;
+  }
+
+  .diagram-svg-wrap svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  .diagram-panel {
+    display: none;
+  }
+  .diagram-panel.active {
+    display: block;
+  }
+
+  .diagram-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--border);
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .diagram-label {
+    font-size: 11px;
+    color: var(--text-faint);
+    letter-spacing: 0.08em;
+    font-family: var(--mono);
+  }
+
+  .trigger-btn {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    padding: 0.5rem 1.25rem;
+    border-radius: 20px;
+    border: 1px solid;
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+  }
+  .trigger-btn.m { color: var(--meshtastic); border-color: rgba(62,255,168,0.35); }
+  .trigger-btn.m:hover { background: rgba(62,255,168,0.1); }
+  .trigger-btn.mc { color: var(--meshcore); border-color: rgba(62,184,255,0.35); }
+  .trigger-btn.mc:hover { background: rgba(62,184,255,0.1); }
+  .trigger-btn.r { color: var(--reticulum); border-color: rgba(200,126,255,0.35); }
+  .trigger-btn.r:hover { background: rgba(200,126,255,0.1); }
+
+  .diagram-status {
+    font-size: 10px;
+    font-family: var(--mono);
+    color: var(--text-faint);
+    letter-spacing: 0.06em;
+    min-width: 160px;
+    text-align: right;
+  }
+
+  /* DETAIL BLOCKS */
+  .detail-block {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 2rem;
+    margin: 2rem 0;
+  }
+  .detail-block.m { border-left: 3px solid var(--meshtastic); }
+  .detail-block.mc { border-left: 3px solid var(--meshcore); }
+  .detail-block.r { border-left: 3px solid var(--reticulum); }
+  .detail-block.sensor { border-left: 3px solid var(--sensor); }
+
+  .detail-title {
+    font-family: var(--mono);
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 1.25rem;
+  }
+  .detail-title.m { color: var(--meshtastic); }
+  .detail-title.mc { color: var(--meshcore); }
+  .detail-title.r { color: var(--reticulum); }
+  .detail-title.sensor { color: var(--sensor); }
+
+  .feature-list {
+    list-style: none;
+    margin: 0.75rem 0;
+  }
+  .feature-list li {
+    font-family: var(--sans);
+    font-size: 0.88rem;
+    color: var(--text-dim);
+    font-weight: 300;
+    padding: 0.4rem 0 0.4rem 1.2rem;
+    position: relative;
+    border-bottom: 1px solid var(--border);
+    line-height: 1.55;
+  }
+  .feature-list li:last-child { border-bottom: none; }
+  .feature-list li::before { content: '›'; position: absolute; left: 0; color: var(--node-dim); }
+  .feature-list li.limit::before { color: rgba(255,100,100,0.55); content: '·'; }
+
+  .caveat-box {
+    background: rgba(200,126,255,0.05);
+    border: 1px solid rgba(200,126,255,0.18);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    margin-top: 1.25rem;
+  }
+  .caveat-box p { font-size: 0.85rem; color: rgba(200,126,255,0.8); margin: 0; }
+
+  /* COMPARE TABLE */
+  .compare-wrap {
+    overflow-x: auto;
+    margin: 2rem 0;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+  }
+  table { width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: 0.8rem; }
+  thead th {
+    padding: 1rem 1.25rem;
+    text-align: left;
+    font-weight: 500;
+    letter-spacing: 0.07em;
+    border-bottom: 1px solid var(--border);
+    background: rgba(255,255,255,0.025);
+    white-space: nowrap;
+  }
+  thead th:nth-child(2) { color: var(--meshtastic); }
+  thead th:nth-child(3) { color: var(--meshcore); }
+  thead th:nth-child(4) { color: var(--reticulum); }
+  tbody td {
+    padding: 0.75rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-dim);
+    font-family: var(--sans);
+    font-size: 0.85rem;
+    font-weight: 300;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody td:first-child {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--text-faint);
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+  }
+  tbody tr:hover td { background: rgba(255,255,255,0.015); }
+  .check { color: var(--node); }
+  .cross { color: rgba(255,100,100,0.55); }
+  .partial { color: var(--sensor); }
+
+  /* SENSOR */
+  .sensor-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 1.5rem 0;
+  }
+  .sensor-card { background: var(--bg-card); padding: 1.25rem; }
+  .sensor-label { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--sensor); font-family: var(--mono); margin-bottom: 0.4rem; opacity: 0.7; }
+  .sensor-name { font-family: var(--sans); font-size: 0.85rem; color: var(--text); font-weight: 400; line-height: 1.4; }
+
+  .use-case-list { margin: 1.5rem 0; }
+  .use-case-item {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 1rem;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--border);
+    align-items: start;
+  }
+  .use-case-item:last-child { border-bottom: none; }
+  .use-case-org { font-family: var(--mono); font-size: 0.75rem; color: var(--text-faint); letter-spacing: 0.04em; padding-top: 2px; }
+  .use-case-desc { font-family: var(--sans); font-size: 0.85rem; color: var(--text-dim); font-weight: 300; line-height: 1.5; }
+
+  /* SOVEREIGNTY */
+  .sovereignty-principles {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 1.5rem 0;
+  }
+  @media (max-width: 540px) { .sovereignty-principles { grid-template-columns: 1fr; } }
+  .principle { background: var(--bg-card); padding: 1.5rem; }
+  .principle-num { font-family: var(--mono); font-size: 0.65rem; color: var(--sensor); letter-spacing: 0.15em; margin-bottom: 0.4rem; opacity: 0.7; }
+  .principle-title { font-family: var(--mono); font-size: 0.9rem; color: var(--text); margin-bottom: 0.5rem; }
+  .principle-desc { font-family: var(--sans); font-size: 0.82rem; color: var(--text-dim); font-weight: 300; line-height: 1.55; }
+
+  /* ROADMAP */
+  .roadmap {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 2rem 0;
+  }
+  @media (max-width: 560px) { .roadmap { grid-template-columns: 1fr; } }
+  .horizon { background: var(--bg-card); padding: 1.75rem 1.5rem; }
+  .horizon-label { font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--node-dim); font-family: var(--mono); margin-bottom: 0.3rem; }
+  .horizon-time { font-family: var(--mono); font-size: 0.7rem; color: var(--text-faint); margin-bottom: 1.25rem; }
+  .horizon-items { list-style: none; }
+  .horizon-items li {
+    font-family: var(--sans);
+    font-size: 0.82rem;
+    color: var(--text-dim);
+    font-weight: 300;
+    padding: 0.35rem 0 0.35rem 1rem;
+    position: relative;
+    border-bottom: 1px solid var(--border);
+    line-height: 1.4;
+  }
+  .horizon-items li:last-child { border-bottom: none; }
+  .horizon-items li::before { content: '·'; position: absolute; left: 0; color: var(--node-dim); }
+
+  /* GLOSSARY */
+  .glossary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 0;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 1.5rem 0;
+  }
+  .gloss-item { background: var(--bg-card); padding: 1rem 1.25rem; border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); }
+  .gloss-term { font-family: var(--mono); font-size: 0.78rem; color: var(--node-dim); margin-bottom: 0.25rem; letter-spacing: 0.04em; }
+  .gloss-def { font-family: var(--sans); font-size: 0.8rem; color: var(--text-dim); font-weight: 300; line-height: 1.5; }
+
+  /* RESOURCES */
+  .resource-group { margin-bottom: 2rem; }
+  .resource-group-label {
+    font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--text-faint); font-family: var(--mono);
+    margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border);
+  }
+  .resource-link {
+    display: flex; align-items: baseline; gap: 1rem;
+    padding: 0.6rem 0.5rem; text-decoration: none;
+    transition: background 0.15s; border-radius: 6px; margin: 0 -0.5rem;
+  }
+  .resource-link:hover { background: var(--bg-card); }
+  .resource-link-name { font-family: var(--mono); font-size: 0.82rem; color: var(--node); min-width: 160px; flex-shrink: 0; }
+  .resource-link-url { font-family: var(--mono); font-size: 0.75rem; color: var(--text-faint); letter-spacing: 0.04em; }
+
+  .node-dot {
+    display: inline-block; width: 7px; height: 7px;
+    border-radius: 50%; background: currentColor;
+    box-shadow: 0 0 6px currentColor; margin-right: 0.4rem;
+  }
+  .node-dot.m { color: var(--meshtastic); }
+  .node-dot.mc { color: var(--meshcore); }
+  .node-dot.r { color: var(--reticulum); }
+  .node-dot.s { color: var(--sensor); }
+
+  footer {
+    padding: 3rem 0 2rem;
+    font-size: 11px; color: var(--text-faint);
+    font-family: var(--mono); letter-spacing: 0.08em;
+    display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;
+  }
+</style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+
+<nav>
+  <a href="https://kiau.tech" class="nav-back">Kiau Technologies</a>
+  <span class="nav-title">Community Mesh Networks</span>
+</nav>
+
+<aside class="toc">
+  <a href="#why" class="toc-item">Why mesh</a>
+  <a href="#protocols" class="toc-item">The protocols</a>
+  <a href="#compare" class="toc-item">Comparison</a>
+  <a href="#sensors" class="toc-item">Sensor integration</a>
+  <a href="#sovereignty" class="toc-item">Data sovereignty</a>
+  <a href="#roadmap" class="toc-item">Roadmap</a>
+  <a href="#glossary" class="toc-item">Glossary</a>
+  <a href="#resources" class="toc-item">Resources</a>
+</aside>
+
+<div class="page-wrap">
+
+  <header class="hero">
+    <div class="hero-tag">Technical Reference Guide</div>
+    <h1>Mesh Networks<br>for Community<br>Resilience</h1>
+    <p class="hero-sub">A deep dive into Meshtastic, MeshCore, and Reticulum, and how each protocol can strengthen disaster communication, mutual aid coordination, and soil sensor networks for communities building off-grid infrastructure.</p>
+    <div class="hero-meta">
+      <span>Produced by Kiau Technologies PBC</span>
+      <span>3 Protocols</span>
+      <span>One Hardware Family</span>
+    </div>
+  </header>
+
+  <section id="why">
+    <div class="section-tag">01 / Context</div>
+    <h2>Why mesh networks, why now</h2>
+    <p>When Hurricane Helene hit western North Carolina in September 2024, it did not just knock out power. It took down cell towers, severed fiber lines, and made satellite uplinks unreliable for days. Communities that needed to coordinate mutual aid were cut off from the tools they had come to depend on.</p>
+    <p>This pattern repeats with every major disaster. The first infrastructure to fail is always communications, and the communities least served by it in normal times are the ones most exposed when it collapses.</p>
+    <p>Mesh networks are one answer. A mesh is a collection of radio nodes where every node can relay messages for every other node. There is no central tower, no ISP, no subscription. LoRa (Long Range) radio is the physical layer underlying all three systems described here. It operates in the unlicensed 915 MHz band in the US, requires no radio license, and can carry text and sensor data across 1 to 15 miles depending on terrain and antenna height.</p>
+  </section>
+
+  <section id="protocols">
+    <div class="section-tag">02 / Interactive</div>
+    <h2>Three protocols, one hardware family</h2>
+    <p>All three systems run on the same LoRa hardware. A node can be reflashed from one protocol to another. The difference is entirely in software philosophy. Click a protocol below, then send a message to watch how it propagates through the network.</p>
+
+    <div class="proto-tabs">
+      <button class="proto-tab m active" onclick="switchProto('m')">
+        Meshtastic
+        <span class="proto-tab-sub">Flood routing</span>
+      </button>
+      <button class="proto-tab mc" onclick="switchProto('mc')">
+        MeshCore
+        <span class="proto-tab-sub">Structured routing</span>
+      </button>
+      <button class="proto-tab r" onclick="switchProto('r')">
+        Reticulum
+        <span class="proto-tab-sub">Path-based</span>
+      </button>
+    </div>
+
+    <div class="diagram-wrap">
+      <div id="panel-m" class="diagram-panel active">
+        <div class="diagram-svg-wrap"><svg id="svg-m"></svg></div>
+        <div class="diagram-controls">
+          <span class="diagram-label">Click any node, or send a broadcast</span>
+          <button class="trigger-btn m" onclick="triggerMeshtastic()">Send Message</button>
+          <span class="diagram-status" id="status-m">Waiting for input</span>
+        </div>
+      </div>
+      <div id="panel-mc" class="diagram-panel">
+        <div class="diagram-svg-wrap"><svg id="svg-mc"></svg></div>
+        <div class="diagram-controls">
+          <span class="diagram-label">Click a node to send to it via repeaters</span>
+          <button class="trigger-btn mc" onclick="triggerMeshcore()">Send Message</button>
+          <span class="diagram-status" id="status-mc">Waiting for input</span>
+        </div>
+      </div>
+      <div id="panel-r" class="diagram-panel">
+        <div class="diagram-svg-wrap"><svg id="svg-r"></svg></div>
+        <div class="diagram-controls">
+          <span class="diagram-label">First message discovers path, then follows it</span>
+          <button class="trigger-btn r" onclick="triggerReticulum()">Send Message</button>
+          <span class="diagram-status" id="status-r">No path known</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="detail-block m">
+      <div class="detail-title m">Meshtastic</div>
+      <p>The plug-and-play mesh. Flash firmware, open the app, and you are on the network. The largest deployed LoRa mesh system in the world, with active community networks in dozens of US cities.</p>
+      <h3>How it routes</h3>
+      <p>Flood routing: every node that receives a message rebroadcasts it to all neighbors immediately. Simple, resilient, zero configuration. A new node joins and participates instantly.</p>
+      <h3>Strengths</h3>
+      <ul class="feature-list">
+        <li>Zero configuration to get started</li>
+        <li>Enormous existing community coverage across the US</li>
+        <li>AES-256 encrypted channels by default</li>
+        <li>GPS tracking and sensor telemetry alongside text</li>
+        <li>Strong mobile app with offline maps</li>
+      </ul>
+      <h3>Limitations</h3>
+      <ul class="feature-list">
+        <li class="limit">Flood routing becomes inefficient at large scale</li>
+        <li class="limit">No store-and-forward: messages are lost if the recipient is offline</li>
+        <li class="limit">Limited sensor telemetry types supported</li>
+      </ul>
+    </div>
+
+    <div class="detail-block mc">
+      <div class="detail-title mc">MeshCore</div>
+      <p>Infrastructure you build and own. Launched in early 2025, MeshCore uses structured routing through designated repeater nodes, and a Room Server that stores messages for recipients who are temporarily offline.</p>
+      <h3>How it routes</h3>
+      <p>Only designated repeater nodes forward messages. A Room Server holds messages until the recipient comes online. For rural communities where nodes are not always powered, this store-and-forward capability is essential rather than optional.</p>
+      <h3>Strengths</h3>
+      <ul class="feature-list">
+        <li>Store-and-forward via Room Server</li>
+        <li>More efficient bandwidth use than flood routing</li>
+        <li>Designed for permanent fixed solar-powered infrastructure</li>
+        <li>Runs on the same hardware as Meshtastic</li>
+      </ul>
+      <h3>Limitations</h3>
+      <ul class="feature-list">
+        <li class="limit">Smaller community than Meshtastic</li>
+        <li class="limit">Requires deliberate planning and placement of repeaters</li>
+        <li class="limit">Newer software, less battle-tested</li>
+      </ul>
+    </div>
+
+    <div class="detail-block r">
+      <div class="detail-title r">Reticulum</div>
+      <p>Not firmware but a full network stack, analogous to TCP/IP but built from the ground up for off-grid, decentralized, surveillance-resistant communication across multiple transport types simultaneously.</p>
+      <h3>How it routes</h3>
+      <p>Reticulum spans LoRa, WiFi, Ethernet, and Bluetooth in the same network. It uses path-based routing: the network discovers routes and remembers them. A message can travel over LoRa, hand off to WiFi, then return to LoRa automatically. Identity is cryptographic, with no accounts or phone numbers required.</p>
+      <h3>Strengths</h3>
+      <ul class="feature-list">
+        <li>Multi-transport: LoRa, WiFi, Ethernet, Bluetooth in one network</li>
+        <li>Scales to regional and inter-regional distances</li>
+        <li>Store-and-forward at the protocol level</li>
+        <li>Strong surveillance resistance by design</li>
+      </ul>
+      <h3>Limitations</h3>
+      <ul class="feature-list">
+        <li class="limit">RNodes require a companion device currently and cannot act as standalone solar repeaters yet</li>
+        <li class="limit">Steeper learning curve than Meshtastic or MeshCore</li>
+        <li class="limit">Smaller user base</li>
+      </ul>
+      <div class="caveat-box">
+        <p>The standalone RNode limitation is an active development priority. A Raspberry Pi Zero 2W (~$15) on solar power is a workable bridge for now. We will not promise what we cannot guarantee, but we expect this changes soon.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="compare">
+    <div class="section-tag">03 / Reference</div>
+    <h2>Side-by-side comparison</h2>
+    <div class="compare-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th><span class="node-dot m"></span>Meshtastic</th>
+            <th><span class="node-dot mc"></span>MeshCore</th>
+            <th><span class="node-dot r"></span>Reticulum</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Routing approach</td><td>Flood</td><td>Structured</td><td>Path-based</td></tr>
+          <tr><td>Store-and-forward</td><td class="cross">✗</td><td class="check">✓ Room Server</td><td class="check">✓ Deep support</td></tr>
+          <tr><td>Standalone solar node</td><td class="check">✓</td><td class="check">✓</td><td class="partial">Not yet</td></tr>
+          <tr><td>Multi-transport</td><td class="cross">✗</td><td class="cross">✗</td><td class="check">✓</td></tr>
+          <tr><td>Existing community networks</td><td>Many US cities</td><td>Few</td><td>Very few</td></tr>
+          <tr><td>Setup complexity</td><td>Low</td><td>Medium</td><td>High</td></tr>
+          <tr><td>Scales to regional</td><td>Limited</td><td>Medium</td><td>High</td></tr>
+          <tr><td>Surveillance resistance</td><td>Moderate</td><td>Moderate</td><td>Strong</td></tr>
+          <tr><td>Hardware cost</td><td>$30–$80</td><td>Same</td><td>Same + companion</td></tr>
+          <tr><td>Protocol maturity</td><td>High (2019+)</td><td>Low (2025)</td><td>Medium</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>All three protocols run on the same hardware. A group can begin with Meshtastic and reflash nodes to MeshCore or Reticulum as capacity grows. A working Meshtastic node today is worth more than a perfect Reticulum network next year.</p>
+  </section>
+
+  <section id="sensors">
+    <div class="section-tag">04 / Kiau Integration</div>
+    <h2>Soil sensor integration</h2>
+    <p>Kiau's field sensing nodes are outdoor-capable, solar-powered, and transmit over LoRa into the same mesh networks described above. The same node carrying a text message can carry soil data. No separate network required.</p>
+
+    <div class="detail-block sensor">
+      <div class="detail-title sensor">What the sensors measure</div>
+      <div class="sensor-grid">
+        <div class="sensor-card">
+          <div class="sensor-label">Primary</div>
+          <div class="sensor-name">Soil moisture, volumetric water content at multiple depths</div>
+        </div>
+        <div class="sensor-card">
+          <div class="sensor-label">Primary</div>
+          <div class="sensor-name">Soil temperature at root zone depth</div>
+        </div>
+        <div class="sensor-card">
+          <div class="sensor-label">Ambient</div>
+          <div class="sensor-name">Air temperature and humidity above canopy</div>
+        </div>
+        <div class="sensor-card">
+          <div class="sensor-label">Node health</div>
+          <div class="sensor-name">Battery level and solar input power, with continuous energy logging from the panel</div>
+        </div>
+      </div>
+    </div>
+
+    <h3>How data moves through each protocol</h3>
+    <p>In a Meshtastic network, sensor nodes transmit telemetry packets at set intervals, every 15 minutes for example. These packets hop across the mesh and are logged at a base station node connected to a local device. No internet required.</p>
+    <p>In a MeshCore network, sensor nodes transmit to the nearest repeater. The Room Server stores readings until the base station comes into contact. This is advantageous for remote fields where the sensor may be far from any base station and connectivity is intermittent.</p>
+    <p>In a Reticulum network, sensor payloads route across whatever transports are available: LoRa, then WiFi, then LoRa again if needed. For organizations with mixed infrastructure across large areas, this is the most flexible architecture for moving sensor data from field to farmer.</p>
+
+    <h3>Use cases</h3>
+    <div class="use-case-list">
+      <div class="use-case-item">
+        <div class="use-case-org">Drought adaptation<br>Arid region farms</div>
+        <div class="use-case-desc">Per-plot soil moisture monitoring during drought. Microclimate comparison between living-pathway sections and bare soil. Data transmitted over existing community mesh to base station at farm.</div>
+      </div>
+      <div class="use-case-item">
+        <div class="use-case-org">Dryland farming<br>Water harvesting sites</div>
+        <div class="use-case-desc">Soil moisture monitoring in water-harvesting earthworks, swales and check dams, to validate effectiveness. Soil temperature tracking for traditional planting calendars. Long-term climate record for seed adaptation.</div>
+      </div>
+      <div class="use-case-item">
+        <div class="use-case-org">Biochar trials<br>Conservation grant work</div>
+        <div class="use-case-desc">Before and after moisture comparison in biochar-amended plots versus control plots. Flood event soil saturation tracking. Data supports grant documentation and disaster resilience programs.</div>
+      </div>
+      <div class="use-case-item">
+        <div class="use-case-org">Urban microgrids<br>Community gardens</div>
+        <div class="use-case-desc">Soil conditions at community garden sites that host solar microgrids. Potential for integrating sensor telemetry with microgrid energy monitoring for a unified resilience dashboard.</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="sovereignty">
+    <div class="section-tag">05 / Principles</div>
+    <h2>Data sovereignty</h2>
+    <p>For Indigenous land stewards and communities with histories of data extraction, the question of who owns and controls sensor data is not a technical afterthought. It is foundational. Kiau's architecture is designed with this in mind from the start.</p>
+    <div class="sovereignty-principles">
+      <div class="principle">
+        <div class="principle-num">01</div>
+        <div class="principle-title">Local-first</div>
+        <div class="principle-desc">All data is stored on hardware the organization controls. No data reaches Kiau's servers unless explicitly requested.</div>
+      </div>
+      <div class="principle">
+        <div class="principle-num">02</div>
+        <div class="principle-title">No cloud dependency</div>
+        <div class="principle-desc">The mesh network is the transport. If the internet is down, data still flows and is still logged locally.</div>
+      </div>
+      <div class="principle">
+        <div class="principle-num">03</div>
+        <div class="principle-title">Open formats</div>
+        <div class="principle-desc">Data is stored as CSV and SQLite. Any organization can access, export, or migrate it without Kiau's involvement.</div>
+      </div>
+      <div class="principle">
+        <div class="principle-num">04</div>
+        <div class="principle-title">Consent-based sharing</div>
+        <div class="principle-desc">Sharing data with other organizations is a deliberate, opt-in decision, never a default or platform feature.</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="roadmap">
+    <div class="section-tag">06 / Vision</div>
+    <h2>Three horizons</h2>
+    <p>The goal is a network of networks: regional clusters built on infrastructure each community owns, bridging to each other over time. No single protocol connects everywhere on day one, and that is fine.</p>
+    <div class="roadmap">
+      <div class="horizon">
+        <div class="horizon-label">Horizon 1</div>
+        <div class="horizon-time">Now to Year 1</div>
+        <ul class="horizon-items">
+          <li>Urban groups join existing Meshtastic networks</li>
+          <li>Rural groups stand up MeshCore infrastructure</li>
+          <li>Technically advanced groups begin Reticulum experiments</li>
+          <li>Sensor nodes deployed at priority farm sites</li>
+        </ul>
+      </div>
+      <div class="horizon">
+        <div class="horizon-label">Horizon 2</div>
+        <div class="horizon-time">Year 2 to 3</div>
+        <ul class="horizon-items">
+          <li>Regional clusters emerge and connect</li>
+          <li>Sensor data flows alongside communications</li>
+          <li>Cross-protocol bridges tested between clusters</li>
+          <li>Community-owned repeater infrastructure expands</li>
+        </ul>
+      </div>
+      <div class="horizon">
+        <div class="horizon-label">Horizon 3</div>
+        <div class="horizon-time">Year 3 and beyond</div>
+        <ul class="horizon-items">
+          <li>Reticulum transport nodes at each regional hub</li>
+          <li>Cohort-wide backbone connects regional clusters</li>
+          <li>Sensor, communications, and mutual aid on shared infrastructure</li>
+          <li>Owned entirely by the communities it serves</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="glossary">
+    <div class="section-tag">07 / Reference</div>
+    <h2>Glossary</h2>
+    <div class="glossary-grid">
+      <div class="gloss-item"><div class="gloss-term">LoRa</div><div class="gloss-def">Long Range radio: low power, long range, low data rate. The physical layer underlying all three protocols.</div></div>
+      <div class="gloss-item"><div class="gloss-term">915 MHz</div><div class="gloss-def">The US unlicensed radio band used by these systems. No amateur radio license required.</div></div>
+      <div class="gloss-item"><div class="gloss-term">Node</div><div class="gloss-def">A single radio device in the mesh. Can be handheld, mounted, or deployed as a permanent solar-powered repeater.</div></div>
+      <div class="gloss-item"><div class="gloss-term">Flood routing</div><div class="gloss-def">Every node rebroadcasts every message. Simple, resilient, self-configuring. Meshtastic's approach.</div></div>
+      <div class="gloss-item"><div class="gloss-term">Structured routing</div><div class="gloss-def">Designated repeater nodes handle forwarding. More efficient at scale. MeshCore's approach.</div></div>
+      <div class="gloss-item"><div class="gloss-term">Path-based routing</div><div class="gloss-def">Network discovers and memorizes efficient routes. Scales furthest. Reticulum's approach.</div></div>
+      <div class="gloss-item"><div class="gloss-term">Store-and-forward</div><div class="gloss-def">Messages held by an intermediate node until the recipient comes online. MeshCore and Reticulum support this; Meshtastic does not.</div></div>
+      <div class="gloss-item"><div class="gloss-term">RNode</div><div class="gloss-def">A LoRa radio configured as a Reticulum interface. Requires a companion device currently.</div></div>
+      <div class="gloss-item"><div class="gloss-term">LXMF</div><div class="gloss-def">The messaging protocol that runs on top of Reticulum. Handles message packaging and delivery.</div></div>
+      <div class="gloss-item"><div class="gloss-term">Sideband</div><div class="gloss-def">The primary Android messaging app for Reticulum. Open source.</div></div>
+      <div class="gloss-item"><div class="gloss-term">Room Server</div><div class="gloss-def">A MeshCore node that stores messages for offline recipients. The key enabler of store-and-forward in MeshCore.</div></div>
+      <div class="gloss-item"><div class="gloss-term">Repeater</div><div class="gloss-def">A fixed, elevated node that extends network range. Best placed high and powered by solar.</div></div>
+      <div class="gloss-item"><div class="gloss-term">Telemetry</div><div class="gloss-def">Automatically transmitted device or sensor data (battery level, temperature, soil moisture) sent alongside text messages.</div></div>
+      <div class="gloss-item"><div class="gloss-term">AES-256</div><div class="gloss-def">Encryption standard used by Meshtastic channels. Messages are private by default.</div></div>
+      <div class="gloss-item"><div class="gloss-term">Transport node</div><div class="gloss-def">A Reticulum node that routes packets between other nodes across multiple transport types.</div></div>
+      <div class="gloss-item"><div class="gloss-term">PAR</div><div class="gloss-def">Photosynthetically Active Radiation. Light wavelengths usable by plants for photosynthesis, measured by Kiau sensor nodes.</div></div>
+    </div>
+  </section>
+
+  <section id="resources">
+    <div class="section-tag">08 / Links</div>
+    <h2>Resources</h2>
+    <div class="resource-group">
+      <div class="resource-group-label"><span class="node-dot m"></span>Meshtastic</div>
+      <a class="resource-link" href="https://meshtastic.org/docs" target="_blank"><span class="resource-link-name">Documentation</span><span class="resource-link-url">meshtastic.org/docs</span></a>
+      <a class="resource-link" href="https://flasher.meshtastic.org" target="_blank"><span class="resource-link-name">Web flasher</span><span class="resource-link-url">flasher.meshtastic.org</span></a>
+      <a class="resource-link" href="https://client.meshtastic.org" target="_blank"><span class="resource-link-name">Web client</span><span class="resource-link-url">client.meshtastic.org</span></a>
+      <a class="resource-link" href="https://abqm.net" target="_blank"><span class="resource-link-name">Albuquerque Mesh</span><span class="resource-link-url">abqm.net</span></a>
+    </div>
+    <div class="resource-group">
+      <div class="resource-group-label"><span class="node-dot mc"></span>MeshCore</div>
+      <a class="resource-link" href="https://meshcore.co.uk" target="_blank"><span class="resource-link-name">Documentation and firmware</span><span class="resource-link-url">meshcore.co.uk</span></a>
+    </div>
+    <div class="resource-group">
+      <div class="resource-group-label"><span class="node-dot r"></span>Reticulum</div>
+      <a class="resource-link" href="https://reticulum.network" target="_blank"><span class="resource-link-name">Main site and documentation</span><span class="resource-link-url">reticulum.network</span></a>
+      <a class="resource-link" href="https://unsigned.io/rnode" target="_blank"><span class="resource-link-name">RNode Bootstrap Console</span><span class="resource-link-url">unsigned.io/rnode</span></a>
+      <a class="resource-link" href="https://unsigned.io/sideband" target="_blank"><span class="resource-link-name">Sideband app</span><span class="resource-link-url">unsigned.io/sideband</span></a>
+    </div>
+    <div class="resource-group">
+      <div class="resource-group-label"><span class="node-dot s"></span>Kiau Technologies</div>
+      <a class="resource-link" href="https://kiau.tech" target="_blank"><span class="resource-link-name">kiau.tech</span><span class="resource-link-url">Sensor integration and community support</span></a>
+    </div>
+  </section>
+
+  <footer>
+    <span>Kiau Technologies PBC — Community Mesh Networks Guide</span>
+    <span>we do not collect cookies or data about you on our website</span>
+  </footer>
+</div>
+
+<script>
+// ── BACKGROUND CANVAS (matches homepage) ──────────────────────────────────
+const bgCanvas = document.getElementById('bg-canvas');
+const bgCtx = bgCanvas.getContext('2d');
+let bgW, bgH, bgNodes = [];
+
+function bgResize() {
+  bgW = bgCanvas.width = window.innerWidth;
+  bgH = bgCanvas.height = window.innerHeight;
+}
+
+function bgInit() {
+  bgNodes = [];
+  const count = Math.floor((bgW * bgH) / 30000);
+  for (let i = 0; i < count; i++) {
+    bgNodes.push({
+      x: Math.random() * bgW, y: Math.random() * bgH,
+      vx: (Math.random() - 0.5) * 0.15, vy: (Math.random() - 0.5) * 0.15,
+      r: Math.random() * 1.2 + 0.4, pulse: Math.random() * Math.PI * 2,
+      ps: 0.007 + Math.random() * 0.01
+    });
+  }
+}
+
+function bgDraw() {
+  bgCtx.clearRect(0, 0, bgW, bgH);
+  bgNodes.forEach(a => {
+    a.x += a.vx; a.y += a.vy; a.pulse += a.ps;
+    if (a.x < 0 || a.x > bgW) a.vx *= -1;
+    if (a.y < 0 || a.y > bgH) a.vy *= -1;
+    bgNodes.forEach(b => {
+      if (a === b) return;
+      const dx = b.x - a.x, dy = b.y - a.y;
+      const d = Math.sqrt(dx*dx + dy*dy);
+      if (d < 140) {
+        bgCtx.beginPath();
+        bgCtx.strokeStyle = `rgba(62,255,168,${(1 - d/140)*0.2})`;
+        bgCtx.lineWidth = 0.5;
+        bgCtx.moveTo(a.x, a.y); bgCtx.lineTo(b.x, b.y); bgCtx.stroke();
+      }
+    });
+    const g = 0.4 + 0.4 * Math.sin(a.pulse);
+    bgCtx.beginPath();
+    bgCtx.arc(a.x, a.y, a.r, 0, Math.PI*2);
+    bgCtx.fillStyle = `rgba(62,255,168,${g})`;
+    bgCtx.fill();
+  });
+  requestAnimationFrame(bgDraw);
+}
+
+bgResize(); bgInit(); bgDraw();
+window.addEventListener('resize', () => { bgResize(); bgInit(); });
+
+// ── TOC ACTIVE STATE ──────────────────────────────────────────────────────
+const tocLinks = document.querySelectorAll('.toc-item');
+const sections = document.querySelectorAll('section[id], header[id]');
+new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      tocLinks.forEach(l => l.classList.remove('active'));
+      const l = document.querySelector(`.toc-item[href="#${e.target.id}"]`);
+      if (l) l.classList.add('active');
+    }
+  });
+}, { threshold: 0.3 }).observe && sections.forEach(s =>
+  new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        tocLinks.forEach(l => l.classList.remove('active'));
+        const l = document.querySelector(`.toc-item[href="#${e.target.id}"]`);
+        if (l) l.classList.add('active');
+      }
+    });
+  }, { threshold: 0.25 }).observe(s)
+);
+
+// ── PROTOCOL TAB SWITCH ───────────────────────────────────────────────────
+function switchProto(id) {
+  document.querySelectorAll('.proto-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.diagram-panel').forEach(p => p.classList.remove('active'));
+  document.querySelector(`.proto-tab.${id}`).classList.add('active');
+  document.getElementById(`panel-${id}`).classList.add('active');
+  if (id === 'm' && !diagrams.m.built) buildMeshtastic();
+  if (id === 'mc' && !diagrams.mc.built) buildMeshcore();
+  if (id === 'r' && !diagrams.r.built) buildReticulum();
+}
+
+// ── SHARED DIAGRAM HELPERS ────────────────────────────────────────────────
+const diagrams = { m: { built: false }, mc: { built: false }, r: { built: false } };
+
+function getDims(svgEl) {
+  const rect = svgEl.getBoundingClientRect();
+  return { w: rect.width || 600, h: rect.height || 340 };
+}
+
+// Glow filter builder
+function addGlowFilter(defs, id, color, stdDev = 5) {
+  const f = defs.append('filter').attr('id', id)
+    .attr('x', '-80%').attr('y', '-80%').attr('width', '260%').attr('height', '260%');
+  const blur = f.append('feGaussianBlur').attr('in', 'SourceGraphic').attr('stdDeviation', stdDev).attr('result', 'blur');
+  if (color) {
+    f.append('feColorMatrix').attr('in', 'blur').attr('type', 'matrix')
+      .attr('values', color).attr('result', 'colored');
+    const m = f.append('feMerge');
+    m.append('feMergeNode').attr('in', 'colored');
+    m.append('feMergeNode').attr('in', 'SourceGraphic');
+  } else {
+    const m = f.append('feMerge');
+    m.append('feMergeNode').attr('in', 'blur');
+    m.append('feMergeNode').attr('in', 'SourceGraphic');
+  }
+}
+
+// Pulse along a bezier path between two points (with optional control point)
+function animatePulse(svg, x1, y1, x2, y2, color, size, speed, onDone, cx, cy) {
+  const hasCurve = cx !== undefined && cy !== undefined;
+  const steps = Math.ceil(1 / speed);
+  let t = 0;
+
+  // Tail system matching kiau homepage
+  const tailCount = 4;
+  const circles = [];
+  for (let i = tailCount; i >= 0; i--) {
+    circles.push(svg.append('circle')
+      .attr('r', size * (1 - i * 0.18))
+      .attr('fill', color)
+      .attr('opacity', 0)
+      .attr('filter', 'url(#bioGlow)'));
+  }
+
+  const history = [];
+
+  function pos(t) {
+    if (hasCurve) {
+      // Quadratic bezier
+      const mt = 1 - t;
+      return {
+        x: mt*mt*x1 + 2*mt*t*cx + t*t*x2,
+        y: mt*mt*y1 + 2*mt*t*cy + t*t*y2
+      };
+    }
+    return { x: x1 + (x2 - x1)*t, y: y1 + (y2 - y1)*t };
+  }
+
+  function step() {
+    t += speed;
+    if (t > 1) {
+      circles.forEach(c => c.transition().duration(200).attr('opacity', 0).remove());
+      if (onDone) setTimeout(onDone, 220);
+      return;
+    }
+    const p = pos(t);
+    history.push({ x: p.x, y: p.y });
+    if (history.length > tailCount + 2) history.shift();
+
+    // Main head
+    circles[tailCount].attr('cx', p.x).attr('cy', p.y).attr('opacity', 0.9);
+
+    // Tail segments
+    for (let i = 0; i < tailCount; i++) {
+      const hi = history.length - 1 - (i + 1);
+      if (hi >= 0) {
+        circles[i]
+          .attr('cx', history[hi].x).attr('cy', history[hi].y)
+          .attr('opacity', 0.6 - i * 0.13);
+      }
+    }
+    requestAnimationFrame(step);
+  }
+  step();
+}
+
+// ── MESHTASTIC DIAGRAM ────────────────────────────────────────────────────
+function buildMeshtastic() {
+  diagrams.m.built = true;
+  const svgEl = document.getElementById('svg-m');
+  const { w, h } = getDims(svgEl);
+  const svg = d3.select(svgEl);
+  svg.selectAll('*').remove();
+
+  const defs = svg.append('defs');
+  addGlowFilter(defs, 'bioGlow', null, 6);
+  addGlowFilter(defs, 'nodeGlowM', null, 4);
+
+  // 9 nodes in a rough organic spread
+  const cx = w / 2, cy = h / 2;
+  const nodes = [
+    { id: 'origin', x: cx, y: cy, label: 'You' },
+    { id: 'A', x: cx - 180, y: cy - 80, label: 'Node A' },
+    { id: 'B', x: cx + 160, y: cy - 100, label: 'Node B' },
+    { id: 'C', x: cx - 120, y: cy + 110, label: 'Node C' },
+    { id: 'D', x: cx + 140, y: cy + 90, label: 'Node D' },
+    { id: 'E', x: cx - 230, y: cy + 30, label: 'Node E' },
+    { id: 'F', x: cx + 240, y: cy - 20, label: 'Node F' },
+    { id: 'G', x: cx - 60, y: cy - 130, label: 'Node G' },
+    { id: 'H', x: cx + 50, y: cy + 150, label: 'Node H' },
+  ];
+
+  // Edges — neighbor connections
+  const edges = [
+    ['origin','A'],['origin','B'],['origin','G'],['origin','C'],
+    ['A','E'],['A','G'],['B','F'],['B','G'],['C','D'],['C','E'],
+    ['D','H'],['D','F'],['E','A'],['F','B'],['G','B'],['H','D'],
+  ];
+
+  const nodeMap = Object.fromEntries(nodes.map(n => [n.id, n]));
+
+  // Draw edges
+  const edgeGroup = svg.append('g');
+  edges.forEach(([a, b]) => {
+    const na = nodeMap[a], nb = nodeMap[b];
+    edgeGroup.append('line')
+      .attr('x1', na.x).attr('y1', na.y)
+      .attr('x2', nb.x).attr('y2', nb.y)
+      .attr('stroke', 'rgba(62,255,168,0.18)')
+      .attr('stroke-width', 1.2)
+      .attr('class', `edge-m edge-${a}-${b} edge-${b}-${a}`);
+  });
+
+  // Draw nodes
+  nodes.forEach(n => {
+    const g = svg.append('g').attr('class', 'node-m').attr('id', `nm-${n.id}`)
+      .style('cursor', n.id === 'origin' ? 'default' : 'pointer')
+      .on('click', () => { if (n.id !== 'origin') triggerMeshtasticFrom('origin', n.id); });
+
+    g.append('circle').attr('cx', n.x).attr('cy', n.y)
+      .attr('r', n.id === 'origin' ? 10 : 7)
+      .attr('fill', n.id === 'origin' ? '#3effa8' : 'rgba(62,255,168,0.25)')
+      .attr('stroke', '#3effa8').attr('stroke-width', n.id === 'origin' ? 0 : 1.2)
+      .attr('filter', n.id === 'origin' ? 'url(#nodeGlowM)' : null)
+      .attr('class', `node-circle-m`).attr('id', `nc-${n.id}`);
+
+    g.append('text').attr('x', n.x).attr('y', n.y - 14)
+      .attr('text-anchor', 'middle').attr('fill', 'rgba(200,255,232,0.5)')
+      .attr('font-family', 'JetBrains Mono, monospace').attr('font-size', '10px')
+      .text(n.label);
+  });
+
+  diagrams.m.nodes = nodes;
+  diagrams.m.edges = edges;
+  diagrams.m.nodeMap = nodeMap;
+  diagrams.m.svg = svg;
+  diagrams.m.w = w; diagrams.m.h = h;
+
+  // Start ambient pulses
+  startAmbientPulses('m');
+}
+
+let mAmbientInterval;
+function startAmbientPulses(type) {
+  if (type === 'm') {
+    clearInterval(mAmbientInterval);
+    mAmbientInterval = setInterval(() => {
+      if (document.getElementById('panel-m').classList.contains('active')) {
+        const d = diagrams.m;
+        if (!d.built) return;
+        const edge = d.edges[Math.floor(Math.random() * d.edges.length)];
+        const na = d.nodeMap[edge[0]], nb = d.nodeMap[edge[1]];
+        const reverse = Math.random() > 0.5;
+        const [sx, sy, tx, ty] = reverse
+          ? [nb.x, nb.y, na.x, na.y]
+          : [na.x, na.y, nb.x, nb.y];
+        animatePulse(d.svg, sx, sy, tx, ty, '#DA99D6', 3.5, 0.018, null);
+      }
+    }, 700);
+  }
+}
+
+let mFloodActive = false;
+function triggerMeshtastic() {
+  triggerMeshtasticFrom('origin', null);
+}
+
+function triggerMeshtasticFrom(src, target) {
+  if (!diagrams.m.built) buildMeshtastic();
+  if (mFloodActive) return;
+  mFloodActive = true;
+
+  const d = diagrams.m;
+  const status = document.getElementById('status-m');
+  status.textContent = 'Broadcasting...';
+
+  // Reset all nodes
+  d.nodes.forEach(n => {
+    d3.select(`#nc-${n.id}`)
+      .attr('fill', n.id === 'origin' ? '#3effa8' : 'rgba(62,255,168,0.2)')
+      .attr('stroke', '#3effa8');
+  });
+
+  // BFS flood from origin
+  const received = new Set(['origin']);
+  const queue = ['origin'];
+  let wave = 0;
+
+  // Build adjacency
+  const adj = {};
+  d.nodes.forEach(n => { adj[n.id] = []; });
+  d.edges.forEach(([a, b]) => { adj[a].push(b); adj[b].push(a); });
+
+  function floodWave() {
+    if (queue.length === 0) {
+      setTimeout(() => {
+        mFloodActive = false;
+        status.textContent = `Delivered to ${received.size - 1} nodes`;
+      }, 500);
+      return;
+    }
+
+    const current = [...queue];
+    queue.length = 0;
+    let pulsesThisWave = 0;
+    let totalThisWave = 0;
+
+    current.forEach(nodeId => {
+      const neighbors = adj[nodeId].filter(n => !received.has(n));
+      totalThisWave += neighbors.length;
+      neighbors.forEach(neighbor => {
+        received.add(neighbor);
+        queue.push(neighbor);
+        const na = d.nodeMap[nodeId], nb = d.nodeMap[neighbor];
+        // Slight delay per neighbor for cascade feel
+        setTimeout(() => {
+          animatePulse(d.svg, na.x, na.y, nb.x, nb.y, '#3effa8', 4, 0.022, () => {
+            // Light up destination node
+            d3.select(`#nc-${neighbor}`)
+              .attr('fill', 'rgba(62,255,168,0.7)')
+              .attr('stroke-width', 2);
+            pulsesThisWave++;
+            if (pulsesThisWave >= totalThisWave) {
+              setTimeout(floodWave, 180);
+            }
+          });
+        }, Math.random() * 80);
+      });
+    });
+
+    if (totalThisWave === 0) {
+      setTimeout(() => {
+        mFloodActive = false;
+        status.textContent = `Delivered to ${received.size - 1} nodes`;
+      }, 300);
+    }
+  }
+
+  setTimeout(floodWave, 100);
+}
+
+// ── MESHCORE DIAGRAM ──────────────────────────────────────────────────────
+function buildMeshcore() {
+  diagrams.mc.built = true;
+  const svgEl = document.getElementById('svg-mc');
+  const { w, h } = getDims(svgEl);
+  const svg = d3.select(svgEl);
+  svg.selectAll('*').remove();
+
+  const defs = svg.append('defs');
+  addGlowFilter(defs, 'bioGlow', null, 6);
+  addGlowFilter(defs, 'repeaterGlow', null, 7);
+
+  const cx = w / 2, cy = h / 2;
+
+  // Topology: sender, 2 repeaters, room server, 4 end nodes
+  const nodes = [
+    { id: 'origin', x: cx - 220, y: cy, label: 'You', type: 'origin' },
+    { id: 'R1', x: cx - 60, y: cy - 80, label: 'Repeater 1', type: 'repeater' },
+    { id: 'R2', x: cx + 80, y: cy + 60, label: 'Repeater 2', type: 'repeater' },
+    { id: 'RS', x: cx + 10, y: cy - 90, label: 'Room Server', type: 'server' },
+    { id: 'N1', x: cx + 210, y: cy - 100, label: 'Node A', type: 'node' },
+    { id: 'N2', x: cx + 230, y: cy + 20, label: 'Node B', type: 'node' },
+    { id: 'N3', x: cx + 180, y: cy + 130, label: 'Node C', type: 'node' },
+    { id: 'N4', x: cx - 80, y: cy + 120, label: 'Node D', type: 'node' },
+  ];
+
+  // Structured: only repeaters route; end nodes talk to nearest repeater
+  const edges = [
+    ['origin','R1'],['origin','R2'],
+    ['R1','RS'],['R1','R2'],['R2','RS'],
+    ['RS','N1'],['RS','N2'],['R2','N3'],['R1','N4'],
+  ];
+
+  const nodeMap = Object.fromEntries(nodes.map(n => [n.id, n]));
+
+  // Build adjacency
+  const adj = {};
+  nodes.forEach(n => { adj[n.id] = []; });
+  edges.forEach(([a, b]) => { adj[a].push(b); adj[b].push(a); });
+
+  function nodeColor(n) {
+    if (n.type === 'origin') return '#3effa8';
+    if (n.type === 'repeater') return '#3eb8ff';
+    if (n.type === 'server') return '#ffca3e';
+    return 'rgba(62,184,255,0.2)';
+  }
+  function nodeStroke(n) {
+    if (n.type === 'repeater') return '#3eb8ff';
+    if (n.type === 'server') return '#ffca3e';
+    return '#3eb8ff';
+  }
+  function nodeRadius(n) {
+    if (n.type === 'origin') return 10;
+    if (n.type === 'repeater' || n.type === 'server') return 9;
+    return 6;
+  }
+
+  edgesG = svg.append('g');
+  edges.forEach(([a, b]) => {
+    const na = nodeMap[a], nb = nodeMap[b];
+    const isInfra = (nodeMap[a].type === 'repeater' || nodeMap[a].type === 'server') &&
+                    (nodeMap[b].type === 'repeater' || nodeMap[b].type === 'server');
+    edgesG.append('line')
+      .attr('x1', na.x).attr('y1', na.y).attr('x2', nb.x).attr('y2', nb.y)
+      .attr('stroke', isInfra ? 'rgba(62,184,255,0.35)' : 'rgba(62,184,255,0.15)')
+      .attr('stroke-width', isInfra ? 1.5 : 0.8)
+      .attr('stroke-dasharray', isInfra ? '' : '3,4');
+  });
+
+  nodes.forEach(n => {
+    const g = svg.append('g').style('cursor', n.type === 'node' ? 'pointer' : 'default')
+      .on('click', () => { if (n.type === 'node') triggerMeshcoreRoute(n.id); });
+
+    g.append('circle').attr('cx', n.x).attr('cy', n.y)
+      .attr('r', nodeRadius(n))
+      .attr('fill', n.type === 'node' || n.type === 'repeater' ? 'rgba(62,184,255,0.18)' : nodeColor(n))
+      .attr('stroke', nodeStroke(n)).attr('stroke-width', 1.5)
+      .attr('filter', n.type === 'repeater' ? 'url(#repeaterGlow)' : null)
+      .attr('id', `nc-mc-${n.id}`);
+
+    const yOff = n.type === 'server' ? 18 : -14;
+    g.append('text').attr('x', n.x).attr('y', n.y + yOff)
+      .attr('text-anchor', 'middle')
+      .attr('fill', n.type === 'server' ? 'rgba(255,202,62,0.7)' : n.type === 'repeater' ? 'rgba(62,184,255,0.65)' : 'rgba(200,255,232,0.45)')
+      .attr('font-family', 'JetBrains Mono, monospace').attr('font-size', '10px')
+      .text(n.label);
+  });
+
+  // Legend
+  svg.append('text').attr('x', 12).attr('y', 18)
+    .attr('fill', 'rgba(62,184,255,0.5)').attr('font-family', 'JetBrains Mono, monospace').attr('font-size', '9px')
+    .text('● Repeater   ● Room Server   ○ End node');
+
+  diagrams.mc.nodes = nodes;
+  diagrams.mc.edges = edges;
+  diagrams.mc.adj = adj;
+  diagrams.mc.nodeMap = nodeMap;
+  diagrams.mc.svg = svg;
+
+  // Ambient pulses along infrastructure backbone
+  setInterval(() => {
+    if (!document.getElementById('panel-mc').classList.contains('active')) return;
+    const infraEdges = [['R1','RS'],['R2','RS'],['R1','R2']];
+    const e = infraEdges[Math.floor(Math.random() * infraEdges.length)];
+    const na = nodeMap[e[0]], nb = nodeMap[e[1]];
+    animatePulse(diagrams.mc.svg, na.x, na.y, nb.x, nb.y, '#3eb8ff', 3, 0.02, null);
+  }, 900);
+}
+
+let mcRouteActive = false;
+function triggerMeshcore() {
+  // Send to a random end node
+  const d = diagrams.mc;
+  if (!d.built) buildMeshcore();
+  const endNodes = d.nodes.filter(n => n.type === 'node');
+  const target = endNodes[Math.floor(Math.random() * endNodes.length)];
+  triggerMeshcoreRoute(target.id);
+}
+
+function triggerMeshcoreRoute(targetId) {
+  const d = diagrams.mc;
+  if (!d.built) buildMeshcore();
+  if (mcRouteActive) return;
+  mcRouteActive = true;
+
+  const status = document.getElementById('status-mc');
+  status.textContent = 'Routing via repeaters...';
+
+  // Find path using BFS (structured: repeaters/server must be intermediary)
+  function bfs(start, end) {
+    const visited = { [start]: true };
+    const queue = [[start]];
+    while (queue.length) {
+      const path = queue.shift();
+      const node = path[path.length - 1];
+      if (node === end) return path;
+      (d.adj[node] || []).forEach(nb => {
+        if (!visited[nb]) { visited[nb] = true; queue.push([...path, nb]); }
+      });
+    }
+    return null;
+  }
+
+  const path = bfs('origin', targetId);
+  if (!path) { mcRouteActive = false; return; }
+
+  // Animate along path sequentially
+  function sendStep(i) {
+    if (i >= path.length - 1) {
+      d3.select(`#nc-mc-${targetId}`)
+        .transition().duration(300)
+        .attr('fill', 'rgba(62,184,255,0.8)').attr('stroke-width', 2.5);
+      setTimeout(() => {
+        mcRouteActive = false;
+        status.textContent = `Delivered to ${d.nodeMap[targetId].label}`;
+        setTimeout(() => {
+          d3.select(`#nc-mc-${targetId}`)
+            .transition().duration(600)
+            .attr('fill', 'rgba(62,184,255,0.18)').attr('stroke-width', 1.5);
+        }, 1500);
+      }, 300);
+      return;
+    }
+    const na = d.nodeMap[path[i]], nb = d.nodeMap[path[i+1]];
+
+    // Light up current node briefly
+    d3.select(`#nc-mc-${na.id}`)
+      .transition().duration(200)
+      .attr('fill', 'rgba(62,184,255,0.6)');
+
+    setTimeout(() => {
+      d3.select(`#nc-mc-${na.id}`)
+        .transition().duration(400)
+        .attr('fill', na.type === 'origin' ? '#3eb8ff' : 'rgba(62,184,255,0.18)');
+    }, 400);
+
+    animatePulse(d.svg, na.x, na.y, nb.x, nb.y, '#3eb8ff', 4.5, 0.025, () => sendStep(i + 1));
+  }
+
+  sendStep(0);
+}
+
+// ── RETICULUM DIAGRAM ─────────────────────────────────────────────────────
+function buildReticulum() {
+  diagrams.r.built = true;
+  const svgEl = document.getElementById('svg-r');
+  const { w, h } = getDims(svgEl);
+  const svg = d3.select(svgEl);
+  svg.selectAll('*').remove();
+
+  const defs = svg.append('defs');
+  addGlowFilter(defs, 'bioGlow', null, 6);
+  addGlowFilter(defs, 'retGlow', null, 8);
+  addGlowFilter(defs, 'pathGlow', null, 4);
+
+  const cx = w / 2, cy = h / 2;
+
+  // Multiple transport types — LoRa nodes + a WiFi bridge node
+  const nodes = [
+    { id: 'origin', x: cx - 210, y: cy + 20, label: 'You', type: 'origin', transport: 'lora' },
+    { id: 'T1', x: cx - 80, y: cy - 70, label: 'Transport A', type: 'transport', transport: 'lora' },
+    { id: 'T2', x: cx + 60, y: cy - 50, label: 'WiFi Bridge', type: 'transport', transport: 'wifi' },
+    { id: 'T3', x: cx + 20, y: cy + 90, label: 'Transport B', type: 'transport', transport: 'lora' },
+    { id: 'dest', x: cx + 210, y: cy, label: 'Destination', type: 'dest', transport: 'lora' },
+    { id: 'N1', x: cx - 170, y: cy - 110, label: 'Node A', type: 'node', transport: 'lora' },
+    { id: 'N2', x: cx + 180, y: cy - 110, label: 'Node B', type: 'node', transport: 'lora' },
+    { id: 'N3', x: cx + 160, y: cy + 110, label: 'Node C', type: 'node', transport: 'lora' },
+  ];
+
+  // All possible edges (path-based routing will pick best)
+  const allEdges = [
+    ['origin','T1','lora'],['origin','T3','lora'],['origin','N1','lora'],
+    ['T1','T2','wifi'],['T1','N1','lora'],['T1','T3','lora'],
+    ['T2','dest','lora'],['T2','N2','wifi'],['T2','T3','wifi'],
+    ['T3','dest','lora'],['T3','N3','lora'],
+    ['N2','dest','lora'],['N3','dest','lora'],
+  ];
+
+  const nodeMap = Object.fromEntries(nodes.map(n => [n.id, n]));
+  const adj = {};
+  nodes.forEach(n => { adj[n.id] = []; });
+  allEdges.forEach(([a, b]) => { adj[a].push(b); adj[b].push(a); });
+
+  // Draw all edges dimly
+  allEdges.forEach(([a, b, transport]) => {
+    const na = nodeMap[a], nb = nodeMap[b];
+    const isWifi = transport === 'wifi';
+    svg.append('line')
+      .attr('x1', na.x).attr('y1', na.y).attr('x2', nb.x).attr('y2', nb.y)
+      .attr('stroke', isWifi ? 'rgba(200,126,255,0.15)' : 'rgba(200,126,255,0.1)')
+      .attr('stroke-width', isWifi ? 1 : 0.8)
+      .attr('stroke-dasharray', isWifi ? '2,3' : '')
+      .attr('id', `re-edge-${a}-${b}`);
+  });
+
+  function nodeCol(n) {
+    if (n.type === 'origin') return '#c87eff';
+    if (n.type === 'dest') return '#c87eff';
+    if (n.type === 'transport' && n.transport === 'wifi') return '#ffca3e';
+    if (n.type === 'transport') return 'rgba(200,126,255,0.5)';
+    return 'rgba(200,126,255,0.2)';
+  }
+
+  nodes.forEach(n => {
+    const g = svg.append('g').attr('id', `ng-r-${n.id}`);
+    const r = (n.type === 'origin' || n.type === 'dest') ? 10 : n.type === 'transport' ? 8 : 6;
+    g.append('circle').attr('cx', n.x).attr('cy', n.y).attr('r', r)
+      .attr('fill', nodeCol(n))
+      .attr('stroke', n.transport === 'wifi' ? '#ffca3e' : '#c87eff')
+      .attr('stroke-width', 1.5)
+      .attr('filter', n.type === 'transport' ? 'url(#retGlow)' : null)
+      .attr('id', `nc-r-${n.id}`);
+
+    const yOff = n.type === 'dest' ? 18 : -14;
+    g.append('text').attr('x', n.x).attr('y', n.y + yOff)
+      .attr('text-anchor', 'middle')
+      .attr('fill', n.transport === 'wifi' ? 'rgba(255,202,62,0.6)' : 'rgba(200,126,255,0.5)')
+      .attr('font-family', 'JetBrains Mono, monospace').attr('font-size', '10px')
+      .text(n.label);
+  });
+
+  // Transport legend
+  svg.append('text').attr('x', 12).attr('y', 18)
+    .attr('fill', 'rgba(200,126,255,0.45)').attr('font-family', 'JetBrains Mono, monospace').attr('font-size', '9px')
+    .text('── LoRa    ·· WiFi bridge    ● Transport node');
+
+  diagrams.r.nodes = nodes;
+  diagrams.r.allEdges = allEdges;
+  diagrams.r.adj = adj;
+  diagrams.r.nodeMap = nodeMap;
+  diagrams.r.svg = svg;
+  diagrams.r.discoveredPath = null;
+  diagrams.r.discovering = false;
+}
+
+let retActive = false;
+function triggerReticulum() {
+  const d = diagrams.r;
+  if (!d.built) buildReticulum();
+  if (retActive) return;
+  retActive = true;
+
+  const status = document.getElementById('status-r');
+
+  if (!d.discoveredPath) {
+    // First message: path discovery — broadcast probe, find path, remember it
+    status.textContent = 'Discovering path...';
+    d.discovering = true;
+
+    // Animate discovery probes (fan out from origin, first one to reach dest wins)
+    function bfs(start, end) {
+      const visited = { [start]: true };
+      const queue = [[start]];
+      while (queue.length) {
+        const path = queue.shift();
+        const node = path[path.length - 1];
+        if (node === end) return path;
+        (d.adj[node] || []).forEach(nb => {
+          if (!visited[nb]) { visited[nb] = true; queue.push([...path, nb]); }
+        });
+      }
+      return null;
+    }
+
+    const path = bfs('origin', 'dest');
+    d.discoveredPath = path;
+
+    // Animate discovery probes spreading out first
+    let probesDone = 0;
+    const probeEdges = d.allEdges.slice(0, 6);
+    const totalProbes = probeEdges.length;
+
+    probeEdges.forEach(([a, b], i) => {
+      const na = d.nodeMap[a], nb = d.nodeMap[b];
+      setTimeout(() => {
+        animatePulse(d.svg, na.x, na.y, nb.x, nb.y, 'rgba(200,126,255,0.4)', 2.5, 0.03, () => {
+          probesDone++;
+          if (probesDone >= totalProbes) {
+            // Highlight the discovered path
+            setTimeout(() => highlightPath(path, () => {
+              status.textContent = 'Path discovered! Send again to use it.';
+              d.discovering = false;
+              retActive = false;
+            }), 200);
+          }
+        });
+      }, i * 120);
+    });
+
+  } else {
+    // Subsequent messages: follow remembered path efficiently
+    status.textContent = 'Using known path...';
+    highlightPath(d.discoveredPath, () => {
+      const dest = d.discoveredPath[d.discoveredPath.length - 1];
+      d3.select(`#nc-r-${dest}`)
+        .transition().duration(300).attr('fill', 'rgba(200,126,255,0.9)');
+      setTimeout(() => {
+        d3.select(`#nc-r-${dest}`)
+          .transition().duration(600).attr('fill', '#c87eff');
+        status.textContent = 'Delivered via known path';
+        retActive = false;
+      }, 800);
+    });
+  }
+}
+
+function highlightPath(path, onDone) {
+  const d = diagrams.r;
+  // Highlight path edges
+  path.forEach((nodeId, i) => {
+    if (i < path.length - 1) {
+      const next = path[i + 1];
+      [
+        d.svg.select(`#re-edge-${nodeId}-${next}`),
+        d.svg.select(`#re-edge-${next}-${nodeId}`)
+      ].forEach(el => {
+        el.attr('stroke', 'rgba(200,126,255,0.6)').attr('stroke-width', 2);
+      });
+    }
+  });
+
+  // Send pulse along path
+  function sendStep(i) {
+    if (i >= path.length - 1) { if (onDone) onDone(); return; }
+    const na = d.nodeMap[path[i]], nb = d.nodeMap[path[i+1]];
+    d3.select(`#nc-r-${na.id}`)
+      .transition().duration(200).attr('fill', 'rgba(200,126,255,0.8)');
+    setTimeout(() => {
+      d3.select(`#nc-r-${na.id}`)
+        .transition().duration(400).attr('fill', na.type === 'origin' || na.type === 'dest' ? '#c87eff' : 'rgba(200,126,255,0.5)');
+    }, 400);
+    animatePulse(d.svg, na.x, na.y, nb.x, nb.y, '#c87eff', 5, 0.028, () => sendStep(i + 1));
+  }
+  sendStep(0);
+}
+
+// Build Meshtastic on load (default tab)
+window.addEventListener('load', () => {
+  setTimeout(buildMeshtastic, 100);
+});
+</script>
+</body>
+</html>
