@@ -31,6 +31,8 @@ const urlMap = {
   'Design Thinking': 'designThinking.html',
   'Mottai-nai': 'mottai-nai.html',
   "PBC's": 'pbcs.html'
+  'Soil Sensors': 'example.html', //will swap soon
+  'Mesh Networking': 'mesh-guide.html'
 };
 
 // Get URL for a node - returns default if not found
