@@ -991,7 +991,23 @@ function switchProto(id) {
   document.getElementById(`panel-${id}`).classList.add('active');
   if (id === 'm' && !diagrams.m.built) buildMeshtastic();
   if (id === 'mc' && !diagrams.mc.built) buildMeshcore();
-  if (id === 'r' && !diagrams.r.built) buildReticulum();
+  if (id === 'r') {
+    if (!diagrams.r.built) {
+      buildReticulum();
+    } else {
+      // Reset path highlights so each visit starts fresh
+      const d = diagrams.r;
+      d.allEdges.forEach(([a, b]) => {
+        const isWifi = d.allEdges.find(e => e[0]===a && e[1]===b)?.[2] === 'wifi';
+        d.svg.select(`#re-edge-${a}-${b}`)
+          .attr('stroke', isWifi ? 'rgba(200,126,255,0.15)' : 'rgba(200,126,255,0.1)')
+          .attr('stroke-width', isWifi ? 1 : 0.8);
+      });
+      d.discoveredPath = null;
+      retActive = false;
+      document.getElementById('status-r').textContent = 'No path known';
+    }
+  }
 }
 
 // ── SHARED DIAGRAM HELPERS ────────────────────────────────────────────────
@@ -1023,7 +1039,6 @@ function addGlowFilter(defs, id, color, stdDev = 5) {
 // Pulse along a bezier path between two points (with optional control point)
 function animatePulse(svg, x1, y1, x2, y2, color, size, speed, onDone, cx, cy) {
   const hasCurve = cx !== undefined && cy !== undefined;
-  const steps = Math.ceil(1 / speed);
   let t = 0;
 
   // Tail system matching kiau homepage
@@ -1311,7 +1326,9 @@ function buildMeshcore() {
     return 6;
   }
 
-  edgesG = svg.append('g');
+  let mcAmbientInterval;
+
+  const edgesG = svg.append('g');
   edges.forEach(([a, b]) => {
     const na = nodeMap[a], nb = nodeMap[b];
     const isInfra = (nodeMap[a].type === 'repeater' || nodeMap[a].type === 'server') &&
@@ -1354,7 +1371,8 @@ function buildMeshcore() {
   diagrams.mc.svg = svg;
 
   // Ambient pulses along infrastructure backbone
-  setInterval(() => {
+  clearInterval(mcAmbientInterval);
+  mcAmbientInterval = setInterval(() => {
     if (!document.getElementById('panel-mc').classList.contains('active')) return;
     const infraEdges = [['R1','RS'],['R2','RS'],['R1','R2']];
     const e = infraEdges[Math.floor(Math.random() * infraEdges.length)];
