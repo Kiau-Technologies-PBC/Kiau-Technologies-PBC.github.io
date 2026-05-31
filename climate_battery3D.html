@@ -1,37 +1,600 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Climate Battery Scan</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Interactive 3D scan and field guide for the Greenhouse Twins climate battery — a passive ground-to-air heat exchange system built by Kiau Technologies.">
+<title>Greenhouse Twins — Climate Battery — Kiau Technologies</title>
 
-    <link rel="stylesheet" href="./css/index.css">
+<script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@v0.163.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@v0.163.0/examples/jsm/"
+  }
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Space+Grotesk:wght@300;400;500;600&display=swap');
 
-    <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
-    <script type="importmap">
-      {
-        "imports": {
-          "three": "https://unpkg.com/three@v0.163.0/build/three.module.js",
-          "three/addons/": "https://unpkg.com/three@v0.163.0/examples/jsm/"
-        }
-      }
-    </script>
-    <style>
-        body {
-            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><circle cx="5" cy="5" r="5" fill="white"/></svg>') 5 5, auto;
-        }
-    </style>
+:root {
+  --bg: #083d2e;
+  --bg-deep: #051f18;
+  --bg-card: rgba(255,255,255,0.035);
+  --bg-card-hover: rgba(255,255,255,0.065);
+  --node: #3effa8;
+  --node-dim: rgba(62,255,168,0.5);
+  --node-glow: rgba(62,255,168,0.15);
+  --text: #c8ffe8;
+  --text-dim: rgba(200,255,232,0.55);
+  --text-faint: rgba(200,255,232,0.28);
+  --border: rgba(62,255,168,0.1);
+  --border-bright: rgba(62,255,168,0.3);
+  --thermal: #ff8c42;
+  --water: #3eb8ff;
+  --sensor: #ffca3e;
+  --mono: 'JetBrains Mono', monospace;
+  --sans: 'Space Grotesk', sans-serif;
+  /* Kiau brand vars used by JS-spawned popups */
+  --primary-color: #145b4f;
+  --accent-color: #da99d6;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg-deep);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 15px;
+  line-height: 1.7;
+  min-height: 100vh;
+  overflow-x: hidden;
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><circle cx="5" cy="5" r="5" fill="%233effa8" opacity="0.8"/></svg>') 5 5, auto;
+}
+
+#bg-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.35;
+}
+
+.page-wrap {
+  position: relative;
+  z-index: 1;
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 0 2rem 6rem;
+}
+
+/* ── NAV ── */
+nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+  background: rgba(5,31,24,0.88);
+  backdrop-filter: blur(14px);
+  margin: 0 -2rem;
+  padding: 1rem 2rem;
+}
+.nav-back {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--node-dim);
+  text-decoration: none;
+  letter-spacing: 0.08em;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: color 0.2s;
+}
+.nav-back:hover { color: var(--node); }
+.nav-back::before { content: '←'; }
+.nav-title {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-faint);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* ── TOC ── */
+.toc {
+  position: fixed;
+  left: max(1rem, calc(50% - 560px));
+  top: 50%;
+  transform: translateY(-50%);
+  width: 150px;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+@media (max-width: 1250px) { .toc { display: none; } }
+.toc-item {
+  font-size: 12px;
+  font-family: var(--mono);
+  color: var(--text-faint);
+  letter-spacing: 0.06em;
+  text-decoration: none;
+  padding: 5px 10px;
+  border-left: 1px solid transparent;
+  transition: all 0.2s;
+  line-height: 1.5;
+}
+.toc-item:hover, .toc-item.active { color: var(--node); border-left-color: var(--node); }
+
+/* ── HERO ── */
+.hero {
+  padding: 5rem 0 3.5rem;
+  border-bottom: 1px solid var(--border);
+}
+.hero-tag {
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  color: var(--node-dim);
+  text-transform: uppercase;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.hero-tag::before {
+  content: '';
+  display: inline-block;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--node);
+  box-shadow: 0 0 10px var(--node);
+  animation: pulse-dot 2.5s ease-in-out infinite;
+}
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; box-shadow: 0 0 10px var(--node); }
+  50%       { opacity: 0.5; box-shadow: 0 0 3px var(--node); }
+}
+h1 {
+  font-family: var(--mono);
+  font-size: clamp(2.2rem, 5vw, 3.2rem);
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -0.025em;
+  color: var(--node);
+  margin-bottom: 1.5rem;
+}
+.hero-sub {
+  font-family: var(--sans);
+  font-size: 1.1rem;
+  color: var(--text-dim);
+  max-width: 580px;
+  line-height: 1.75;
+  font-weight: 300;
+}
+.hero-meta {
+  margin-top: 2rem;
+  display: flex;
+  gap: 2rem;
+  font-size: 11px;
+  color: var(--text-faint);
+  letter-spacing: 0.08em;
+  flex-wrap: wrap;
+}
+
+/* ── SECTIONS ── */
+section { padding: 4rem 0; border-bottom: 1px solid var(--border); }
+.section-tag { font-size: 10px; letter-spacing: 0.2em; color: var(--text-faint); text-transform: uppercase; margin-bottom: 0.6rem; }
+h2 { font-family: var(--mono); font-size: 1.65rem; font-weight: 500; color: var(--text); margin-bottom: 1.75rem; letter-spacing: -0.01em; }
+h3 { font-family: var(--mono); font-size: 1.05rem; font-weight: 500; margin-bottom: 0.9rem; margin-top: 2.25rem; }
+h3:first-child { margin-top: 0; }
+p { font-family: var(--sans); color: var(--text-dim); font-weight: 300; margin-bottom: 1.1rem; }
+p:last-child { margin-bottom: 0; }
+
+/* ── DETAIL BLOCKS ── */
+.detail-block { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 2rem; margin: 2rem 0; }
+.detail-block.thermal { border-left: 3px solid var(--thermal); }
+.detail-block.water   { border-left: 3px solid var(--water); }
+.detail-block.sensor  { border-left: 3px solid var(--sensor); }
+.detail-block.node    { border-left: 3px solid var(--node); }
+.detail-title { font-family: var(--mono); font-size: 1.1rem; font-weight: 700; margin-bottom: 1.25rem; }
+.detail-title.thermal { color: var(--thermal); }
+.detail-title.water   { color: var(--water); }
+.detail-title.sensor  { color: var(--sensor); }
+.detail-title.node    { color: var(--node); }
+.feature-list { list-style: none; margin: 0.75rem 0; }
+.feature-list li {
+  font-family: var(--sans); font-size: 0.88rem; color: var(--text-dim); font-weight: 300;
+  padding: 0.4rem 0 0.4rem 1.2rem; position: relative;
+  border-bottom: 1px solid var(--border); line-height: 1.55;
+}
+.feature-list li:last-child { border-bottom: none; }
+.feature-list li::before { content: '›'; position: absolute; left: 0; color: var(--node-dim); }
+
+/* ── DAY/NIGHT PHASE BLOCKS ── */
+.phase-flow {
+  display: flex; gap: 1px; background: var(--border);
+  border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin: 1.5rem 0;
+}
+.phase { flex: 1; background: var(--bg-card); padding: 1.5rem 1.25rem; }
+.phase-label { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; font-family: var(--mono); margin-bottom: 0.5rem; }
+.phase-label.day   { color: var(--thermal); }
+.phase-label.night { color: var(--water); }
+.phase-title { font-family: var(--mono); font-size: 0.9rem; color: var(--text); margin-bottom: 0.75rem; }
+.phase-desc  { font-family: var(--sans); font-size: 0.82rem; color: var(--text-dim); font-weight: 300; line-height: 1.55; }
+@media (max-width: 600px) { .phase-flow { flex-direction: column; } }
+
+/* ── 3D VIEWER ── */
+.viewer-outer { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: rgba(0,0,0,0.2); margin: 1.5rem 0; }
+.viewer-controls-top {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.75rem 1.5rem; border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 0.5rem;
+}
+#viewer-container {
+  width: 100%; height: 480px;
+  position: relative; background: #051f18; overflow: hidden;
+}
+#viewer-container > canvas {
+  position: absolute !important; top: 0 !important; left: 0 !important;
+  width: 100% !important; height: 100% !important;
+  z-index: 1 !important; display: block !important;
+}
+.diagram-controls {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1rem 1.5rem; border-top: 1px solid var(--border); flex-wrap: wrap; gap: 0.75rem;
+}
+.diagram-label { font-size: 11px; color: var(--text-faint); letter-spacing: 0.08em; font-family: var(--mono); }
+.diagram-status { font-size: 10px; font-family: var(--mono); color: var(--text-faint); letter-spacing: 0.06em; }
+.trigger-btn {
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em;
+  padding: 0.5rem 1.25rem; border-radius: 20px; border: 1px solid;
+  background: transparent; cursor: pointer; transition: all 0.2s; text-transform: uppercase;
+}
+.viewer-toggle { color: var(--node); border-color: rgba(62,255,168,0.35); }
+.viewer-toggle:hover { background: rgba(62,255,168,0.1); }
+
+/* ── SENSOR GRID ── */
+.sensor-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+  gap: 1px; background: var(--border); border: 1px solid var(--border);
+  border-radius: 10px; overflow: hidden; margin: 1.5rem 0;
+}
+.sensor-card { background: var(--bg-card); padding: 1.25rem; }
+.sensor-label { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--sensor); font-family: var(--mono); margin-bottom: 0.4rem; opacity: 0.7; }
+.sensor-id    { font-family: var(--mono); font-size: 0.95rem; color: var(--node); margin-bottom: 0.3rem; }
+.sensor-name  { font-family: var(--sans); font-size: 0.85rem; color: var(--text); font-weight: 400; line-height: 1.4; }
+.sensor-desc  { font-family: var(--sans); font-size: 0.78rem; color: var(--text-dim); font-weight: 300; margin-top: 0.3rem; line-height: 1.4; }
+
+/* ── SPECS TABLE ── */
+.compare-wrap { overflow-x: auto; margin: 2rem 0; border: 1px solid var(--border); border-radius: 10px; }
+table { width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: 0.8rem; }
+thead th {
+  padding: 1rem 1.25rem; text-align: left; font-weight: 500; letter-spacing: 0.07em;
+  border-bottom: 1px solid var(--border); background: rgba(255,255,255,0.025);
+  white-space: nowrap; color: var(--text-faint);
+}
+thead th:nth-child(2) { color: var(--node); }
+tbody td { padding: 0.75rem 1.25rem; border-bottom: 1px solid var(--border); color: var(--text-dim); font-family: var(--sans); font-size: 0.85rem; font-weight: 300; }
+tbody tr:last-child td { border-bottom: none; }
+tbody td:first-child { font-family: var(--mono); font-size: 0.78rem; color: var(--text-faint); letter-spacing: 0.04em; white-space: nowrap; }
+tbody tr:hover td { background: rgba(255,255,255,0.015); }
+
+/* ── NODE DOT ── */
+.node-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: currentColor; box-shadow: 0 0 6px currentColor; margin-right: 0.4rem; }
+.node-dot.node    { color: var(--node); }
+.node-dot.thermal { color: var(--thermal); }
+.node-dot.sensor  { color: var(--sensor); }
+
+/* ── LOADING SCREEN ── */
+#loading-screen {
+  position: fixed; inset: 0; background: var(--bg-deep);
+  display: flex; flex-direction: column; justify-content: center; align-items: center;
+  z-index: 9999; font-family: var(--mono);
+}
+#loading-screen p { color: var(--node-dim); margin-top: 15px; font-size: 12px; letter-spacing: 0.1em; text-align: center; }
+#loading-spinner {
+  width: 36px; height: 36px;
+  border: 3px solid rgba(62,255,168,0.15);
+  border-top: 3px solid var(--node);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+/* ── TOOLTIP ── */
+#tooltip {
+  position: fixed; color: var(--text); background: rgba(5,31,24,0.95);
+  padding: 8px 10px; border: 1px solid var(--border-bright); border-radius: 6px;
+  font-family: var(--mono); font-size: 11px; text-align: center;
+  pointer-events: none; display: none; z-index: 5000;
+  min-width: 180px; max-width: 320px;
+  flex-direction: column; gap: 8px; align-items: center; justify-content: center;
+}
+#tooltip canvas { position: relative; margin: 0 auto; width: 180px; height: 140px; border-radius: 4px; background: rgba(0,0,0,0.15); pointer-events: none; }
+#tooltip .desc { color: var(--text-dim); font-size: 11px; text-align: center; width: 100%; overflow-wrap: anywhere; }
+
+/* ── NODE POPUP (spawned by JS) ── */
+.node-popup-window { font-family: var(--mono) !important; transition: box-shadow .18s; }
+.node-popup-window:active, .node-popup-window:focus-within { box-shadow: 0 12px 40px rgba(0,0,0,0.38); }
+
+/* ── FOOTER ── */
+footer {
+  padding: 3rem 0 2rem; font-size: 11px; color: var(--text-faint);
+  font-family: var(--mono); letter-spacing: 0.08em;
+  display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;
+}
+
+@media (max-width: 768px) {
+  #viewer-container { height: 280px; }
+  .page-wrap { padding: 0 1rem 4rem; }
+  h1 { font-size: 2rem; }
+}
+</style>
+<link rel="stylesheet" href="css/kiau-inner.css">
 </head>
 <body>
-    <div id="loading-screen">
-        <div id="loading-spinner"></div>
-        <p>One sec, loading..</p>
+
+<!-- Full-screen loading overlay (preserved for Three.js) -->
+<div id="loading-screen" style="position:fixed;inset:0;background:#030e09;z-index:500;display:flex;flex-direction:column;justify-content:center;align-items:center;">
+  <div id="loading-spinner"></div>
+  <p style="color:rgba(62,255,168,0.6);margin-top:15px;font-size:12px;letter-spacing:0.1em;text-align:center;">Loading 3D model...</p>
+</div>
+
+<!-- Ambient background canvas -->
+<canvas id="bg-canvas" style="position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.2;"></canvas>
+
+<!-- Tooltip (Three.js JS positions this) -->
+<div id="tooltip"></div>
+
+<nav class="kiau-nav">
+    <a href="landing-a.html" class="kiau-nav-logo">Kiau Technologies</a>
+    <ul class="kiau-nav-links">
+        <li><a href="landing-a.html">Home</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="contact.html">Contact</a></li>
+    </ul>
+</nav>
+
+<header class="page-hero">
+    <p class="section-eyebrow">Active Field Project</p>
+    <h1 class="section-heading">Greenhouse Twins Climate Battery</h1>
+    <p class="prose" style="max-width:640px;margin:0 auto;">A passive ground-to-air heat exchange system that stores thermal energy in the soil during the day and recirculates it at night — no boiler, no propane, just physics. Validated through a paired experimental design: two identical greenhouses, one with the system and one without.</p>
+</header>
+
+<main class="page-content">
+
+  <section class="page-section" id="concept">
+    <div class="section-header-row">
+      <span class="section-eyebrow">01</span>
+      <h2 class="section-heading">What is a climate battery?</h2>
     </div>
-    <header id="heading">
-        <h1>3D Climate Battery Scan</h1>
-        <button id="toggle-model">Switch to STL Model</button>
-    </header>
-    <div id="tooltip"></div>
-    <script type="module" src="./build.js"></script>
+    <p>A climate battery — also called an earth battery or ground-to-air heat exchange (GAHE) system — uses the stable thermal mass of the soil beneath a greenhouse as a buffer for heat. While outdoor temperatures swing widely between day and night, the soil a few feet underground stays at a relatively constant temperature year-round.</p>
+    <p>The system exploits this directly. Instead of letting warm, humid greenhouse air escape through vents during the day, a fan pulls it down through a network of buried perforated pipes. The soil absorbs that heat and moisture. At night, when the greenhouse cools, the stored warmth is drawn back up and released into the growing space.</p>
+    <p>The result is a greenhouse that stays warmer at night and cooler during peak daytime heat — extending growing seasons without ongoing fuel costs or grid dependency.</p>
+    <div class="detail-block thermal">
+      <div class="detail-title thermal">Why this matters for food sovereignty</div>
+      <p>Most greenhouse heating solutions require ongoing fuel purchases or reliable grid power. A climate battery, once installed, has no operating cost and no supply chain dependency. For small farms, Indigenous land stewards, and communities building food resilience outside industrial supply chains, this changes the calculus of season extension entirely.</p>
+    </div>
+  </section>
+
+  <section class="page-section" id="mechanism">
+    <div class="section-header-row">
+      <span class="section-eyebrow">02</span>
+      <h2 class="section-heading">How it works</h2>
+    </div>
+    <p>The system has two operating phases driven by a single low-wattage fan and a buried pipe network. The pipes are typically 4-inch diameter perforated drainage pipe laid 4 to 6 feet below the greenhouse floor in a grid or loop pattern.</p>
+    <div class="phase-flow">
+      <div class="phase">
+        <div class="phase-label day">Day — Charging</div>
+        <div class="phase-title">Heat flows into the ground</div>
+        <div class="phase-desc">The greenhouse heats up during daylight. Warm, humid air is drawn down through the buried pipe network by the fan. As it passes through the soil, heat and moisture transfer outward into the surrounding earth. The air that exits is cooler and drier — the soil is now holding what would otherwise have been vented away.</div>
+      </div>
+      <div class="phase">
+        <div class="phase-label night">Night — Discharging</div>
+        <div class="phase-title">Stored warmth returns</div>
+        <div class="phase-desc">Temperatures drop after sunset. The fan continues drawing air through the system. Now the soil is warmer than the air above it, so heat transfers back into the airstream and rises into the growing space. The system runs in reverse thermodynamically — releasing what was stored during the day without any additional energy input.</div>
+      </div>
+    </div>
+    <h3>The soil as a storage medium</h3>
+    <p>Soil has a volumetric heat capacity of roughly 1.0–1.5 MJ/m³·K — lower than water, but far greater than air. A system with 50–100 linear feet of buried pipe surrounded by moist soil can store and return meaningful amounts of thermal energy across a full diurnal cycle.</p>
+    <p>Moisture matters. Dry sand holds very little heat per cubic foot. Moist loam or clay holds significantly more. This is one reason sensor data on both temperature and humidity — not temperature alone — is important for understanding system performance.</p>
+  </section>
+
+  <section class="page-section" id="scan">
+    <div class="section-header-row">
+      <span class="section-eyebrow">03</span>
+      <h2 class="section-heading">3D scan of the installation</h2>
+    </div>
+    <p>The model below is a photogrammetric 3D scan of the Greenhouse Twins installation taken April 21, 2025. Sensor nodes are marked and interactive — click any labeled node to view its current readings and open a data panel. Toggle between the textured GLTF photogrammetry scan and the structural STL model using the button below.</p>
+    <div class="viewer-outer">
+      <div class="viewer-controls-top">
+        <span class="diagram-label">Drag to rotate · Scroll to zoom · Click a sensor node for live data</span>
+        <button id="toggle-model" class="trigger-btn viewer-toggle">Switch to STL</button>
+      </div>
+      <div id="viewer-container" style="width:100%;height:480px;position:relative;background:#051f18;overflow:hidden;"></div>
+      <div class="diagram-controls">
+        <span class="diagram-label">
+          <span class="node-dot sensor"></span>TX1 &nbsp;
+          <span class="node-dot sensor"></span>TX3 &nbsp;
+          <span class="node-dot sensor"></span>TX7 &nbsp;
+          <span class="node-dot node"></span>SI1A
+        </span>
+        <span class="diagram-status" id="viewer-status">Loading 3D model...</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="page-section" id="sensors">
+    <div class="section-header-row">
+      <span class="section-eyebrow">04</span>
+      <h2 class="section-heading">Sensor nodes</h2>
+    </div>
+    <p>Four sensor nodes are currently installed in the climate battery. All transmit temperature and humidity data over LoRa mesh to a local base station. Data is fetched live from a Google Sheets log and overlaid directly on the 3D model above.</p>
+    <div class="sensor-grid">
+      <div class="sensor-card">
+        <div class="sensor-label">Temperature</div>
+        <div class="sensor-id">TX1</div>
+        <div class="sensor-name">Lower zone</div>
+        <div class="sensor-desc">Positioned near the deepest pipe run. Measures ambient temperature and humidity in the cooler lower soil stratum.</div>
+      </div>
+      <div class="sensor-card">
+        <div class="sensor-label">Temperature</div>
+        <div class="sensor-id">TX3</div>
+        <div class="sensor-name">Mid zone</div>
+        <div class="sensor-desc">Mounted at mid-depth. Tracks the thermal gradient between lower and upper zones during charge and discharge cycles.</div>
+      </div>
+      <div class="sensor-card">
+        <div class="sensor-label">Temperature</div>
+        <div class="sensor-id">TX7</div>
+        <div class="sensor-name">Upper zone</div>
+        <div class="sensor-desc">Near the pipe exits. Captures conditions closest to the greenhouse floor — the air plants actually experience at night.</div>
+      </div>
+      <div class="sensor-card">
+        <div class="sensor-label">Soil input</div>
+        <div class="sensor-id">SI1A</div>
+        <div class="sensor-name">Intake reference</div>
+        <div class="sensor-desc">Positioned at the air intake point. Establishes the baseline — what enters the system before any soil exchange occurs.</div>
+      </div>
+    </div>
+    <div class="detail-block sensor">
+      <div class="detail-title sensor">Data pipeline</div>
+      <p>Node readings are transmitted over a Meshtastic LoRa mesh network to a base station at the site. The base station logs readings to a Google Sheet. This page fetches the most recent rows from that sheet live and renders them on the 3D model as interactive markers.</p>
+      <ul class="feature-list">
+        <li>Ambient temperature (°C), sampled every 15 minutes</li>
+        <li>Ambient relative humidity (%)</li>
+        <li>Timestamp and date of each reading</li>
+        <li>Sensor error detection: readings outside physical bounds are flagged on the model</li>
+        <li>Click any sensor label in the 3D view to open a detailed data panel</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="page-section" id="twins">
+    <div class="section-header-row">
+      <span class="section-eyebrow">05</span>
+      <h2 class="section-heading">The twins methodology</h2>
+    </div>
+    <p>The project uses a paired comparison design: two physically identical greenhouses are built side by side. One receives the full climate battery installation — buried pipes, fan, and sensor network. The other is the control, with no subsurface system and no active heating.</p>
+    <p>Both greenhouses grow the same crops under the same management. Over a full growing season, sensor data from both structures builds a dataset showing the actual thermal difference the system produces, the energy cost avoided, and how performance varies with soil conditions, season, and crop load.</p>
+    <div class="detail-block node">
+      <div class="detail-title node">Why a controlled comparison matters</div>
+      <p>Climate battery performance claims in the literature vary widely — some installations report 10°F overnight improvements, others show modest gains. Variables like soil type, pipe depth, fan sizing, and local climate all interact. The only way to know what a specific installation actually delivers is to measure it against an identical baseline in the same location at the same time. That is what the twins design provides.</p>
+    </div>
+    <h3>What we are measuring</h3>
+    <ul class="feature-list">
+      <li>Overnight low temperature differential between the two greenhouses</li>
+      <li>Daytime peak temperature differential (cooling effect)</li>
+      <li>Soil temperature gradient across the TX1 → TX3 → TX7 depth profile</li>
+      <li>Energy stored and returned per diurnal cycle (estimated from sensor data)</li>
+      <li>Growing season extension in days relative to the control greenhouse</li>
+    </ul>
+  </section>
+
+  <section class="page-section" id="specs">
+    <div class="section-header-row">
+      <span class="section-eyebrow">06</span>
+      <h2 class="section-heading">System specifications</h2>
+    </div>
+    <div class="compare-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Parameter</th>
+            <th><span class="node-dot node"></span>Current Installation</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Active sensor nodes</td><td>4 — TX1, TX3, TX7, SI1A</td></tr>
+          <tr><td>Sensor protocol</td><td>Meshtastic / LoRa 915 MHz</td></tr>
+          <tr><td>Data logging</td><td>Google Sheets via base station</td></tr>
+          <tr><td>Node power</td><td>Solar + battery (no grid connection)</td></tr>
+          <tr><td>Sampling interval</td><td>15 minutes</td></tr>
+          <tr><td>3D scan format</td><td>GLTF (photogrammetry) + STL (structural)</td></tr>
+          <tr><td>3D scan date</td><td>April 21, 2025</td></tr>
+          <tr><td>3D rendering</td><td>Three.js r163, WebGL, OrbitControls</td></tr>
+          <tr><td>Data fetch</td><td>Live from Google Sheets JSON endpoint</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer class="kiau-footer">
+    <span>Kiau Technologies PBC</span>
+    <div class="kiau-footer-links">
+        <a href="about.html">About</a>
+        <a href="pbcs.html">PBCs</a>
+        <a href="contact.html">Contact</a>
+    </div>
+    <span>2025</span>
+  </footer>
+
+</main>
+
+<script>
+// ── BACKGROUND CANVAS (same as mesh-guide) ───────────────────────────────
+const bgCanvas = document.getElementById('bg-canvas');
+const bgCtx = bgCanvas.getContext('2d');
+let bgW, bgH, bgNodes = [];
+function bgResize() { bgW = bgCanvas.width = window.innerWidth; bgH = bgCanvas.height = window.innerHeight; }
+function bgInit() {
+  bgNodes = [];
+  const count = Math.floor((bgW * bgH) / 30000);
+  for (let i = 0; i < count; i++) {
+    bgNodes.push({ x: Math.random()*bgW, y: Math.random()*bgH,
+      vx: (Math.random()-0.5)*0.15, vy: (Math.random()-0.5)*0.15,
+      r: Math.random()*1.2+0.4, pulse: Math.random()*Math.PI*2, ps: 0.007+Math.random()*0.01 });
+  }
+}
+function bgDraw() {
+  bgCtx.clearRect(0, 0, bgW, bgH);
+  bgNodes.forEach(a => {
+    a.x += a.vx; a.y += a.vy; a.pulse += a.ps;
+    if (a.x < 0 || a.x > bgW) a.vx *= -1;
+    if (a.y < 0 || a.y > bgH) a.vy *= -1;
+    bgNodes.forEach(b => {
+      if (a === b) return;
+      const dx = b.x-a.x, dy = b.y-a.y, d = Math.sqrt(dx*dx+dy*dy);
+      if (d < 140) {
+        bgCtx.beginPath();
+        bgCtx.strokeStyle = `rgba(62,255,168,${(1-d/140)*0.2})`;
+        bgCtx.lineWidth = 0.5;
+        bgCtx.moveTo(a.x, a.y); bgCtx.lineTo(b.x, b.y); bgCtx.stroke();
+      }
+    });
+    const g = 0.4 + 0.4*Math.sin(a.pulse);
+    bgCtx.beginPath();
+    bgCtx.arc(a.x, a.y, a.r, 0, Math.PI*2);
+    bgCtx.fillStyle = `rgba(62,255,168,${g})`;
+    bgCtx.fill();
+  });
+  requestAnimationFrame(bgDraw);
+}
+bgResize(); bgInit(); bgDraw();
+window.addEventListener('resize', () => { bgResize(); bgInit(); });
+
+// ── TOC ACTIVE STATE ─────────────────────────────────────────────────────
+const tocLinks = document.querySelectorAll('.toc-item');
+document.querySelectorAll('section[id]').forEach(s =>
+  new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        tocLinks.forEach(l => l.classList.remove('active'));
+        const l = document.querySelector(`.toc-item[href="#${e.target.id}"]`);
+        if (l) l.classList.add('active');
+      }
+    });
+  }, { threshold: 0.25 }).observe(s)
+);
+</script>
+
+<script type="module" src="./build.js"></script>
 </body>
 </html>

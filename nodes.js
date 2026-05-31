@@ -50,14 +50,10 @@ function isSpecialNode(nodeId) {
 d3.csv("data/nodes2.0.csv").then(function(data) {
 
   let settings = getResponsiveSettings();
-  console.log("Responsive Settings:", settings);
 
   let width = settings.width;
   let height = settings.height;
   const isMobile = window.innerWidth < 768;
-  if (isMobile) {
-    console.log("mobile mode");
-  }
 
   // Shuffle function for randomizing node order
   function shuffle(array) {
@@ -118,9 +114,6 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
 
   // Combine all nodes (original + rope segments)
   const allNodes = [...nodes, ...ropeNodes];
-
-  console.log("Nodes:", nodes);
-  console.log("Links:", links);
 
   // Set up the SVG container with resizable options
   const root = document.documentElement;
@@ -280,7 +273,6 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
       }
       
       updateTutorialPosition();
-      console.log("Resized to:", settings);
     }, 250);
   });
 
@@ -1006,8 +998,8 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
     
     // No anchor updates needed - simple elastic band physics
     
-    // Update rope paths - throttle for performance
-    if (frameCount % 2 === 0) { // Update every other frame for better performance
+    // Update rope paths - throttle for performance (more aggressive on mobile)
+    if (frameCount % (isMobile ? 3 : 2) === 0) {
       ropes.attr("d", d => createRopePath(d));
     }
     
@@ -1047,21 +1039,20 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
         const textX = Math.cos(angle) * scaledOffset;
         const textY = Math.sin(angle) * scaledOffset;
         
-        // Always use middle anchor for true smooth gliding
-        anchor.selectAll("text")
-          .transition()
-          .duration(50)
-          .ease(d3.easeLinear)
-          .attr("x", textX)
-          .attr("y", textY)
-          .attr("text-anchor", "middle")
-          .attr("dominant-baseline", "central");
+        // Only update DOM when position changes meaningfully (avoids redundant reflows)
+        if (!d._lastTx || Math.abs(textX - d._lastTx) > 0.5 || Math.abs(textY - d._lastTy) > 0.5) {
+          d._lastTx = textX;
+          d._lastTy = textY;
+          anchor.selectAll("text").attr("x", textX).attr("y", textY);
+        }
       }
     });
 
-    // Keep tutorial overlay/marker in sync with live positions
-    updateTutorialPosition();
+    // Keep tutorial overlay/marker in sync with live positions (throttled)
+    if (frameCount % 3 === 0) {
+      updateTutorialPosition();
       updateLinkConnectorPosition();
+    }
   });
   
   
@@ -1222,20 +1213,14 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
 
   // Spawn a random pulse from Kiau Technologies
   function spawnRandomPulse() {
-    if (!specialNode) {
-      console.log("No special node found");
-      return;
-    }
+    if (!specialNode) return;
     
     // Find all links connected to Kiau Technologies
     const connectedLinks = links.filter(link => 
       link.source.id === 'Kiau Technologies' || link.target.id === 'Kiau Technologies'
     );
     
-    if (connectedLinks.length === 0) {
-      console.log("No connected links found");
-      return;
-    }
+    if (connectedLinks.length === 0) return;
     
     // Pick random connection(s) - spawn multiple for more active network
     const rand = Math.random();
@@ -1249,8 +1234,6 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
     } else {
       numPulses = isMobile ? 2 : 4; // 10% chance quad pulse (reduced on mobile)
     }
-    
-    console.log(`Spawning ${numPulses} pulse(s) from Kiau Technologies`);
     
     for (let i = 0; i < numPulses; i++) {
       const randomLink = connectedLinks[Math.floor(Math.random() * connectedLinks.length)];
@@ -1270,10 +1253,7 @@ d3.csv("data/nodes2.0.csv").then(function(data) {
         pulseLink.originalLink = randomLink;
       }
       
-      setTimeout(() => {
-        createPulse(pulseLink);
-        console.log(`Pulse created traveling to: ${pulseLink.target.id}`);
-      }, i * 200); // Slight delay between multiple pulses
+      setTimeout(() => createPulse(pulseLink), i * 200);
     }
   }
 

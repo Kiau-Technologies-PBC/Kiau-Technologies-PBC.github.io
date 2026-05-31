@@ -1,93 +1,734 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Local Plastic Recycling</title>
-  <link rel="stylesheet" href="css/styles.css">
-  <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
-
-  <style>
-    #typing-section {
-        font-family: monospace;
-        font-size: 1.2rem;
-    }
-    .cursor {
-        display: inline-block;
-        width: 10px;
-        background: #ffff;
-        margin-left: 2px;
-        animation: blink 0.7s infinite;
-    }
-    @keyframes blink {
-        0%, 50% { background: var(--primary-color); }
-        50.1%, 100% { background: transparent; }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Local Plastic Recycling / ReCoop | Kiau Technologies</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/kiau-inner.css">
 </head>
-<header style="position: fixed; top: 0; left: 0; right: 0; z-index: 9999; background:var(--primary-color); backdrop-filter: blur(10px); padding: 1rem 2rem; box-shadow: 0 2px 10px rgba(0,0,0,0.3);">
-    <nav style="display: flex; justify-content: space-between; align-items: center; max-width: 1400px; margin: 0 auto;">
-        <a href="index.html" style="color: var(--background); font-size: 1.2rem; font-weight: bold; text-decoration: none;">
-            Kiau Technologies
-        </a>
-        <ul style="display: flex; gap: 2rem; list-style: none; margin: 0; padding: 0;">
-            <li><a href="index.html" style="color: var(--background); text-decoration: none;">Home</a></li>
-            <li><a href="about.html" style="color: var(--background); text-decoration: none;">About</a></li>
-        </ul>
-        <!-- Mobile hamburger menu here if needed -->
-    </nav>
-    </header>
-<body>
-    <section style="padding: 50px; background: var(--primary-color); color: var(--background); min-height:100vh;">
-        <h2><a href="https://re.cooper.edu" target="_blank" style="color:#271405; text-decoration:underline;">ReCoop</a>: A Local Recycling Initiative</h2>
-        <div id="typing-section"></div>
-    </section>
+<!-- OLD-CSS
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Space+Grotesk:wght@300;400;500;600&display=swap');
 
-  <div id="terminal"></div>
-
-  <script src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12"></script>
-<script>
-const text = [
-  "Before founding Kiau Tech, several of our team members led a promising plastic recycling project at The Cooper Union in NYC. ",
-  "Known as ReCoop, the initiative focused on developing local-scale recycling technologies. ",
-  "While not commercially deployed, the project sparked ideas that continue to inspire our work. ",
-  "We’re currently exploring ways to bring local recycling tech closer to real-world impact — and we're looking for partners interested in pushing this forward.",
-  "Visit <a href='https://re.cooper.edu' target='_blank' style='color:blue; text-decoration:underline;'>ReCoop</a> for more."
-];
-
-let line = 0;
-let char = 0;
-const target = document.getElementById("typing-section");
-
-function typeLine() {
-  if (line < text.length) {
-    if (char < text[line].length) {
-      // If next character starts an HTML tag
-      if (text[line][char] === "<") {
-        // Extract the full tag
-        const endTagIndex = text[line].indexOf(">", char);
-        const tag = text[line].substring(char, endTagIndex + 1);
-        target.innerHTML += tag; // Append the tag as HTML
-        char = endTagIndex + 1;  // Move pointer after the tag
-      } else {
-        target.innerHTML += text[line][char];
-        char++;
-      }
-      setTimeout(typeLine, 20); // typing speed
-    } else {
-      target.innerHTML += "<br>";
-      line++;
-      char = 0;
-      setTimeout(typeLine, 500); // pause between lines
-    }
-  } else {
-    target.insertAdjacentHTML('beforeend', '<span class="cursor"></span>');
-  }
+:root {
+  --bg-deep: #051f18;
+  --bg-card: rgba(255,255,255,0.035);
+  --node: #3effa8;
+  --node-dim: rgba(62,255,168,0.5);
+  --text: #c8ffe8;
+  --text-dim: rgba(200,255,232,0.55);
+  --text-faint: rgba(200,255,232,0.28);
+  --border: rgba(62,255,168,0.1);
+  --border-bright: rgba(62,255,168,0.3);
+  --plastic-hdpe: #3eb8ff;
+  --plastic-pp: #ff8c42;
+  --plastic-pet: #a78bfa;
+  --plastic-ps: #ffca3e;
+  --mono: 'JetBrains Mono', monospace;
+  --sans: 'Space Grotesk', sans-serif;
 }
 
-typeLine();
-</script>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
 
+body {
+  background: var(--bg-deep);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 15px;
+  line-height: 1.7;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+#bg-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.35;
+}
+
+.page-wrap {
+  position: relative;
+  z-index: 1;
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 0 2rem 6rem;
+}
+
+nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+  background: rgba(5,31,24,0.88);
+  backdrop-filter: blur(14px);
+  margin: 0 -2rem;
+  padding: 1rem 2rem;
+}
+.nav-back {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--node-dim);
+  text-decoration: none;
+  letter-spacing: 0.08em;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: color 0.2s;
+}
+.nav-back:hover { color: var(--node); }
+.nav-back::before { content: '←'; }
+.nav-title {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-faint);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.toc {
+  position: fixed;
+  left: max(1rem, calc(50% - 560px));
+  top: 50%;
+  transform: translateY(-50%);
+  width: 150px;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+@media (max-width: 1250px) { .toc { display: none; } }
+.toc-item {
+  font-size: 12px;
+  font-family: var(--mono);
+  color: var(--text-faint);
+  letter-spacing: 0.06em;
+  text-decoration: none;
+  padding: 5px 10px;
+  border-left: 1px solid transparent;
+  transition: all 0.2s;
+  line-height: 1.5;
+}
+.toc-item:hover, .toc-item.active { color: var(--node); border-left-color: var(--node); }
+
+.hero { padding: 5rem 0 3.5rem; border-bottom: 1px solid var(--border); }
+.hero-tag {
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  color: var(--node-dim);
+  text-transform: uppercase;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.hero-tag::before {
+  content: '';
+  display: inline-block;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--node);
+  box-shadow: 0 0 10px var(--node);
+  animation: pulse-dot 2.5s ease-in-out infinite;
+}
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; box-shadow: 0 0 10px var(--node); }
+  50%       { opacity: 0.5; box-shadow: 0 0 3px var(--node); }
+}
+h1 {
+  font-family: var(--mono);
+  font-size: clamp(2.2rem, 5vw, 3.2rem);
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -0.025em;
+  color: var(--node);
+  margin-bottom: 1.5rem;
+}
+.hero-sub {
+  font-family: var(--sans);
+  font-size: 1.1rem;
+  color: var(--text-dim);
+  max-width: 580px;
+  line-height: 1.75;
+  font-weight: 300;
+}
+.hero-meta {
+  margin-top: 2rem;
+  display: flex;
+  gap: 2rem;
+  font-size: 11px;
+  color: var(--text-faint);
+  letter-spacing: 0.08em;
+  flex-wrap: wrap;
+}
+.hero-link {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--node-dim);
+  text-decoration: none;
+  letter-spacing: 0.08em;
+  border-bottom: 1px solid rgba(62,255,168,0.25);
+  padding-bottom: 1px;
+  transition: color 0.2s, border-color 0.2s;
+}
+.hero-link:hover { color: var(--node); border-color: var(--node); }
+
+section { padding: 4rem 0; border-bottom: 1px solid var(--border); }
+.section-tag { font-size: 10px; letter-spacing: 0.2em; color: var(--text-faint); text-transform: uppercase; margin-bottom: 0.6rem; }
+h2 { font-family: var(--mono); font-size: 1.65rem; font-weight: 500; color: var(--text); margin-bottom: 1.75rem; letter-spacing: -0.01em; }
+h3 { font-family: var(--mono); font-size: 1.05rem; font-weight: 500; margin-bottom: 0.9rem; margin-top: 2.25rem; }
+h3:first-child { margin-top: 0; }
+p { font-family: var(--sans); color: var(--text-dim); font-weight: 300; margin-bottom: 1.1rem; }
+p:last-child { margin-bottom: 0; }
+
+.detail-block { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 2rem; margin: 2rem 0; }
+.detail-block.hdpe { border-left: 3px solid var(--plastic-hdpe); }
+.detail-block.pp   { border-left: 3px solid var(--plastic-pp); }
+.detail-block.node { border-left: 3px solid var(--node); }
+.detail-block.warn { border-left: 3px solid var(--plastic-ps); }
+.detail-title { font-family: var(--mono); font-size: 1.1rem; font-weight: 700; margin-bottom: 1.25rem; }
+.detail-title.hdpe { color: var(--plastic-hdpe); }
+.detail-title.pp   { color: var(--plastic-pp); }
+.detail-title.node { color: var(--node); }
+.detail-title.warn { color: var(--plastic-ps); }
+.feature-list { list-style: none; margin: 0.75rem 0; }
+.feature-list li {
+  font-family: var(--sans); font-size: 0.88rem; color: var(--text-dim); font-weight: 300;
+  padding: 0.4rem 0 0.4rem 1.2rem; position: relative;
+  border-bottom: 1px solid var(--border); line-height: 1.55;
+}
+.feature-list li:last-child { border-bottom: none; }
+.feature-list li::before { content: '›'; position: absolute; left: 0; color: var(--node-dim); }
+
+.process-flow {
+  display: flex; gap: 1px; background: var(--border);
+  border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin: 1.5rem 0;
+}
+.process-step { flex: 1; background: var(--bg-card); padding: 1.5rem 1.25rem; }
+.step-num { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; font-family: var(--mono); color: var(--text-faint); margin-bottom: 0.5rem; }
+.step-title { font-family: var(--mono); font-size: 0.9rem; color: var(--node); margin-bottom: 0.75rem; }
+.step-desc  { font-family: var(--sans); font-size: 0.82rem; color: var(--text-dim); font-weight: 300; line-height: 1.55; }
+@media (max-width: 700px) { .process-flow { flex-direction: column; } }
+
+.plastic-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 1px; background: var(--border); border: 1px solid var(--border);
+  border-radius: 10px; overflow: hidden; margin: 1.5rem 0;
+}
+.plastic-card { background: var(--bg-card); padding: 1.25rem; }
+.plastic-resin  { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; font-family: var(--mono); margin-bottom: 0.4rem; opacity: 0.7; }
+.plastic-code   { font-family: var(--mono); font-size: 1.5rem; font-weight: 700; margin-bottom: 0.3rem; }
+.plastic-name   { font-family: var(--sans); font-size: 0.85rem; color: var(--text); font-weight: 500; line-height: 1.4; }
+.plastic-use    { font-family: var(--sans); font-size: 0.78rem; color: var(--text-dim); font-weight: 300; margin-top: 0.3rem; line-height: 1.4; }
+.plastic-badge  { display: inline-block; font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; padding: 2px 7px; border-radius: 20px; margin-top: 0.5rem; }
+.badge-good { background: rgba(62,255,168,0.12); color: var(--node); border: 1px solid rgba(62,255,168,0.25); }
+.badge-ok   { background: rgba(255,202,62,0.12); color: var(--plastic-ps); border: 1px solid rgba(255,202,62,0.25); }
+.badge-skip { background: rgba(255,255,255,0.06); color: var(--text-faint); border: 1px solid var(--border); }
+.plastic-card.hdpe .plastic-resin { color: var(--plastic-hdpe); }
+.plastic-card.hdpe .plastic-code  { color: var(--plastic-hdpe); }
+.plastic-card.pp   .plastic-resin { color: var(--plastic-pp); }
+.plastic-card.pp   .plastic-code  { color: var(--plastic-pp); }
+.plastic-card.pet  .plastic-resin { color: var(--plastic-pet); }
+.plastic-card.pet  .plastic-code  { color: var(--plastic-pet); }
+.plastic-card.ps   .plastic-resin { color: var(--plastic-ps); }
+.plastic-card.ps   .plastic-code  { color: var(--plastic-ps); }
+
+.photo-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  border-radius: 10px;
+  overflow: hidden;
+  margin: 2rem 0;
+}
+.photo-grid img {
+  width: 100%; aspect-ratio: 1; object-fit: cover;
+  display: block; filter: saturate(0.7) brightness(0.85);
+  transition: filter 0.3s;
+}
+.photo-grid img:hover { filter: saturate(1) brightness(1); }
+.photo-grid.wide img { aspect-ratio: 4/3; }
+@media (max-width: 600px) { .photo-grid { grid-template-columns: repeat(2, 1fr); } }
+
+.compare-wrap { overflow-x: auto; margin: 2rem 0; border: 1px solid var(--border); border-radius: 10px; }
+table { width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: 0.8rem; }
+thead th {
+  padding: 1rem 1.25rem; text-align: left; font-weight: 500; letter-spacing: 0.07em;
+  border-bottom: 1px solid var(--border); background: rgba(255,255,255,0.025);
+  white-space: nowrap; color: var(--text-faint);
+}
+thead th:nth-child(2) { color: var(--plastic-hdpe); }
+thead th:nth-child(3) { color: var(--plastic-pp); }
+tbody td { padding: 0.75rem 1.25rem; border-bottom: 1px solid var(--border); color: var(--text-dim); font-family: var(--sans); font-size: 0.85rem; font-weight: 300; }
+tbody tr:last-child td { border-bottom: none; }
+tbody td:first-child { font-family: var(--mono); font-size: 0.78rem; color: var(--text-faint); letter-spacing: 0.04em; white-space: nowrap; }
+tbody tr:hover td { background: rgba(255,255,255,0.015); }
+
+.ext-link {
+  color: var(--node-dim);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(62,255,168,0.2);
+  padding-bottom: 1px;
+  transition: color 0.2s, border-color 0.2s;
+}
+.ext-link:hover { color: var(--node); border-color: var(--node); }
+
+.cta-block {
+  background: var(--bg-card);
+  border: 1px solid var(--border-bright);
+  border-radius: 10px;
+  padding: 2.5rem 2rem;
+  margin: 2rem 0;
+  text-align: center;
+}
+.cta-block h3 { margin-top: 0; color: var(--node); font-size: 1.2rem; margin-bottom: 1rem; }
+.cta-block p  { max-width: 480px; margin: 0 auto 1.5rem; }
+.cta-btn {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.65rem 1.75rem;
+  border-radius: 20px;
+  border: 1px solid rgba(62,255,168,0.4);
+  color: var(--node);
+  text-decoration: none;
+  transition: background 0.2s;
+}
+.cta-btn:hover { background: rgba(62,255,168,0.1); }
+
+footer {
+  padding: 3rem 0 2rem; font-size: 11px; color: var(--text-faint);
+  font-family: var(--mono); letter-spacing: 0.08em;
+  display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;
+}
+
+@media (max-width: 768px) {
+  .page-wrap { padding: 0 1rem 4rem; }
+  h1 { font-size: 2rem; }
+}
+ OLD-CSS -->
+<body>
+
+    <!-- ── NAV ──────────────────────────────────── -->
+    <nav class="kiau-nav">
+        <a href="landing-a.html" class="kiau-nav-logo">Kiau Technologies</a>
+        <ul class="kiau-nav-links">
+            <li><a href="landing-a.html">Home</a></li>
+            <li><a href="about.html">About</a></li>
+            <li><a href="contact.html">Contact</a></li>
+        </ul>
+    </nav>
+
+    <!-- ── PAGE HERO ─────────────────────────────── -->
+    <header class="page-hero">
+        <span class="page-hero-label">Research Project</span>
+        <h1 class="page-hero-title">Local Plastic Recycling</h1>
+        <p class="page-hero-sub">Most plastic recycling happens far away from where plastic is consumed — if it happens at all. The ReCoop project explored what it would look like to bring that process back to the community: small machines, local material loops, and products made from waste that would otherwise be landfilled.</p>
+    </header>
+
+    <!-- ── CONTENT ───────────────────────────────── -->
+    <main class="page-content">
+
+        <section class="page-section">
+            <div class="section-header-row">
+                <span class="section-eyebrow">01</span>
+                <h2 class="section-heading">Why Recycling is Broken at Scale</h2>
+            </div>
+            <div class="prose">
+                <p>The recycling system most people participate in — rinsing containers, placing them in a bin, watching a truck collect them — is largely a logistics and commodities business. Collected plastic is sorted, baled, and sold to processing facilities that melt and re-pelletize it for manufacturers. When commodity prices are low, or when contamination rates are high, the economics break down and collected plastic gets landfilled anyway.</p>
+                <p>Globally, less than 10% of all plastic ever produced has been recycled. Most of what people believe they are recycling is incinerated or buried. The gap between consumer intention and actual material recovery is enormous.</p>
+                <p><strong>The contamination problem:</strong> Industrial recycling requires clean, sorted, single-resin streams. Mixed or contaminated plastic has little value and often ends up in landfill even after collection. A local system processing material from a known, controlled source can achieve much higher purity — and therefore higher recovery rates — than a municipal system handling mixed household waste.</p>
+                <p><strong>Why distributed recycling is different:</strong> A distributed model targets the fraction that industrial systems cannot economically handle: small volumes of clean, sorted plastic at community or campus scale. Instead of shipping that material to a distant facility, it is processed locally into useful objects — furniture components, construction elements, tool handles, packaging — closing the loop within the same geography where the waste was generated.</p>
+            </div>
+        </section>
+
+        <section class="page-section">
+            <div class="section-header-row">
+                <span class="section-eyebrow">02</span>
+                <h2 class="section-heading">Small Machines, Local Loops</h2>
+            </div>
+            <div class="prose">
+                <p>The distributed recycling movement was catalyzed by the <a href="https://preciousplastic.com" target="_blank" rel="noopener">Precious Plastics</a> project, which open-sourced a set of compact machines — shredder, extruder, injection molder, compression press — that can be built from off-the-shelf components for a few thousand dollars each. These machines are small enough to fit in a garage or workshop and can be operated by a small team without industrial training.</p>
+                <p>The underlying insight: the economics of recycling are scale-dependent. Industrial facilities need enormous throughput to be viable. But if the goal is local material recovery rather than global commodity production, the scale requirement drops dramatically. A campus, a neighborhood, or a small business generating consistent plastic waste can sustain a micro-recycling operation that produces useful objects rather than bales of commodity polymer.</p>
+            </div>
+        </section>
+
+        <section class="page-section">
+            <div class="section-header-row">
+                <span class="section-eyebrow">03</span>
+                <h2 class="section-heading">ReCoop — The Cooper Union Project</h2>
+            </div>
+            <div class="prose">
+                <p>Before founding Kiau Technologies, several of our team members built and operated a local-scale plastic recycling system at The Cooper Union in New York City. The project — called ReCoop — was one of the first implementations of distributed recycling on a university campus in the US.</p>
+                <p>The system collected HDPE and PP plastic waste from campus sources, shredded it on-site, and processed it through a custom-built extruder and injection molder to produce test specimens and small useful objects. The project documented material properties, process parameters, and yield rates across multiple plastic types and recycling cycles.</p>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:0.75rem;margin:1.25rem 0;">
+                    <img src="images/Recoop/setup1.jpeg" alt="ReCoop workshop setup" loading="lazy" style="width:100%;border-radius:6px;aspect-ratio:4/3;object-fit:cover;">
+                    <img src="images/Recoop/bottlecutter1.jpeg" alt="Bottle cutting tool" loading="lazy" style="width:100%;border-radius:6px;aspect-ratio:4/3;object-fit:cover;">
+                    <img src="images/Recoop/bins.jpeg" alt="Collection bins" loading="lazy" style="width:100%;border-radius:6px;aspect-ratio:4/3;object-fit:cover;">
+                    <img src="images/Recoop/setup2.jpeg" alt="Processing setup" loading="lazy" style="width:100%;border-radius:6px;aspect-ratio:4/3;object-fit:cover;">
+                    <img src="images/Recoop/bottlecutter2.jpeg" alt="Bottle cutter in use" loading="lazy" style="width:100%;border-radius:6px;aspect-ratio:4/3;object-fit:cover;">
+                    <img src="images/Recoop/dogbones2.jpeg" alt="Tensile test specimens" loading="lazy" style="width:100%;border-radius:6px;aspect-ratio:4/3;object-fit:cover;">
+                </div>
+                <p><strong>What was tested:</strong> The team produced standard ASTM dogbone tensile specimens from 100% recycled material and from 50/50 blends of virgin and recycled resin. Mechanical testing compared yield strength, elongation, and failure mode across multiple recycling generations.</p>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:0.75rem;margin:1rem 0;">
+                    <img src="images/Recoop/100%Recycle.jpeg" alt="100% recycled plastic specimens" loading="lazy" style="width:100%;border-radius:6px;">
+                    <img src="images/Recoop/50%Recycle.jpeg" alt="50% recycled blend specimens" loading="lazy" style="width:100%;border-radius:6px;">
+                    <img src="images/Recoop/IMG_4885.jpeg" alt="ReCoop output samples" loading="lazy" style="width:100%;border-radius:6px;">
+                </div>
+                <p>While the project was not commercially deployed, it produced a detailed technical record of what local recycling can and cannot achieve at campus scale — and surfaced the real bottlenecks: collection consistency, contamination control, and the labor cost of sorting and preparation rather than the machinery itself.</p>
+            </div>
+        </section>
+
+        <section class="page-section">
+            <div class="section-header-row">
+                <span class="section-eyebrow">04</span>
+                <h2 class="section-heading">How Local Recycling Works</h2>
+            </div>
+            <div class="prose">
+                <p>A complete local-scale plastic recycling system involves four sequential steps. Each step has its own quality requirements — failures or contamination at any stage propagate through the rest of the process.</p>
+                <p>Each processing cycle causes some degree of polymer chain degradation. For most common plastics, properties remain acceptable through 3–5 cycles before the material is only suitable for low-structural applications like tiles or decorative panels. Blending recycled material with virgin resin extends useful life significantly.</p>
+            </div>
+            <div class="step-list">
+                <div class="step-item">
+                    <span class="step-num">1</span>
+                    <div class="step-body">
+                        <strong>Collect + Sort</strong>
+                        <p>Plastic waste is collected from a known, controlled source. Items are sorted by resin type and cleaned. This is the most labor-intensive step and the primary bottleneck in most local systems.</p>
+                    </div>
+                </div>
+                <div class="step-item">
+                    <span class="step-num">2</span>
+                    <div class="step-body">
+                        <strong>Shred</strong>
+                        <p>Clean, sorted plastic is fed into a shredder that reduces it to flakes or granules (typically 5–15mm). Consistent particle size improves melt uniformity in subsequent processing.</p>
+                    </div>
+                </div>
+                <div class="step-item">
+                    <span class="step-num">3</span>
+                    <div class="step-body">
+                        <strong>Melt + Form</strong>
+                        <p>Shredded plastic is fed into an extruder, injection molder, or compression press. Heat brings the resin above its melt temperature; pressure forces it into a mold or through a die.</p>
+                    </div>
+                </div>
+                <div class="step-item">
+                    <span class="step-num">4</span>
+                    <div class="step-body">
+                        <strong>Cool + Use</strong>
+                        <p>The formed part cools in the mold. Once solid, it is removed and put to use. Runners, sprues, and rejected parts go back into the shredder — a closed loop within the facility.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="page-section">
+            <div class="section-header-row">
+                <span class="section-eyebrow">05</span>
+                <h2 class="section-heading">Which Plastics Work</h2>
+            </div>
+            <div class="prose">
+                <p>Not all plastics are equally suitable for local small-scale recycling. The key variables are melting point, viscosity at processing temperature, and degradation rate. Thermosets cannot be remelted at all — only thermoplastics can be recycled this way.</p>
+            </div>
+            <div class="kiau-grid">
+                <div class="kiau-card"><span class="kiau-card-num">HDPE #2 · Best</span><span class="kiau-card-title">High-Density Polyethylene</span><p class="kiau-card-body">Milk jugs, shampoo bottles, pipes, cutting boards. High carbon content, consistent density, low ash. Best char yield.</p></div>
+                <div class="kiau-card"><span class="kiau-card-num">PP #5 · Best</span><span class="kiau-card-title">Polypropylene</span><p class="kiau-card-body">Yogurt containers, bottle caps, takeout containers. Widely available, burns cleanly.</p></div>
+                <div class="kiau-card"><span class="kiau-card-num">PET #1 · Usable</span><span class="kiau-card-title">Polyethylene Terephthalate</span><p class="kiau-card-body">Water bottles, food trays, fabric. Requires thorough drying before processing.</p></div>
+                <div class="kiau-card"><span class="kiau-card-num">PS #6 · Ventilate</span><span class="kiau-card-title">Polystyrene</span><p class="kiau-card-body">Foam cups, disposable cutlery, packaging. Releases fumes during processing — outdoor ventilation required.</p></div>
+                <div class="kiau-card"><span class="kiau-card-num">LDPE #4 · Avoid</span><span class="kiau-card-title">Low-Density Polyethylene</span><p class="kiau-card-body">Plastic bags, film wrap, squeeze bottles. Hard to shred consistently; tends to wrap around shredder blades.</p></div>
+                <div class="kiau-card"><span class="kiau-card-num">Mixed #7 · Skip</span><span class="kiau-card-title">Multi-layer / Other</span><p class="kiau-card-body">Flexible pouches, multilayer films, composites. Cannot be recycled in a local system — mixed resins contaminate the melt.</p></div>
+            </div>
+        </section>
+
+        <section class="page-section">
+            <div class="section-header-row">
+                <span class="section-eyebrow">06</span>
+                <h2 class="section-heading">What Comes Next</h2>
+            </div>
+            <div class="prose">
+                <p>The ReCoop project demonstrated that local plastic recycling is technically feasible at campus scale. The open questions are organizational and economic: how do you sustain consistent collection, who covers operating costs, and what products have enough local demand to justify the process?</p>
+                <p>Kiau Technologies is actively exploring partnerships to bring this work to new contexts — particularly in communities where plastic waste is a pressing issue and access to industrial recycling infrastructure is limited.</p>
+                <p><strong>ReCoop documentation:</strong> The full project documentation — machine specs, process parameters, test results, and lessons learned — is available at <a href="https://re.cooper.edu" target="_blank" rel="noopener">re.cooper.edu</a>. Machine designs follow the Precious Plastics open-source hardware standard.</p>
+                <p>Whether you are a municipality, a university, a maker space, or a business interested in closing your plastic material loop — <a href="contact.html">get in touch →</a></p>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ── FOOTER ────────────────────────────────── -->
+    <footer class="kiau-footer">
+        <span>Kiau Technologies PBC</span>
+        <div class="kiau-footer-links">
+            <a href="about.html">About</a>
+            <a href="pbcs.html">PBCs</a>
+            <a href="contact.html">Contact</a>
+        </div>
+        <span>2025</span>
+    </footer>
 
 </body>
 </html>
+<!--OLD-BODY
+<nav>
+  <a href="index.html" class="nav-back">Kiau Technologies</a>
+  <span class="nav-title">Local Plastic Recycling</span>
+</nav>
+
+<aside class="toc">
+  <a href="#problem"   class="toc-item">The problem</a>
+  <a href="#approach"  class="toc-item">The approach</a>
+  <a href="#recoop"    class="toc-item">ReCoop</a>
+  <a href="#process"   class="toc-item">Process</a>
+  <a href="#materials" class="toc-item">Materials</a>
+  <a href="#involved"  class="toc-item">Get involved</a>
+</aside>
+
+<div class="page-wrap">
+
+  <header class="hero">
+    <div class="hero-tag">Research Project</div>
+    <h1>Local Plastic<br>Recycling</h1>
+    <p class="hero-sub">Most plastic recycling happens far away from where plastic is consumed — if it happens at all. The ReCoop project explored what it would look like to bring that process back to the community: small machines, local material loops, and products made from waste that would otherwise be landfilled.</p>
+    <div class="hero-meta">
+      <span>Kiau Technologies PBC</span>
+      <span>Originated at The Cooper Union</span>
+      <a href="https://re.cooper.edu" target="_blank" rel="noopener" class="hero-link">re.cooper.edu &#8599;</a>
+    </div>
+  </header>
+
+  <section id="problem">
+    <div class="section-tag">01 / The problem</div>
+    <h2>Why recycling is broken at scale</h2>
+    <p>The recycling system most people participate in — rinsing containers, placing them in a bin, watching a truck collect them — is largely a logistics and commodities business. Collected plastic is sorted, baled, and sold to processing facilities that melt and re-pelletize it for manufacturers. When commodity prices are low, or when contamination rates are high, the economics break down and collected plastic gets landfilled anyway.</p>
+    <p>The result: globally, less than 10% of all plastic ever produced has been recycled. Most of what people believe they are recycling is incinerated or buried. The gap between consumer intention and actual material recovery is enormous.</p>
+    <div class="detail-block warn">
+      <div class="detail-title warn">The contamination problem</div>
+      <p>Industrial recycling requires clean, sorted, single-resin streams. Mixed or contaminated plastic has little value and often ends up in landfill even after collection. A local system processing material from a known, controlled source can achieve much higher purity — and therefore higher recovery rates — than a municipal system handling mixed household waste.</p>
+    </div>
+    <h3>Why distributed recycling is different</h3>
+    <p>A distributed model does not aim to replace industrial recycling. It targets the fraction that industrial systems cannot economically handle: small volumes of clean, sorted plastic at the community or campus scale. Instead of shipping that material to a distant facility, it is processed locally into useful objects — furniture components, construction elements, tool handles, packaging — closing the loop within the same geography where the waste was generated.</p>
+  </section>
+
+  <section id="approach">
+    <div class="section-tag">02 / The approach</div>
+    <h2>Small machines, local loops</h2>
+    <p>The distributed recycling movement was catalyzed by the <a href="https://preciousplastic.com" target="_blank" rel="noopener" class="ext-link">Precious Plastics</a> project, which open-sourced a set of compact machines — shredder, extruder, injection molder, compression press — that can be built from off-the-shelf components for a few thousand dollars each. These machines are small enough to fit in a garage or workshop and are designed to be operated by a small team without industrial training.</p>
+    <p>The underlying insight: the economics of recycling are scale-dependent. Industrial facilities need enormous throughput to be viable. But if the goal is local material recovery rather than global commodity production, the scale requirement drops dramatically. A campus, a neighborhood, or a small business generating consistent plastic waste can sustain a micro-recycling operation that produces useful objects rather than bales of commodity polymer.</p>
+    <div class="detail-block node">
+      <div class="detail-title node">Open-source hardware as infrastructure</div>
+      <p>Making the machine designs freely available removes the capital barrier that would otherwise make small-scale recycling unviable. Any community with basic fabrication access — a metal shop, a welder, standard hardware — can build the equipment. The knowledge is the infrastructure, not the machines themselves.</p>
+    </div>
+  </section>
+
+  <section id="recoop">
+    <div class="section-tag">03 / ReCoop</div>
+    <h2>The Cooper Union project</h2>
+    <p>Before founding Kiau Technologies, several of our team members built and operated a local-scale plastic recycling system at The Cooper Union in New York City. The project — called ReCoop — was one of the first implementations of distributed recycling on a university campus in the US.</p>
+    <p>The system collected HDPE and PP plastic waste from campus sources, shredded it on-site, and processed it through a custom-built extruder and injection molder to produce test specimens and small useful objects. The project documented material properties, process parameters, and yield rates across multiple plastic types and recycling cycles.</p>
+    <div class="photo-grid">
+      <img src="images/Recoop/setup1.jpeg"       alt="ReCoop workshop setup">
+      <img src="images/Recoop/bottlecutter1.jpeg" alt="Bottle cutting tool">
+      <img src="images/Recoop/bins.jpeg"          alt="Collection bins">
+      <img src="images/Recoop/setup2.jpeg"        alt="Processing setup">
+      <img src="images/Recoop/bottlecutter2.jpeg" alt="Bottle cutter in use">
+      <img src="images/Recoop/dogbones2.jpeg"     alt="Tensile test specimens">
+    </div>
+    <h3>What was tested</h3>
+    <p>The team produced standard ASTM dogbone tensile specimens from 100% recycled material and from 50/50 blends of virgin and recycled resin. Mechanical testing compared yield strength, elongation, and failure mode across multiple recycling generations — quantifying how material properties degrade with each processing cycle.</p>
+    <div class="photo-grid wide">
+      <img src="images/Recoop/100%Recycle.jpeg" alt="100% recycled plastic specimens">
+      <img src="images/Recoop/50%Recycle.jpeg"  alt="50% recycled blend specimens">
+      <img src="images/Recoop/IMG_4885.jpeg"    alt="ReCoop output samples">
+    </div>
+    <p>While the project was not commercially deployed, it produced a detailed technical record of what local recycling can and cannot achieve at campus scale — and surfaced the real bottlenecks: collection consistency, contamination control, and the labor cost of sorting and preparation rather than the machinery itself.</p>
+  </section>
+
+  <section id="process">
+    <div class="section-tag">04 / Process</div>
+    <h2>How local recycling works</h2>
+    <p>A complete local-scale plastic recycling system involves four sequential steps. Each step has its own quality requirements — failures or contamination at any stage propagate through the rest of the process.</p>
+    <div class="process-flow">
+      <div class="process-step">
+        <div class="step-num">Step 01</div>
+        <div class="step-title">Collect + Sort</div>
+        <div class="step-desc">Plastic waste is collected from a known, controlled source. Items are sorted by resin type and cleaned. Contamination and mixed resins are removed at this stage. This is the most labor-intensive step and the primary bottleneck in most local systems.</div>
+      </div>
+      <div class="process-step">
+        <div class="step-num">Step 02</div>
+        <div class="step-title">Shred</div>
+        <div class="step-desc">Clean, sorted plastic is fed into a shredder that reduces it to small flakes or granules — typically 5–15mm. Consistent particle size improves melt uniformity in subsequent processing. The shredder is usually the most capital-intensive piece of equipment.</div>
+      </div>
+      <div class="process-step">
+        <div class="step-num">Step 03</div>
+        <div class="step-title">Melt + Form</div>
+        <div class="step-desc">Shredded plastic is fed into an extruder, injection molder, or compression press. Heat brings the resin above its melt temperature; pressure forces it into a mold or through a die. Different plastics require different temperatures — mixing resins at this stage ruins the melt.</div>
+      </div>
+      <div class="process-step">
+        <div class="step-num">Step 04</div>
+        <div class="step-title">Cool + Use</div>
+        <div class="step-desc">The formed part cools in the mold or on the output surface. Once solid, it is removed and put to use. Runners, sprues, and rejected parts go back into the shredder — a closed loop within the facility.</div>
+      </div>
+    </div>
+    <h3>Yield and cycle limits</h3>
+    <p>Each processing cycle causes some degree of polymer chain degradation. For most common plastics, properties remain acceptable through 3–5 cycles before the material is only suitable for low-structural applications like tiles or decorative panels. Blending recycled material with virgin resin extends useful life significantly.</p>
+  </section>
+
+  <section id="materials">
+    <div class="section-tag">05 / Materials</div>
+    <h2>Which plastics work</h2>
+    <p>Not all plastics are equally suitable for local small-scale recycling. The key variables are melting point, viscosity at processing temperature, and degradation rate. Thermosets cannot be remelted at all — only thermoplastics can be recycled this way.</p>
+    <div class="plastic-grid">
+      <div class="plastic-card hdpe">
+        <div class="plastic-resin">HDPE</div>
+        <div class="plastic-code">#2</div>
+        <div class="plastic-name">High-Density Polyethylene</div>
+        <div class="plastic-use">Milk jugs, shampoo bottles, pipes, cutting boards</div>
+        <span class="plastic-badge badge-good">Best choice</span>
+      </div>
+      <div class="plastic-card pp">
+        <div class="plastic-resin">PP</div>
+        <div class="plastic-code">#5</div>
+        <div class="plastic-name">Polypropylene</div>
+        <div class="plastic-use">Yogurt containers, bottle caps, takeout containers</div>
+        <span class="plastic-badge badge-good">Best choice</span>
+      </div>
+      <div class="plastic-card pet">
+        <div class="plastic-resin">PET</div>
+        <div class="plastic-code">#1</div>
+        <div class="plastic-name">Polyethylene Terephthalate</div>
+        <div class="plastic-use">Water bottles, food trays, fabric</div>
+        <span class="plastic-badge badge-ok">Requires drying</span>
+      </div>
+      <div class="plastic-card ps">
+        <div class="plastic-resin">PS</div>
+        <div class="plastic-code">#6</div>
+        <div class="plastic-name">Polystyrene</div>
+        <div class="plastic-use">Foam cups, disposable cutlery, packaging</div>
+        <span class="plastic-badge badge-ok">Fumes — ventilate</span>
+      </div>
+      <div class="plastic-card">
+        <div class="plastic-resin" style="color:var(--text-faint)">LDPE</div>
+        <div class="plastic-code" style="color:var(--text-faint)">#4</div>
+        <div class="plastic-name">Low-Density Polyethylene</div>
+        <div class="plastic-use">Plastic bags, film wrap, squeeze bottles</div>
+        <span class="plastic-badge badge-skip">Hard to shred</span>
+      </div>
+      <div class="plastic-card">
+        <div class="plastic-resin" style="color:var(--text-faint)">Mixed / #7</div>
+        <div class="plastic-code" style="color:var(--text-faint)">&#8212;</div>
+        <div class="plastic-name">Multi-layer / Other</div>
+        <div class="plastic-use">Flexible pouches, multilayer films, composites</div>
+        <span class="plastic-badge badge-skip">Not recyclable</span>
+      </div>
+    </div>
+    <div class="compare-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Property</th>
+            <th>HDPE (#2)</th>
+            <th>PP (#5)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Processing temp</td><td>130–180 °C</td><td>200–230 °C</td></tr>
+          <tr><td>Melt flow index</td><td>0.1–80 g/10 min</td><td>0.5–100 g/10 min</td></tr>
+          <tr><td>Tensile strength (virgin)</td><td>21–37 MPa</td><td>28–40 MPa</td></tr>
+          <tr><td>After 3 recycle cycles</td><td>~85% retention</td><td>~80% retention</td></tr>
+          <tr><td>Moisture sensitivity</td><td>Low</td><td>Low</td></tr>
+          <tr><td>Common waste sources</td><td>Bottles, jugs, containers</td><td>Caps, tubs, trays</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="involved">
+    <div class="section-tag">06 / Get involved</div>
+    <h2>What comes next</h2>
+    <p>The ReCoop project demonstrated that local plastic recycling is technically feasible at campus scale. The open questions are organizational and economic: how do you sustain consistent collection, who covers operating costs, and what products have enough local demand to justify the process?</p>
+    <p>Kiau Technologies is actively exploring partnerships to bring this work to new contexts — particularly in communities where plastic waste is a pressing issue and access to industrial recycling infrastructure is limited.</p>
+    <div class="cta-block">
+      <h3>Looking for partners</h3>
+      <p>Whether you are a municipality, a university, a maker space, or a business interested in closing your plastic material loop — let's talk.</p>
+      <a href="contact.html" class="cta-btn">Get in touch</a>
+    </div>
+    <div class="detail-block node">
+      <div class="detail-title node">ReCoop documentation</div>
+      <p>The full ReCoop project documentation — machine specs, process parameters, test results, and lessons learned — is available at the project site.</p>
+      <ul class="feature-list">
+        <li><a href="https://re.cooper.edu" target="_blank" rel="noopener" class="ext-link">re.cooper.edu</a> — project site and full documentation</li>
+        <li>Machine designs follow the Precious Plastics open-source hardware standard</li>
+        <li>Test data covers HDPE and PP across multiple recycling generations</li>
+        <li>Bottleneck analysis: collection and sorting — not machinery — is the limiting factor</li>
+      </ul>
+    </div>
+  </section>
+
+  <footer>
+    <span>Kiau Technologies PBC — Local Plastic Recycling / ReCoop</span>
+    <span>we do not collect cookies or data about you on our website</span>
+  </footer>
+
+</div>
+
+<script>
+const bgCanvas = document.getElementById('bg-canvas');
+const bgCtx = bgCanvas.getContext('2d');
+let bgW, bgH, bgNodes = [];
+function bgResize() { bgW = bgCanvas.width = window.innerWidth; bgH = bgCanvas.height = window.innerHeight; }
+function bgInit() {
+  bgNodes = [];
+  const count = Math.floor((bgW * bgH) / 30000);
+  for (let i = 0; i < count; i++) {
+    bgNodes.push({ x: Math.random()*bgW, y: Math.random()*bgH,
+      vx: (Math.random()-0.5)*0.15, vy: (Math.random()-0.5)*0.15,
+      r: Math.random()*1.2+0.4, pulse: Math.random()*Math.PI*2, ps: 0.007+Math.random()*0.01 });
+  }
+}
+function bgDraw() {
+  bgCtx.clearRect(0, 0, bgW, bgH);
+  bgNodes.forEach(a => {
+    a.x += a.vx; a.y += a.vy; a.pulse += a.ps;
+    if (a.x < 0 || a.x > bgW) a.vx *= -1;
+    if (a.y < 0 || a.y > bgH) a.vy *= -1;
+    bgNodes.forEach(b => {
+      if (a === b) return;
+      const dx = b.x-a.x, dy = b.y-a.y, d = Math.sqrt(dx*dx+dy*dy);
+      if (d < 140) {
+        bgCtx.beginPath();
+        bgCtx.strokeStyle = 'rgba(62,255,168,' + ((1-d/140)*0.2) + ')';
+        bgCtx.lineWidth = 0.5;
+        bgCtx.moveTo(a.x, a.y); bgCtx.lineTo(b.x, b.y); bgCtx.stroke();
+      }
+    });
+    const g = 0.4 + 0.4*Math.sin(a.pulse);
+    bgCtx.beginPath();
+    bgCtx.arc(a.x, a.y, a.r, 0, Math.PI*2);
+    bgCtx.fillStyle = 'rgba(62,255,168,' + g + ')';
+    bgCtx.fill();
+  });
+  requestAnimationFrame(bgDraw);
+}
+bgResize(); bgInit(); bgDraw();
+window.addEventListener('resize', () => { bgResize(); bgInit(); });
+
+const tocLinks = document.querySelectorAll('.toc-item');
+document.querySelectorAll('section[id]').forEach(function(s) {
+  new IntersectionObserver(function(entries) {
+    entries.forEach(function(e) {
+      if (e.isIntersecting) {
+        tocLinks.forEach(function(l) { l.classList.remove('active'); });
+        var l = document.querySelector('.toc-item[href="#' + e.target.id + '"]');
+        if (l) l.classList.add('active');
+      }
+    });
+  }, { threshold: 0.25 }).observe(s);
+});
+-->

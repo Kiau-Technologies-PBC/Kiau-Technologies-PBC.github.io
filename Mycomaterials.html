@@ -229,27 +229,31 @@
       margin: 0;
       text-align: center;
   }
+  body { padding-top: 0; }
   </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/kiau-inner.css">
 </head>
 <body>
-  <div class="page">
-    <header style="position: fixed; top: 0; left: 0; right: 0; z-index: 9999; background: var(--primary-color); backdrop-filter: blur(10px); padding: 1rem 2rem; box-shadow: 0 2px 10px rgba(0,0,0,0.3);">
-    <nav style="display: flex; justify-content: space-between; align-items: center; max-width: 1400px; margin: 0 auto;">
-        <a href="index.html" style="color: var(--background); font-size: 1.2rem; font-weight: bold; text-decoration: none;">
-            Kiau Technologies
-        </a>
-        <ul style="display: flex; gap: 2rem; list-style: none; margin: 0; padding: 0;">
-            <li><a href="index.html" style="color: var(--background); text-decoration: none;">Home</a></li>
-            <li><a href="about.html" style="color: var(--background); text-decoration: none;">About</a></li>
-        </ul>
-        <!-- Mobile hamburger menu here if needed -->
-    </nav>
-    </header>
-    <h1>
-      Mycomaterials Gallery
-    </h1>
 
-    <section class="scroller-wrap" id="scroller">
+<nav class="kiau-nav">
+    <a href="landing-a.html" class="kiau-nav-logo">Kiau Technologies</a>
+    <ul class="kiau-nav-links">
+        <li><a href="landing-a.html">Home</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="contact.html">Contact</a></li>
+    </ul>
+</nav>
+
+<header class="page-hero">
+    <p class="page-hero-label">Materials Research</p>
+    <h1 class="page-hero-title">Mycomaterials Gallery</h1>
+    <p class="page-hero-sub">Mycelium-bound composite panels, acoustic tiles, and natural dye experiments — growing materials from agricultural waste streams.</p>
+</header>
+
+<section class="scroller-wrap" id="scroller">
       <div class="track" id="track" role="list">
         <figure class="slide" role="listitem">
           <div class="media">
@@ -285,44 +289,46 @@
       <!-- moved: dots overlay sits inside the scroller-wrap so it's visible while pinned -->
       <div class="dots" id="dots" aria-hidden="false"></div>
     </section>
-  </div>
 
-  <!-- Additional page content shown after the horizontal scroller -->
-  <main class="below-content" aria-label="More content">
-    <section style="max-width:1200px;margin:40px auto;padding:24px;">
-      <h2 style="margin-top:0;font-size:clamp(18px,2.2vw,26px);">The Benefits of Mycomaterials</h2>
-      <p style="line-height:1.6;color:var(--text);opacity:.95">
-        <li>
-            <strong>Biodegradability:</strong> Mycomaterials are fully biodegradable (in your backyard, not in a commercial composting facility) in under 90 days.
-        </li>
-        <li>
-            <strong>Low Embodied Carbon:</strong> Flaunts low embodied carbon, and can be desiccated without added energy.
-        </li>
-        <li>
-            <strong>Water Proof:</strong> Mycomaterials create semi-waterproof surface layers.
-        </li>
-        <li>
-            <strong>Fire Proofing:</strong> Mycomaterials have excellent fire resistance properties, making them suitable for use in a variety of applications.
-      </p>
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-top:18px">
-        <!-- <article style="background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(0,0,0,0.04));padding:12px;border-radius:10px">
-          <h3 style="margin:0 0 8px 0"></h3>
-          <p style="margin:0;font-size:13px;line-height:1.45"></p>
-        </article> -->
-        <article style="background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(0,0,0,0.04));padding:12px;border-radius:10px">
-          <h3 style="margin:0 0 8px 0">Photo Credits</h3>
-          <p style="margin:0;font-size:13px;line-height:1.45">Brandon Bunt</p>
-        </article>
-      </div>
-    </section>
-        <footer>
-        <div class="social-links">
-            <!-- Add social media links here -->
+<main class="page-content">
+
+    <section class="page-section">
+        <div class="section-header-row">
+            <span class="section-eyebrow">Properties</span>
+            <h2 class="section-heading">Why Mycomaterials</h2>
         </div>
-        <p>2025 Kiau Technologies PBC</p>
-    </footer>
-  </main>
-  <!-- /additional content -->
+        <div class="kiau-grid">
+            <div class="kiau-card">
+                <div class="kiau-card-title">Biodegradable</div>
+                <div class="kiau-card-body">Fully biodegradable in under 90 days — at home, not in a commercial composting facility.</div>
+            </div>
+            <div class="kiau-card">
+                <div class="kiau-card-title">Low Embodied Carbon</div>
+                <div class="kiau-card-body">Grown, not manufactured. Low embodied carbon, and can be desiccated without added energy input.</div>
+            </div>
+            <div class="kiau-card">
+                <div class="kiau-card-title">Water Resistant</div>
+                <div class="kiau-card-body">Mycomaterials create semi-waterproof surface layers through the hyphal structure of the mycelium skin.</div>
+            </div>
+            <div class="kiau-card">
+                <div class="kiau-card-title">Fire Resistant</div>
+                <div class="kiau-card-body">Excellent fire resistance properties, making them suitable for a wide variety of applications.</div>
+            </div>
+        </div>
+        <p class="prose" style="margin-top:2rem;opacity:0.65;">Photo credits: Brandon Bunt</p>
+    </section>
+
+</main>
+
+<footer class="kiau-footer">
+    <span>Kiau Technologies PBC</span>
+    <div class="kiau-footer-links">
+        <a href="about.html">About</a>
+        <a href="pbcs.html">PBCs</a>
+        <a href="contact.html">Contact</a>
+    </div>
+    <span>2025</span>
+</footer>
 
   <!-- GSAP + ScrollTrigger from CDN -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>

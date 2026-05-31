@@ -4,54 +4,12 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Mottai-nai | Kiau Technologies</title>
-	<link rel="stylesheet" href="css/styles.css">
-	<link rel="icon" type="image/x-icon" href="/images/favicon.ico">
-	<link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
-	<script src="data/gsap.min.js"></script>
-	<script src="data/ScrollTrigger.min.js"></script>
-	<style>
-		body, h1, h2, h3, h4, h5, h6, p, ul, li, .hero-title, .hero-kanji, .hero-topline, .hero-chip, .section-title, .section-kicker, .issue-tag, .principle-card, .pipeline-step, .footer-note {
-			font-family: 'OCR_A', 'Roboto Mono', monospace !important;
-		}
-
-		.mottainai-hero {
-			background: rgba(218, 153, 214, 0.10);
-			border: 1px solid rgba(255, 255, 255, 0.18);
-			border-radius: 18px;
-			padding: 40px 32px 32px 32px;
-			margin-bottom: 32px;
-			box-shadow: 0 6px 24px rgba(0,0,0,0.08);
-			color: var(--background);
-		}
-
-		.hero-topline {
-			font-size: 0.95rem;
-			text-transform: uppercase;
-			letter-spacing: 0.12em;
-			opacity: 0.72;
-			margin-bottom: 6px;
-		}
-
-		.hero-title {
-			font-size: clamp(1.8rem, 4vw, 2.8rem);
-			font-weight: 700;
-			letter-spacing: 0.02em;
-			margin-bottom: 10px;
-			line-height: 1.15;
-		}
-
-		.hero-kanji {
-			font-size: clamp(4rem, 10vw, 8rem);
-			color: var(--accent-color);
-			text-shadow: 0 4px 32px rgba(218, 153, 214, 0.5);
-			line-height: 1;
-			margin: 16px 0 20px 0;
-			display: block;
-		}
-
-		body {
-			background: radial-gradient(circle at 20% 20%, rgba(218, 153, 214, 0.12), transparent 30%),
-				radial-gradient(circle at 80% 0%, rgba(255, 255, 255, 0.06), transparent 35%),
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet">
+	<link rel="stylesheet" href="css/kiau-inner.css">
+</head>
+		<!-- CSS REMOVED
 				var(--primary-color);
 			color: var(--background);
 		}
@@ -341,22 +299,145 @@
 			.mottainai-hero { padding: 28px; }
 			.section { padding: 26px; }
 		}
-	</style>
-</head>
+	 CSS-COMMENT-END -->
 <body>
-	<header style="position: fixed; top: 0; left: 0; right: 0; z-index: 9999; backdrop-filter: blur(10px); padding: 1% 5%; box-shadow: 0 2px 10px rgba(0,0,0,0.3);">
-		<nav style="display: flex; justify-content: space-between; align-items: center; max-width: 1400px; margin: 0 auto;">
-			<a href="index.html" style="color: var(--background); font-size: 1.2rem; font-weight: bold; text-decoration: none;">
-				Kiau Technologies
-			</a>
-			<ul style="display: flex; gap: 2rem; list-style: none; margin: 0; padding: 0;">
-				<li><a href="index.html" style="color: var(--background); text-decoration: none;">Home</a></li>
-				<li><a href="about.html" style="color: var(--background); text-decoration: none;">About</a></li>
-			</ul>
-		</nav>
-	</header>
 
-	<main class="page-shell">
+    <!-- ── NAV ──────────────────────────────────── -->
+    <nav class="kiau-nav">
+        <a href="landing-a.html" class="kiau-nav-logo">Kiau Technologies</a>
+        <ul class="kiau-nav-links">
+            <li><a href="landing-a.html">Home</a></li>
+            <li><a href="about.html">About</a></li>
+            <li><a href="contact.html">Contact</a></li>
+        </ul>
+    </nav>
+
+    <!-- ── PAGE HERO ─────────────────────────────── -->
+    <header class="page-hero">
+        <span class="page-hero-label">Waste is not inevitable</span>
+        <h1 class="page-hero-title">Mottainai</h1>
+        <p class="page-hero-kanji">勿体無い · What a waste</p>
+        <p class="page-hero-sub">A recognition that waste is a failure of respect — of materials, time, energy, and human effort — before it ever occurs.</p>
+    </header>
+
+    <!-- ── CONTENT ───────────────────────────────── -->
+    <main class="page-content">
+
+        <section class="page-section">
+            <div class="section-header-row">
+                <span class="section-eyebrow">01</span>
+                <h2 class="section-heading">What is Mottainai?</h2>
+            </div>
+            <div class="prose">
+                <p>Mottainai expresses regret over waste — of materials, time, energy, and human effort — before it ever occurs. As articulated by Wangari Maathai, it is not just about reuse or recycling, but about designing systems that honor resources from the beginning, so loss is never normalized.</p>
+                <p>The word "waste" comes from Latin <em>vastare</em> (lay waste, empty, desolate), originally meaning used up or bare. "Garbage" comes from Anglo-French <em>garber</em> (to refine, make neat) — not the excess, but the process of making neat. Our language shapes our systems.</p>
+                <p>Learn more: <a href="https://www.unep.org/ietc/news/story/youth-lead-zero-waste-movement-mottainai-declaration-goes-global%C2%A0" target="_blank" rel="noopener">UNEP youth declaration on zero waste →</a></p>
+            </div>
+        </section>
+
+        <section class="page-section">
+            <div class="section-header-row">
+                <span class="section-eyebrow">02</span>
+                <h2 class="section-heading">Waste is Designed In at the Start</h2>
+            </div>
+            <div class="prose">
+                <p>Most waste is not the result of individual behavior, but of decisions made long before a product reaches a person. Materials are extracted, processed, and assembled in ways that assume disposability. By the time something reaches the curb, the waste has already been locked in.</p>
+            </div>
+            <div class="kiau-grid">
+                <div class="kiau-card">
+                    <span class="kiau-card-num">Etymology</span>
+                    <span class="kiau-card-title">Waste &amp; Garbage</span>
+                    <p class="kiau-card-body">"Waste" meant used up, bare, open (think wasteland). "Garbage" was about making neat, not the excess created. Our language shapes our systems.</p>
+                </div>
+                <div class="kiau-card">
+                    <span class="kiau-card-num">Source</span>
+                    <span class="kiau-card-title">Upstream Decisions</span>
+                    <p class="kiau-card-body">Waste is born at the factory, not the curb. Design choices upstream determine what becomes waste downstream.</p>
+                </div>
+                <div class="kiau-card">
+                    <span class="kiau-card-num">Lifecycle</span>
+                    <span class="kiau-card-title">Locked-in Loss</span>
+                    <p class="kiau-card-body">When systems ignore the full lifecycle, inefficiencies and losses become invisible until it's too late.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="page-section">
+            <div class="section-header-row">
+                <span class="section-eyebrow">03</span>
+                <h2 class="section-heading">Three Principles</h2>
+            </div>
+            <div class="kiau-grid">
+                <div class="kiau-card">
+                    <span class="kiau-card-num">01</span>
+                    <span class="kiau-card-title">Design with the full lifecycle in mind</span>
+                    <p class="kiau-card-body">Engineer products and systems by accounting for where materials come from, how they are used, and how they return without becoming waste.</p>
+                </div>
+                <div class="kiau-card">
+                    <span class="kiau-card-num">02</span>
+                    <span class="kiau-card-title">Measure what usually goes unseen</span>
+                    <p class="kiau-card-body">By generating continuous, real-world data, we make invisible losses visible, enabling better decisions before inefficiencies harden into waste.</p>
+                </div>
+                <div class="kiau-card">
+                    <span class="kiau-card-num">03</span>
+                    <span class="kiau-card-title">Work with nature, not against it</span>
+                    <p class="kiau-card-body">We align technology with natural processes, favoring regeneration, adaptation, and resilience over extraction and replacement.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="page-section">
+            <div class="section-header-row">
+                <span class="section-eyebrow">04</span>
+                <h2 class="section-heading">Our Solution (in progress)</h2>
+            </div>
+            <div class="prose">
+                <p>We are building practices and tools that catch waste at the sketch stage. Every experiment here is aimed at making reuse the default and disposal the rare exception.</p>
+            </div>
+            <div class="step-list">
+                <div class="step-item">
+                    <span class="step-num">1</span>
+                    <div class="step-body">
+                        <strong>Material intelligence</strong>
+                        <p>Trace inputs, score their circularity, and swap in regenerative options before procurement locks in.</p>
+                    </div>
+                </div>
+                <div class="step-item">
+                    <span class="step-num">2</span>
+                    <div class="step-body">
+                        <strong>Modularity by default</strong>
+                        <p>Architect products for repair, upgrade, and remanufacture. Components live multiple lives across programs.</p>
+                    </div>
+                </div>
+                <div class="step-item">
+                    <span class="step-num">3</span>
+                    <div class="step-body">
+                        <strong>Circular service model</strong>
+                        <p>Build take-back and refurbishment into the business model so users never face waste decisions alone.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="prose" style="margin-top:2rem;">
+                <p><a href="contact.html">Curious or want to collaborate? Reach out to the team →</a></p>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ── FOOTER ────────────────────────────────── -->
+    <footer class="kiau-footer">
+        <span>Kiau Technologies PBC</span>
+        <div class="kiau-footer-links">
+            <a href="about.html">About</a>
+            <a href="pbcs.html">PBCs</a>
+            <a href="contact.html">Contact</a>
+        </div>
+        <span>2025</span>
+    </footer>
+
+</body>
+</html>
+<!--REMOVE-TAIL
 		<section class="mottainai-hero">
 			<p class="hero-topline">Waste is not inevitable</p>
 			<h1 class="hero-title">"Waste" is a modern invention</h1>
@@ -460,36 +541,4 @@
 			<div class="footer-note">
 				<span>Curious or want to collaborate?</span>
 				<a href="contact.html" style="color: var(--accent-color); text-decoration: underline;">Reach out to the team</a>
-			</div>
-		</section>
-	</main>
-
-	<script>
-		// Intro animations
-		gsap.from([".hero-topline", ".hero-title", ".hero-kanji", ".hero-footnote"], {
-			opacity: 0,
-			y: 40,
-			stagger: 0.15,
-			duration: 1.1,
-			ease: "power2.out"
-		});
-		gsap.from(".hero-chip", { opacity: 0, y: 20, duration: 0.9, stagger: 0.08, delay: 0.4 });
-
-		// Scroll reveals
-		const revealSections = gsap.utils.toArray([".section", ".issue-card", ".principle-card", ".pipeline-step"]);
-		revealSections.forEach((el, i) => {
-			gsap.from(el, {
-				opacity: 0,
-				y: 50,
-				duration: 0.9,
-				delay: i * 0.04,
-				scrollTrigger: {
-					trigger: el,
-					start: "top 85%",
-					toggleActions: "play none none none"
-				}
-			});
-		});
-	</script>
-</body>
-</html>
+-->

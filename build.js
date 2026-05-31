@@ -9,14 +9,12 @@ renderer.outputColorSpace = THREE.SRGBColorSpace;
 
 if (isMobileDevice()) {
     renderer.setPixelRatio(1);
-    renderer.setSize(window.innerWidth / 2, window.innerHeight / 2);
 } else {
     renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.setSize(window.innerWidth, window.innerHeight);
 }
 
-renderer.setClearColor(0xaaaaaa);
-document.body.appendChild(renderer.domElement);
+renderer.setClearColor(0x051f18);
+(document.getElementById('viewer-container') || document.body).appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
 
@@ -180,13 +178,16 @@ function addMarker(nodeName, description, location, color) {
     scene.add(marker);
 
     const label = document.createElement('div');
-    label.style.font = 'Courier New';
-    label.style.position = 'absolute';
+    label.style.fontFamily = 'JetBrains Mono, Courier New, monospace';
+    label.style.position = 'fixed';
     label.style.color = 'white';
-    label.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+    label.style.backgroundColor = 'rgba(0, 0, 0, 0.6)';
     label.style.padding = '4px 8px';
     label.style.borderRadius = '4px';
     label.style.fontSize = '12px';
+    label.style.zIndex = '4000';
+    label.style.pointerEvents = 'auto';
+    label.style.cursor = 'pointer';
     label.innerText = nodeName;
     document.body.appendChild(label);
 
@@ -210,15 +211,22 @@ function addMarker(nodeName, description, location, color) {
  * Update all HTML label positions to follow their 3D markers.
  */
 function updateLabelPositions() {
+    const container = document.getElementById('viewer-container');
+    const rect = container ? container.getBoundingClientRect() : null;
+    const cw = rect ? rect.width  : window.innerWidth;
+    const ch = rect ? rect.height : window.innerHeight;
+    const ox = rect ? rect.left   : 0;
+    const oy = rect ? rect.top    : 0;
+
     markers.forEach((marker, index) => {
         const vector = marker.position.clone();
         vector.project(camera);
 
-        const x = (vector.x * 0.5 + 0.5) * window.innerWidth;
-        const y = (-vector.y * 0.5 + 0.5) * window.innerHeight;
+        const x = (vector.x * 0.5 + 0.5) * cw + ox;
+        const y = (-vector.y * 0.5 + 0.5) * ch + oy;
 
         labels[index].style.left = `${x}px`;
-        labels[index].style.top = `${y}px`;
+        labels[index].style.top  = `${y}px`;
     });
 }
 
@@ -314,9 +322,7 @@ const gltfLoadPromise = new Promise((resolve, reject) => {
             scene.add(gltfModel);
             resolve();
         },
-        (xhr) => {
-            console.log((xhr.loaded / xhr.total) * 100 + '% loaded');
-        },
+        undefined,
         (error) => {
             console.error('An error happened', error);
             reject(error);
@@ -342,12 +348,9 @@ const stlLoadPromise = new Promise((resolve, reject) => {
             scene.add(stlModel);
 
             const box = new THREE.Box3().setFromObject(stlModel);
-            console.log("STL Model bounding box:", box);
             resolve();
         },
-        (xhr) => {
-            console.log((xhr.loaded / xhr.total) * 100 + '% loaded');
-        },
+        undefined,
         (error) => {
             console.error('An error happened', error);
             reject(error);
@@ -363,20 +366,18 @@ toggleButton.addEventListener('click', () => {
         if (gltfModel.visible) {
             gltfModel.visible = false;
             stlModel.visible = true;
-            toggleButton.innerText = 'Switch to GLTF Model';
+            toggleButton.innerText = 'Switch to GLTF';
         } else {
             gltfModel.visible = true;
             stlModel.visible = false;
-            toggleButton.innerText = 'Switch to STL Model';
+            toggleButton.innerText = 'Switch to STL';
         }
     }
 });
 
 // ensure preview setup and wait for preview model load as well
 ensurePreviewSetup();
-const previewLoadPromise = loadPreviewModel().then(() => {
-    console.log('Preview model loaded');
-}).catch((err) => {
+const previewLoadPromise = loadPreviewModel().catch((err) => {
     console.warn('Preview failed to load', err);
     // resolve anyway so page doesn't hang; remove this if you want to block on preview failure
     return Promise.resolve();
@@ -385,9 +386,10 @@ const previewLoadPromise = loadPreviewModel().then(() => {
 // Wait for all important models (main gltf, stl, preview) before hiding loading UI
 Promise.all(modelLoadPromises.concat(previewLoadPromise))
     .then(() => {
-        console.log('All models loaded — ready to show page content');
         if (loadingScreen) loadingScreen.style.display = 'none';
         document.body.classList.add('models-ready');
+        const viewerStatus = document.getElementById('viewer-status');
+        if (viewerStatus) viewerStatus.textContent = 'Model loaded · 4 sensor nodes active';
     })
     .catch((err) => {
         console.error('One or more model loads failed:', err);
@@ -408,8 +410,9 @@ function isMobileDevice() {
  * Handle window resize: update camera, renderer and controls.
  */
 window.addEventListener('resize', () => {
-    const width = window.innerWidth;
-    const height = window.innerHeight;
+    const container = document.getElementById('viewer-container');
+    const width = container ? container.clientWidth : window.innerWidth;
+    const height = container ? container.clientHeight : window.innerHeight;
 
     if (isMobileDevice()) {
         camera.fov = 60;
@@ -435,13 +438,14 @@ function animate() {
     updateLabelPositions();
 }
 
-renderer.setSize(window.innerWidth, window.innerHeight);
-
-console.log('Renderer size:', renderer.domElement.clientWidth, renderer.domElement.clientHeight);
-console.log('Camera aspect ratio:', camera.aspect);
-console.log("Screen width:", window.innerWidth);
-console.log("Is mobile device:", isMobileDevice());
-console.log("Camera position:", camera.position);
+(function initViewerSize() {
+    const container = document.getElementById('viewer-container');
+    const w = container ? (container.clientWidth || 800) : window.innerWidth;
+    const h = container ? (container.clientHeight || 480) : 480;
+    renderer.setSize(w, h);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+})();
 animate();
 
 function spawnNodeWindow(nodeName, descriptionHtml, previewCallback) {

@@ -5,19 +5,14 @@
     <!--Edited by Max Van Dorn -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Kiau Technologies is a Public Benefit Corporation building sustainable technology solutions for a circular economy.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap" rel="stylesheet">
     <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
-    <title>Kiau Technologies</title>
+    <title>Kiau Technologies - Sustainable Technology for a Circular Economy</title>
     <script src="https://d3js.org/d3.v5.min.js"></script>
     <style>
-        /*TODO:
-          - Add in roots growing off of nodes
-          - Develop more fleshed out content for pages
-          - Add photographical data
-          - Create a log in page
-          - Connect to a DB using sql
-          - More...
-        */
         :root {
             --background: #f9f5f2;
             --primary-color: #145b4f;
@@ -391,6 +386,33 @@
             50% { opacity: 1; stroke-width: 4; }
             100% { opacity: 0.55; stroke-width: 2.5; }
         }
+
+        .graph-hint {
+            position: fixed;
+            bottom: 48px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(15, 255, 149, 0.85);
+            font-size: 14px;
+            font-family: 'OCR_A', Arial, sans-serif;
+            pointer-events: none;
+            white-space: nowrap;
+            z-index: 100;
+            opacity: 0;
+            animation: hintAppearFade 7s ease-in-out 2.5s forwards;
+            letter-spacing: 0.05em;
+        }
+
+        @media (max-width: 768px) {
+            .graph-hint { font-size: 11px; bottom: 40px; }
+        }
+
+        @keyframes hintAppearFade {
+            0% { opacity: 0; }
+            15% { opacity: 1; }
+            75% { opacity: 1; }
+            100% { opacity: 0; }
+        }
     </style>
 
 </head>
@@ -401,20 +423,21 @@
             <button class="welcome-popup-close" id="closePopup" aria-label="Close welcome popup">×</button>
             <h2>Welcome to Kiau Technologies!</h2>
             <div class="welcome-popup-content">
-                <p>Welcome to our interactive node-based website! Explore our projects and initiatives by clicking on the nodes below. The nodes are also draggable.</p>
+                <p>Kiau Technologies is a Public Benefit Corporation building sustainable technology for a circular economy — from biochar reactors and mycomaterials to soil health monitoring and e-waste solutions.</p>
                 <svg class="welcome-popup-graphic" id="popupGraphic"></svg>
-                <p><strong>How it works:</strong> Each node represents a different project or area of focus. Click on any node to learn more about our sustainable technology solutions.</p>
+                <p><strong>How to explore:</strong> Each node on the graph represents one of our projects. <strong>Click any node</strong> to learn more, or <strong>drag</strong> to interact with the network.</p>
                 <a href="about.html" class="welcome-popup-link">Learn More About Kiau</a>
             </div>
         </div>
     </div>
     
-    <div id="screenReaderMessage" class = "sr-only" role = "status" aria-live = "polite" role = "alert">
-        Welcome to the Kiau Technologies website, this text is only read by screen readers. Use tab to navigate through the options of the menu. Each item is a link to a website and will be read twice, please bare with us while we fix this problem. Press enter when you hear the desired option. 
+    <div id="screenReaderMessage" class="sr-only" role="status" aria-live="polite">
+        Welcome to the Kiau Technologies interactive project graph. Use Tab to navigate between nodes. Press Enter on any node to visit that project page.
     </div>
     <div class="fpsCounter" id="fpsCounter" aria-hidden="true">FPS: 0</div>
     <div class="cookieNotice">We do not collect cookies or data about you on our website!</div>
     <button id="tutorialReplayBtn" class="tutorial-replay-btn" type="button">Replay tutorial</button>
+    <div class="graph-hint" aria-hidden="true">Click any node to explore →</div>
     <svg id="mainGraph"></svg>
       
     <script src="fps.js"></script>
@@ -540,14 +563,14 @@
 
         const tutorialOptions = {
             nodeId: 'Kiau Technologies',
-            title: 'This is a node.',
-            body: 'Each node represents an important topic to Kiau Tech. Click on a node to explore more or try dragging it around!',
+            title: 'Welcome to Kiau Technologies',
+            body: 'We build sustainable technology for a circular economy — biochar reactors, mycomaterials, soil sensors, and more. Click any node to explore a project, or drag it around!',
             nextLabel: 'Next',
-            linkTitle: 'This is a link.',
-            linkBody: 'Links signify the connection between different important topics.',
-            pulseTitle: 'These are pulses.',
-            pulseBody: 'Pulses indicate the "activity" flow from our main focus (Kiau Technologies) to other areas.',
-            finishLabel: 'Finish'
+            linkTitle: 'Nodes are connected by links.',
+            linkBody: 'Links show how our projects relate to one another and to our core mission.',
+            pulseTitle: 'These are activity pulses.',
+            pulseBody: 'Pulses flow outward from Kiau Technologies, showing how our work connects across all focus areas.',
+            finishLabel: 'Start Exploring'
         };
 
         let graphReady = false;
@@ -587,33 +610,9 @@
             }, { once: true });
         }
 
-        function resizeSVG() {
-            const svg = document.querySelector('#mainGraph');
-            if (!svg) return;
-            
-            const width = window.innerWidth;
-            const height = window.innerHeight;
-    
-            // Update SVG size
-            svg.setAttribute('width', width);
-            svg.setAttribute('height', height);
-            svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
-
-            // Adjust force simulation (distance and center)
-            if (window.simulation) {
-                const linkDistance = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--link-distance'));
-                window.simulation
-                    .force("center", d3.forceCenter(width / 2, height / 2))
-                    .force("link", d3.forceLink().distance(linkDistance))
-                    .alpha(0.3)
-                    .restart();
-            }
-        }
-
         // Apply mode on page load
         window.onload = function() {
             loadGraph();
-            resizeSVG();
             initNodeTutorial();
 
             const replayBtn = document.getElementById('tutorialReplayBtn');
@@ -623,13 +622,6 @@
                 });
             }
         };
-
-        // Debounced resize handler
-        let resizeTimer;
-        window.onresize = function() {
-            clearTimeout(resizeTimer);
-            resizeTimer = setTimeout(resizeSVG, 150);
-        }
 
     </script>
     
