@@ -1,31 +1,64 @@
-<!doctype html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Design Thinking — Kiau Technologies</title>
-  <link rel="stylesheet" href="css/styles.css"> <!-- keep site styles -->
-  <link rel="stylesheet" href="css/circular-graph.css">
-  <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Design Thinking | Kiau Technologies</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/kiau-inner.css">
+    <link rel="stylesheet" href="css/circular-graph.css">
+    <link rel="stylesheet" href="css/site-accessibility.css">
 </head>
-<header style="position: fixed; top: 0; left: 0; right: 0; z-index: 9999; backdrop-filter: blur(10px); padding: 1rem 2rem; box-shadow: 0 2px 10px rgba(0,0,0,0.3);">
-    <nav style="display: flex; justify-content: space-between; align-items: center; max-width: 1400px; margin: 0 auto;">
-        <a href="index.html" style="color: var(--background); font-size: 1.2rem; font-weight: bold; text-decoration: none;">
-            Kiau Technologies
-        </a>
-        <ul style="display: flex; gap: 2rem; list-style: none; margin: 0; padding: 0;">
-            <li><a href="index.html" style="color: var(--background); text-decoration: none;">Home</a></li>
-            <li><a href="about.html" style="color: var(--background); text-decoration: none;">About</a></li>
-        </ul>
-        <!-- Mobile hamburger menu here if needed -->
-    </nav>
-</header>
 <body>
-  <main style="padding:28px;display:flex;flex-direction:column;align-items:center;">
-    <h1 style="margin:0 0 18px;">Design Thinking</h1>
-    <div id="circular-graph-root"></div>
-  </main>
 
-  <script type="module" src="circular-graph-webapp/src/circular-graph.js"></script>
+    <!-- ── NAV ──────────────────────────────────── -->
+    <nav class="kiau-nav">
+        <a href="index.html" class="kiau-nav-logo" aria-label="Kiau Technologies — Home"><img src="images/KiauTechLogo.svg" alt="Kiau Technologies" class="nav-logo-img"></a>
+        <ul class="kiau-nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="about.html">About</a></li>
+            <li><a href="contact.html">Contact</a></li>
+        </ul>
+    </nav>
+
+    <!-- ── PAGE HERO ─────────────────────────────── -->
+    <header class="page-hero">
+        <span class="page-hero-label">How we think</span>
+        <h1 class="page-hero-title">Design Thinking</h1>
+        <p class="page-hero-sub">A circular, systems-level approach to understanding how materials, decisions, and people interconnect — before committing to a solution.</p>
+    </header>
+
+    <!-- ── CONTENT ───────────────────────────────── -->
+    <main class="page-content">
+
+        <section class="page-section">
+            <div class="section-header-row">
+                <span class="section-eyebrow">01</span>
+                <h2 class="section-heading">The Circular Process</h2>
+            </div>
+            <div class="prose">
+                <p>Rather than a linear path from problem to solution, Kiau uses a circular design process that continuously revisits and refines understanding as new data and constraints emerge.</p>
+            </div>
+            <div id="circular-graph-root"></div>
+        </section>
+
+    </main>
+
+    <!-- ── FOOTER ────────────────────────────────── -->
+    <footer class="kiau-footer">
+        <span>Kiau Technologies PBC</span>
+        <div class="kiau-footer-links">
+            <a href="about.html">About</a>
+            <a href="pbcs.html">PBCs</a>
+            <a href="contact.html">Contact</a>
+        </div>
+        <span>2026</span>
+    </footer>
+
+    <script type="module" src="circular-graph-webapp/src/circular-graph.js"></script>
+
+    <script src="js/site-accessibility.js" defer></script>
 </body>
 </html>

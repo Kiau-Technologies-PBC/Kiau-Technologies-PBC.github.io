@@ -1,10 +1,13 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Community Mesh Networks — Kiau Technologies</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Space+Grotesk:wght@300;400;500;600&display=swap');
 
@@ -549,51 +552,45 @@
     display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;
   }
 </style>
+<link rel="stylesheet" href="css/kiau-inner.css">
+<link rel="stylesheet" href="css/site-accessibility.css">
 </head>
 <body>
 
-<canvas id="bg-canvas"></canvas>
+<canvas id="bg-canvas" style="position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.2;"></canvas>
 
-<nav>
-  <a href="https://kiau.tech" class="nav-back">Kiau Technologies</a>
-  <span class="nav-title">Community Mesh Networks</span>
+<nav class="kiau-nav">
+    <a href="index.html" class="kiau-nav-logo" aria-label="Kiau Technologies — Home"><img src="images/KiauTechLogo.svg" alt="Kiau Technologies" class="nav-logo-img"></a>
+    <ul class="kiau-nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="contact.html">Contact</a></li>
+    </ul>
 </nav>
 
-<aside class="toc">
-  <a href="#why" class="toc-item">Why mesh</a>
-  <a href="#protocols" class="toc-item">The protocols</a>
-  <a href="#compare" class="toc-item">Comparison</a>
-  <a href="#sensors" class="toc-item">Sensor integration</a>
-  <a href="#sovereignty" class="toc-item">Data sovereignty</a>
-  <a href="#roadmap" class="toc-item">Roadmap</a>
-  <a href="#glossary" class="toc-item">Glossary</a>
-  <a href="#resources" class="toc-item">Resources</a>
-</aside>
+<header class="page-hero">
+    <p class="section-eyebrow">Technical Reference Guide</p>
+    <h1 class="section-heading">Mesh Networks for Community Resilience</h1>
+    <p class="prose" style="max-width:640px;margin:0 auto;">A deep dive into Meshtastic, MeshCore, and Reticulum, and how each protocol can strengthen disaster communication, mutual aid coordination, and soil sensor networks for communities building off-grid infrastructure.</p>
+</header>
 
-<div class="page-wrap">
+<main class="page-content">
 
-  <header class="hero">
-    <div class="hero-tag">Technical Reference Guide</div>
-    <h1>Mesh Networks<br>for Community<br>Resilience</h1>
-    <p class="hero-sub">A deep dive into Meshtastic, MeshCore, and Reticulum, and how each protocol can strengthen disaster communication, mutual aid coordination, and soil sensor networks for communities building off-grid infrastructure.</p>
-    <div class="hero-meta">
-      <span>Produced by Kiau Technologies PBC</span>
-      <span>3 Protocols</span>
-      <span>One Hardware Family</span>
+  <section class="page-section" id="why">
+    <div class="section-header-row">
+      <span class="section-eyebrow">01</span>
+      <h2 class="section-heading">Why mesh networks, why now</h2>
     </div>
-  </header>
-
-  <section id="why">
-    <div class="section-tag">01 / Context</div>
-    <h2>Why mesh networks, why now</h2>
     <p>When Hurricane Helene hit western North Carolina in September 2024, it did not just knock out power. It took down cell towers, severed fiber lines, and made satellite uplinks unreliable for days. Communities that needed to coordinate mutual aid were cut off from the tools they had come to depend on.</p>
     <p>This pattern repeats with every major disaster. The first infrastructure to fail is always communications, and the communities least served by it in normal times are the ones most exposed when it collapses.</p>
     <p>Mesh networks are one answer. A mesh is a collection of radio nodes where every node can relay messages for every other node. There is no central tower, no ISP, no subscription. LoRa (Long Range) radio is the physical layer underlying all three systems described here. It operates in the unlicensed 915 MHz band in the US, requires no radio license, and can carry text and sensor data across 1 to 15 miles depending on terrain and antenna height.</p>
   </section>
 
-  <section id="protocols">
-    <div class="section-tag">02 / Interactive</div>
-    <h2>Three protocols, one hardware family</h2>
+  <section class="page-section" id="protocols">
+    <div class="section-header-row">
+      <span class="section-eyebrow">02</span>
+      <h2 class="section-heading">Three protocols, one hardware family</h2>
+    </div>
     <p>All three systems run on the same LoRa hardware. A node can be reflashed from one protocol to another. The difference is entirely in software philosophy. Click a protocol below, then send a message to watch how it propagates through the network.</p>
 
     <div class="proto-tabs">
@@ -703,9 +700,11 @@
     </div>
   </section>
 
-  <section id="compare">
-    <div class="section-tag">03 / Reference</div>
-    <h2>Side-by-side comparison</h2>
+  <section class="page-section" id="compare">
+    <div class="section-header-row">
+      <span class="section-eyebrow">03</span>
+      <h2 class="section-heading">Side-by-side comparison</h2>
+    </div>
     <div class="compare-wrap">
       <table>
         <thead>
@@ -733,9 +732,11 @@
     <p>All three protocols run on the same hardware. A group can begin with Meshtastic and reflash nodes to MeshCore or Reticulum as capacity grows. A working Meshtastic node today is worth more than a perfect Reticulum network next year.</p>
   </section>
 
-  <section id="sensors">
-    <div class="section-tag">04 / Kiau Integration</div>
-    <h2>Soil sensor integration</h2>
+  <section class="page-section" id="sensors">
+    <div class="section-header-row">
+      <span class="section-eyebrow">04</span>
+      <h2 class="section-heading">Soil sensor integration</h2>
+    </div>
     <p>Kiau's field sensing nodes are outdoor-capable, solar-powered, and transmit over LoRa into the same mesh networks described above. The same node carrying a text message can carry soil data. No separate network required.</p>
 
     <div class="detail-block sensor">
@@ -786,9 +787,11 @@
     </div>
   </section>
 
-  <section id="sovereignty">
-    <div class="section-tag">05 / Principles</div>
-    <h2>Data sovereignty</h2>
+  <section class="page-section" id="sovereignty">
+    <div class="section-header-row">
+      <span class="section-eyebrow">05</span>
+      <h2 class="section-heading">Data sovereignty</h2>
+    </div>
     <p>For Indigenous land stewards and communities with histories of data extraction, the question of who owns and controls sensor data is not a technical afterthought. It is foundational. Kiau's architecture is designed with this in mind from the start.</p>
     <div class="sovereignty-principles">
       <div class="principle">
@@ -814,9 +817,11 @@
     </div>
   </section>
 
-  <section id="roadmap">
-    <div class="section-tag">06 / Vision</div>
-    <h2>Three horizons</h2>
+  <section class="page-section" id="roadmap">
+    <div class="section-header-row">
+      <span class="section-eyebrow">06</span>
+      <h2 class="section-heading">Three horizons</h2>
+    </div>
     <p>The goal is a network of networks: regional clusters built on infrastructure each community owns, bridging to each other over time. No single protocol connects everywhere on day one, and that is fine.</p>
     <div class="roadmap">
       <div class="horizon">
@@ -852,9 +857,11 @@
     </div>
   </section>
 
-  <section id="glossary">
-    <div class="section-tag">07 / Reference</div>
-    <h2>Glossary</h2>
+  <section class="page-section" id="glossary">
+    <div class="section-header-row">
+      <span class="section-eyebrow">07</span>
+      <h2 class="section-heading">Glossary</h2>
+    </div>
     <div class="glossary-grid">
       <div class="gloss-item"><div class="gloss-term">LoRa</div><div class="gloss-def">Long Range radio: low power, long range, low data rate. The physical layer underlying all three protocols.</div></div>
       <div class="gloss-item"><div class="gloss-term">915 MHz</div><div class="gloss-def">The US unlicensed radio band used by these systems. No amateur radio license required.</div></div>
@@ -875,9 +882,11 @@
     </div>
   </section>
 
-  <section id="resources">
-    <div class="section-tag">08 / Links</div>
-    <h2>Resources</h2>
+  <section class="page-section" id="resources">
+    <div class="section-header-row">
+      <span class="section-eyebrow">08</span>
+      <h2 class="section-heading">Resources</h2>
+    </div>
     <div class="resource-group">
       <div class="resource-group-label"><span class="node-dot m"></span>Meshtastic</div>
       <a class="resource-link" href="https://meshtastic.org/docs" target="_blank"><span class="resource-link-name">Documentation</span><span class="resource-link-url">meshtastic.org/docs</span></a>
@@ -901,11 +910,17 @@
     </div>
   </section>
 
-  <footer>
-    <span>Kiau Technologies PBC — Community Mesh Networks Guide</span>
-    <span>we do not collect cookies or data about you on our website</span>
+  <footer class="kiau-footer">
+    <span>Kiau Technologies PBC</span>
+    <div class="kiau-footer-links">
+        <a href="about.html">About</a>
+        <a href="pbcs.html">PBCs</a>
+        <a href="contact.html">Contact</a>
+    </div>
+    <span>2026</span>
   </footer>
-</div>
+
+</main>
 
 <script>
 // ── BACKGROUND CANVAS (matches homepage) ──────────────────────────────────
@@ -1653,5 +1668,6 @@ window.addEventListener('load', () => {
   setTimeout(buildMeshtastic, 100);
 });
 </script>
+<script src="js/site-accessibility.js" defer></script>
 </body>
 </html>

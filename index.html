@@ -1,637 +1,642 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!--Edited by Max Van Dorn -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap" rel="stylesheet">
+    <meta name="description" content="Kiau Technologies PBC — Technology designed in harmony with the natural world.">
+    <title>Kiau Technologies — Mission Index</title>
     <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
-    <title>Kiau Technologies</title>
-    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet">
     <style>
-        /*TODO:
-          - Add in roots growing off of nodes
-          - Develop more fleshed out content for pages
-          - Add photographical data
-          - Create a log in page
-          - Connect to a DB using sql
-          - More...
-        */
-        :root {
-            --background: #f9f5f2;
-            --primary-color: #145b4f;
-            --accent-color: #da99d6;
-            --background-color: var(--background);
-            --text-color: var(--primary-color);
-            /* Graph palette (single mode) */
-            --node-color-day: #0fff95;
-            --link-color-day: #06ba63;
-            --day-background: var(--primary-color);
-            --text-fill-color-day: var(--background);
-            --text-stroke-color-day: #1b4a42;
-
-            font-family: 'OCR_A', Arial, sans-serif;
-
-        
-        
-            /* Values for desktop default*/
-            --link-distance: 350;
-            --node-radius: 6;
-            --stroke-width: 3;
-            --font-size-normal: 22px;
-            --font-size-special: 28px;
-            --boundries-padding-width: 250;
-            --boundries-padding-height: 50;
-            --wave-count: 30;
-            --wave-amp: 60;
-        }
-
-        /* Tablet breakpoint */
-        @media (max-width: 1024px) and (min-width: 769px) {
-            :root {
-                --link-distance: 270;
-                --node-radius: 5;
-                --stroke-width: 2.5;
-                --font-size-normal: 18px;
-                --font-size-special: 23px;
-                --boundries-padding-width: 150;
-                --boundries-padding-height: 30;
-                --wave-count: 20;
-                --wave-amp: 40;
-            }
-        }
-
-        /* Mobile breakpoint */
-        @media (max-width: 768px) {
-            :root {
-                --link-distance: 180;
-                --node-radius: 3;
-                --stroke-width: 1.4;
-                --font-size-normal: 12px;
-                --font-size-special: 16px;
-                --boundries-padding-width: 60;
-                --boundries-padding-height: 5;
-                --wave-count: 10;
-                --wave-amp: 10;
-            }
-        }
-
-        /* Small mobile breakpoint */
-        @media (max-width: 480px) {
-            :root {
-                --link-distance: 140;
-                --node-radius: 2.5;
-                --stroke-width: 1.2;
-                --font-size-normal: 11px;
-                --font-size-special: 14px;
-                --boundries-padding-width: 40;
-                --boundries-padding-height: 3;
-                --wave-count: 8;
-                --wave-amp: 8;
-            }
-        }
         @font-face {
             font-family: "OCR_A";
             src: url("fonts/OCR-A.ttf") format("truetype");
         }
-       
+
+        :root {
+            --green: #145b4f;
+            --green-dk: #0d3d34;
+            --green-md: #1a7a66;
+            --cream: #f9f5f2;
+            --lav: #da99d6;
+            --brown: #6f4d30;
+            --brown-dk: #4f3824;
+            --rule: rgba(249, 245, 242, 0.12);
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body { width: 100%; max-width: 100%; }
+        html { scroll-behavior: smooth; }
+
         body {
-            font-family: "OCR_A", Arial, sans-serif;
-            background-color: var(--day-background);
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            font-family: 'OCR_A', 'Roboto Mono', monospace;
+            background: var(--green);
+            color: var(--cream);
+            overflow-x: hidden;
         }
 
-        svg {
-            border-radius: 8px;
-            background-color: var(--day-background);
-        }
-
-        .fpsCounter {
-            position: absolute;
-            top: 10px;
-            left:10px;
-            background: rgba(0, 0, 0, 0.5);
-            color: white;
-            padding: 5px;
-            border-radius: 5px;
-            font-size: 10px;
-        }
-
-        .cookieNotice {
-            position:absolute;
-            bottom: 10px;
-            border-radius: 5px;
-            padding: 5px;
-            background: rgba(6, 186, 99, 0.5);
-            font-size: 12px;
-            text-align: center;
-        }
-
-        .sr-only {
-        position: absolute;
-        width: 1px;
-        height: 1px;
-        margin: -1px;
-        padding: 0;
-        border: 0;
-        clip: rect(0, 0, 0, 0);
-        overflow: hidden;
-        }
-
-        /* Welcome Popup Styles */
-        .welcome-popup-overlay {
-            display: none;
+        nav {
             position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
-            z-index: 10000;
-            justify-content: center;
-            align-items: center;
-            animation: fadeIn 0.3s ease-in;
-        }
-
-        .welcome-popup-overlay.active {
-            display: flex;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        .welcome-popup {
-            background-color: var(--primary-color);
-            border: 3px solid var(--accent-color);
-            border-radius: 10px;
-            padding: 30px;
-            max-width: 600px;
-            width: 90%;
-            max-height: 80vh;
-            overflow-y: auto;
-            position: relative;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-            animation: slideIn 0.4s ease-out;
-        }
-
-        @keyframes slideIn {
-            from { 
-                transform: translateY(-50px);
-                opacity: 0;
-            }
-            to { 
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
-
-        .welcome-popup-close {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background: invisible;
-            color: var(--accent-color);
-            border: none;
-            font-size: 24px;
-            width: 35px;
-            height: 35px;
-            border-radius: 50%;
-            cursor: pointer;
+            right: 0;
+            z-index: 1000;
             display: flex;
             align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-            font-family: 'OCR_A', Arial, sans-serif;
+            justify-content: space-between;
+            padding: 1.1rem 4rem;
+            background: rgba(20, 91, 79, 0.88);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border-bottom: 1px solid rgba(249, 245, 242, 0.08);
         }
-
-        .welcome-popup-close:hover {
-            background: var(--primary-color);
-            transform: rotate(90deg);
-        }
-
-        .welcome-popup h2 {
-            font-family: 'OCR_A', Arial, sans-serif;
-            color: var(--background);
-            text-shadow: var(--accent-color) 2px 2px 4px;
-            margin-top: 0;
-            margin-bottom: 15px;
-            font-size: 28px;
-            text-align: center;
-        }
-
-        .welcome-popup-content {
-            color: var(--color-4);
-            font-family: 'OCR_A', Arial, sans-serif;
-            line-height: 1.6;
-            margin-bottom: 20px;
-        }
-
-        .welcome-popup-content p {
-            color: var(--background);
-            margin: 10px 0;
-            font-size: 14px;
-        }
-
-        .welcome-popup-graphic {
-            width: 100%;
-            max-width: 400px;
-            height: 250px;
-            margin: 20px auto;
-            display: block;
-            border: 2px solid var(--color-2);
-            border-radius: 8px;
-            background-color: var(--day-background);
-            overflow: visible;
-        }
-
-        .welcome-popup-link {
-            display: inline-block;
-            background-color: var(--primary-color);
-            color: var(--accent-color);
-            padding: 12px 24px;
+        .nav-logo {
+            font-size: 0.95rem;
+            letter-spacing: 0.1em;
+            color: var(--cream);
             text-decoration: none;
-            border-radius: 5px;
-            font-family: 'OCR_A', Arial, sans-serif;
-            font-weight: bold;
-            transition: all 0.3s ease;
-            margin: 10px auto;
-            display: block;
+            display: flex;
+            align-items: center;
+        }
+        .nav-logo-img {
+            height: 72px;
+            width: auto;
+            filter: brightness(0) invert(1);
+            opacity: 0.9;
+            transition: opacity 0.2s;
+        }
+        .nav-logo:hover .nav-logo-img { opacity: 1; }
+        .nav-links {
+            display: flex;
+            gap: 2.5rem;
+            list-style: none;
+        }
+        .nav-links a {
+            font-size: 0.72rem;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--cream);
+            text-decoration: none;
+            opacity: 0.82;
+            transition: opacity 0.2s;
+        }
+        .nav-links a:hover { opacity: 1; }
+
+        .hero {
+            min-height: 100vh;
+            min-height: 100svh;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
             text-align: center;
-            width: fit-content;
+            padding: 7rem 2rem 5rem;
+            position: relative;
+            overflow: hidden;
         }
-
-        .welcome-popup-link:hover {
-            background-color: var(--accent-color);
-            color: var(--background);
-            transform: scale(1.05);
-        }
-
-        /* Mobile adjustments */
-        @media (max-width: 768px) {
-            .welcome-popup {
-                padding: 20px;
-                max-width: 95%;
-            }
-
-            .welcome-popup h2 {
-                font-size: 22px;
-            }
-
-            .welcome-popup-content p {
-                font-size: 12px;
-            }
-
-            .welcome-popup-graphic {
-                height: 180px;
-            }
-        }
-
-        /* Node tutorial overlay */
-        .node-tutorial-card {
-            position: fixed;
-            z-index: 11000;
-            background: rgba(10, 46, 40, 0.94);
-            color: #f7f2ec;
-            border: 2px solid var(--accent-color);
-            border-radius: 12px;
-            padding: 14px 16px 12px 16px;
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
-            max-width: 260px;
-            backdrop-filter: blur(4px);
-        }
-
-        .node-tutorial-arrow {
+        .hero-bg {
             position: absolute;
-            width: 14px;
-            height: 14px;
-            background: inherit;
-            border: 2px solid var(--accent-color);
-            transform: rotate(45deg);
-            box-shadow: -2px 2px 8px rgba(0, 0, 0, 0.25);
-            display: none;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 70% 60% at 18% 25%, rgba(218, 153, 214, 0.10) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 50% at 82% 75%, rgba(26, 122, 102, 0.22) 0%, transparent 55%),
+                linear-gradient(rgba(20, 91, 79, 0.76), rgba(20, 91, 79, 0.84));
+            z-index: 0;
+        }
+        .hero-bg::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: url('images/field_shot_sensor.png') center 35% / cover no-repeat;
+            opacity: 0.4;
+        }
+        .hero-bg::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(circle at 50% 50%, rgba(218, 153, 214, 0.06) 0%, transparent 46%),
+                linear-gradient(rgba(111, 77, 48, 0.22), rgba(79, 56, 36, 0.44));
         }
 
-        .node-tutorial-title {
-            margin: 0 0 8px 0;
-            font-size: 16px;
-            font-weight: 700;
-            color: var(--accent-color);
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 740px;
         }
-
-        .node-tutorial-body {
-            margin: 0 0 10px 0;
-            font-size: 13px;
-            line-height: 1.4;
-            color: #e7e2d7;
+        .hero-eyebrow {
+            font-size: 0.68rem;
+            letter-spacing: 0.24em;
+            text-transform: uppercase;
+            color: var(--lav);
+            margin-bottom: 2.2rem;
+            opacity: 0.95;
+            text-shadow: 0 0 24px rgba(6, 26, 21, 0.95), 0 1px 8px rgba(6, 26, 21, 0.8);
         }
-
-        .node-tutorial-next {
-            border: 2px solid var(--accent-color);
+        .hero-wordmark {
+            font-size: clamp(2.6rem, 7vw, 5.2rem);
+            font-weight: 400;
+            letter-spacing: 0.04em;
+            line-height: 1.05;
+            color: var(--cream);
+        }
+        .hero-kanji {
+            font-family: serif;
+            font-size: clamp(0.8rem, 2vw, 1rem);
+            letter-spacing: 0.16em;
+            color: var(--lav);
+            margin-top: 0.6rem;
+            margin-bottom: 2.6rem;
+            opacity: 0.9;
+            text-shadow: 0 0 24px rgba(6, 26, 21, 0.95), 0 1px 8px rgba(6, 26, 21, 0.8);
+        }
+        .hero-divider {
+            width: 48px;
+            height: 1px;
+            background: var(--lav);
+            margin: 0 auto 2.6rem;
+            opacity: 0.45;
+        }
+        .hero-tagline {
+            font-family: 'Roboto Mono', monospace;
+            font-size: clamp(0.9rem, 2.2vw, 1.15rem);
+            font-weight: 300;
+            font-style: italic;
+            line-height: 1.75;
+            color: var(--cream);
+            opacity: 0.92;
+            max-width: 520px;
+            margin: 0 auto 3rem;
+        }
+        .hero-ctas {
+            display: flex;
+            gap: 1.1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .btn-primary,
+        .map-link {
+            padding: 0.85rem 2.1rem;
+            background: var(--cream);
+            color: var(--green);
+            font-size: 0.72rem;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            text-decoration: none;
+            border-radius: 2px;
+            transition: background 0.2s, color 0.2s, transform 0.15s;
+        }
+        .btn-primary:hover,
+        .map-link:hover {
+            background: var(--lav);
+            color: var(--green-dk);
+            transform: translateY(-2px);
+        }
+        .btn-ghost {
+            padding: 0.85rem 2.1rem;
             background: transparent;
-            color: var(--accent-color);
-            border-radius: 8px;
-            padding: 8px 12px;
-            font-family: 'OCR_A', Arial, sans-serif;
-            font-size: 13px;
-            cursor: pointer;
+            color: var(--cream);
+            font-size: 0.72rem;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            text-decoration: none;
+            border: 1px solid rgba(249, 245, 242, 0.35);
+            border-radius: 2px;
+            transition: border-color 0.2s, color 0.2s, transform 0.15s;
+        }
+        .btn-ghost:hover {
+            border-color: var(--lav);
+            color: var(--lav);
+            transform: translateY(-2px);
         }
 
-        .node-tutorial-skip {
-            border: none;
-            background: transparent;
-            color: #e7e2d7;
-            font-family: 'OCR_A', Arial, sans-serif;
-            font-size: 12px;
-            opacity: 0.8;
-            cursor: pointer;
-            margin-left: 8px;
+        main {
+            max-width: 1120px;
+            margin: 0 auto;
+            padding: 0 3rem 4rem;
         }
 
-        .node-tutorial-next:disabled {
+        .list-shell {
+            padding-top: 6rem;
+        }
+        .section-header {
+            display: flex;
+            align-items: baseline;
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+            padding-bottom: 1.2rem;
+            border-bottom: 1px solid rgba(249, 245, 242, 0.10);
+        }
+        .section-label {
+            font-size: 0.64rem;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            color: var(--lav);
+            opacity: 0.9;
+            white-space: nowrap;
+        }
+        .section-title {
+            font-size: clamp(1.2rem, 2.5vw, 1.7rem);
+            font-weight: 400;
+            letter-spacing: 0.02em;
+            color: var(--cream);
+        }
+        .list-header {
+            padding: 2rem 0 0.8rem;
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--rule);
+        }
+        .list-header-label {
+            font-size: 0.6rem;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            color: var(--lav);
+            opacity: 0.82;
+        }
+        .list-header-count {
+            font-size: 0.6rem;
+            letter-spacing: 0.14em;
+            opacity: 0.52;
+        }
+        .project-list {
+            list-style: none;
+        }
+        .project-category {
+            margin-top: 1.2rem;
+        }
+        .project-category-title {
+            font-size: 0.64rem;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            color: var(--lav);
+            opacity: 0.9;
+            padding: 1.2rem 0 0.6rem;
+            border-bottom: 1px solid var(--rule);
+        }
+        .project-item {
+            border-bottom: 1px solid var(--rule);
+        }
+        .project-link {
+            display: flex;
+            align-items: baseline;
+            gap: 0;
+            padding: 1.15rem 0;
+            text-decoration: none;
+            color: var(--cream);
+            position: relative;
+        }
+        .project-link::after {
+            content: '';
+            position: absolute;
+            left: -3rem;
+            right: -3rem;
+            top: 0;
+            bottom: 0;
+            background: rgba(249, 245, 242, 0.035);
+            opacity: 0;
+            transition: opacity 0.15s;
+            pointer-events: none;
+        }
+        .project-link:hover::after { opacity: 1; }
+        .project-link:hover .project-name { color: var(--lav); }
+        .project-link:hover .project-arrow { opacity: 1; transform: translateX(0); }
+        .project-link:hover .project-num { color: var(--lav); }
+        .project-num {
+            font-size: 0.6rem;
+            letter-spacing: 0.14em;
+            opacity: 0.58;
+            min-width: 2.8rem;
+            transition: color 0.15s;
+        }
+        .project-name {
+            font-size: clamp(1rem, 2.2vw, 1.5rem);
+            font-weight: 400;
+            letter-spacing: 0.02em;
+            flex: 1;
+            transition: color 0.15s;
+        }
+        .project-leader {
+            flex: 1;
+            position: relative;
+            margin: 0 1rem;
+            overflow: hidden;
+        }
+        .project-leader::before {
+            content: '';
+            position: absolute;
+            bottom: 0.3em;
+            left: 0;
+            right: 0;
+            border-bottom: 1px dotted rgba(249, 245, 242, 0.18);
+        }
+        .project-arrow {
+            font-size: 0.88rem;
+            color: var(--lav);
+            min-width: 2rem;
+            text-align: right;
+            opacity: 0;
+            transform: translateX(-8px);
+            transition: opacity 0.18s, transform 0.18s;
+        }
+
+        .secondary-links {
+            padding: 2.2rem 0;
+            border-bottom: 1px solid var(--rule);
+            display: flex;
+            gap: 3rem;
+            align-items: center;
+        }
+        .secondary-link {
+            font-size: clamp(0.72rem, 1.2vw, 0.88rem);
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--cream);
+            text-decoration: none;
             opacity: 0.7;
+            transition: opacity 0.15s, color 0.15s;
+        }
+        .secondary-link:hover {
+            opacity: 1;
+            color: var(--lav);
         }
 
-        .node-tutorial-highlight {
-            stroke-dasharray: 6 6;
-            animation: tutorialPulse 1.8s ease-in-out infinite;
+        .map-callout {
+            padding: 2.5rem 0 3rem;
+            border-bottom: 1px solid var(--rule);
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            align-items: center;
+            gap: 2rem;
+        }
+        .map-label {
+            font-size: 0.6rem;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            color: var(--lav);
+            opacity: 0.65;
+        }
+        .map-heading {
+            font-size: clamp(1rem, 2vw, 1.4rem);
+            font-weight: 400;
+            letter-spacing: 0.03em;
+            opacity: 0.9;
         }
 
-        .tutorial-target circle {
-            stroke: #ffd66b;
-            stroke-width: 2.5;
+        footer {
+            padding: 1.8rem 0 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.6rem;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            opacity: 0.56;
         }
 
-        .tutorial-replay-btn {
-            position: fixed;
-            top: 16px;
-            right: 16px;
-            z-index: 1100;
-            background: #1c1c1d;
-            color: #c3f8cf;
-            border: 1px solid #c3f8cf;
-            border-radius: 6px;
-            padding: 8px 12px;
-            font-family: 'OCR_A', Arial, sans-serif;
-            font-size: 13px;
-            cursor: pointer;
+        @media (max-width: 700px) {
+            nav {
+                padding: 0.6rem 1.2rem;
+            }
+            .nav-logo-img {
+                height: 48px;
+            }
+            .nav-links {
+                gap: 1.25rem;
+            }
+            main {
+                padding: 0 1.2rem 3rem;
+            }
+            .map-callout {
+                grid-template-columns: 1fr;
+                justify-items: start;
+                gap: 1.2rem;
+            }
+            .secondary-links {
+                gap: 1.5rem;
+                flex-wrap: wrap;
+            }
+            footer {
+                flex-direction: column;
+                gap: 0.6rem;
+                text-align: center;
+            }
         }
 
-        .tutorial-replay-btn:hover {
-            background: #223729;
-        }
-
-        @keyframes tutorialPulse {
-            0% { opacity: 0.55; stroke-width: 2.5; }
-            50% { opacity: 1; stroke-width: 4; }
-            100% { opacity: 0.55; stroke-width: 2.5; }
+        @media (max-width: 560px) {
+            nav {
+                padding: 0.5rem 1rem;
+            }
+            .nav-logo-img {
+                height: 40px;
+            }
+            .nav-links {
+                gap: 1rem;
+            }
+            .nav-links a {
+                font-size: 0.64rem;
+                letter-spacing: 0.1em;
+            }
+            .hero {
+                padding: 5.5rem 1rem 3.5rem;
+            }
+            .hero-ctas {
+                flex-direction: column;
+                align-items: center;
+            }
+            .btn-primary, .btn-ghost, .map-link {
+                width: 100%;
+                max-width: 280px;
+                text-align: center;
+            }
+            .project-link {
+                flex-wrap: wrap;
+                row-gap: 0.5rem;
+            }
+            .project-leader {
+                display: none;
+            }
+            .project-arrow {
+                opacity: 0.45;
+                transform: none;
+                margin-left: auto;
+            }
+            .list-header {
+                flex-direction: column;
+                gap: 0.4rem;
+                align-items: flex-start;
+            }
+            .section-header {
+                flex-direction: column;
+                gap: 0.6rem;
+            }
+            .map-callout {
+                padding: 2rem 0;
+            }
+            .list-shell {
+                padding-top: 4rem;
+            }
         }
     </style>
-
+    <link rel="stylesheet" href="css/site-accessibility.css">
 </head>
 <body>
-    <!-- Welcome Popup for First-Time Visitors -->
-    <div class="welcome-popup-overlay" id="welcomePopup">
-        <div class="welcome-popup">
-            <button class="welcome-popup-close" id="closePopup" aria-label="Close welcome popup">×</button>
-            <h2>Welcome to Kiau Technologies!</h2>
-            <div class="welcome-popup-content">
-                <p>Welcome to our interactive node-based website! Explore our projects and initiatives by clicking on the nodes below. The nodes are also draggable.</p>
-                <svg class="welcome-popup-graphic" id="popupGraphic"></svg>
-                <p><strong>How it works:</strong> Each node represents a different project or area of focus. Click on any node to learn more about our sustainable technology solutions.</p>
-                <a href="about.html" class="welcome-popup-link">Learn More About Kiau</a>
+    <nav>
+        <a href="index.html" class="nav-logo" aria-label="Kiau Technologies — Home"><img src="images/KiauTechLogo.svg" alt="Kiau Technologies" class="nav-logo-img"></a>
+        <ul class="nav-links">
+            <li><a href="about.html">About</a></li>
+            <li><a href="contact.html">Contact</a></li>
+        </ul>
+    </nav>
+
+    <section class="hero" aria-label="Introduction">
+        <div class="hero-bg" aria-hidden="true"></div>
+        <div class="hero-content">
+            <p class="hero-eyebrow">Public Benefit Corporation</p>
+            <h1 class="hero-wordmark">Kiau Technologies</h1>
+            <p class="hero-kanji">木合 &nbsp;·&nbsp; Suiting Trees</p>
+            <div class="hero-divider" aria-hidden="true"></div>
+            <p class="hero-tagline">Technology designed in harmony with the natural world — tools that work with ecosystems, not against them.</p>
+            <div class="hero-ctas">
+                <a href="#projects" class="btn-primary">Explore Our Work</a>
+                <a href="about.html" class="btn-ghost">About Kiau</a>
             </div>
         </div>
-    </div>
-    
-    <div id="screenReaderMessage" class = "sr-only" role = "status" aria-live = "polite" role = "alert">
-        Welcome to the Kiau Technologies website, this text is only read by screen readers. Use tab to navigate through the options of the menu. Each item is a link to a website and will be read twice, please bare with us while we fix this problem. Press enter when you hear the desired option. 
-    </div>
-    <div class="fpsCounter" id="fpsCounter" aria-hidden="true">FPS: 0</div>
-    <div class="cookieNotice">We do not collect cookies or data about you on our website!</div>
-    <button id="tutorialReplayBtn" class="tutorial-replay-btn" type="button">Replay tutorial</button>
-    <svg id="mainGraph"></svg>
-      
-    <script src="fps.js"></script>
-    <script>
-        // Welcome Popup Logic
-        function initWelcomePopup() {
-            const popup = document.getElementById('welcomePopup');
-            const closeBtn = document.getElementById('closePopup');
-            // Always show the tutorial popup shortly after load
-            setTimeout(() => {
-                popup.classList.add('active');
-                createPopupVisualization();
-            }, 500);
+    </section>
 
-            // Close popup handler
-            function closePopup() {
-                popup.classList.remove('active');
-            }
+    <main>
+        <section class="list-shell" id="projects" aria-label="Projects and topics">
+            <div class="section-header">
+                <span class="section-label">Projects &amp; Ideas</span>
+                <h2 class="section-title">What we're working on</h2>
+            </div>
 
-            closeBtn.addEventListener('click', closePopup);
-            
-            // Close on overlay click
-            popup.addEventListener('click', function(e) {
-                if (e.target === popup) {
-                    closePopup();
-                }
-            });
+            <div class="list-header">
+                <span class="list-header-label">Projects &amp; Topics</span>
+                <span class="list-header-count">10 entries</span>
+            </div>
 
-            // Close on Escape key
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape' && popup.classList.contains('active')) {
-                    closePopup();
-                }
-            });
-        }
+            <section class="project-category" aria-label="Active projects">
+                <h3 class="project-category-title">Active Projects</h3>
+                <ol class="project-list">
+                    <li class="project-item">
+                        <a href="mesh-guide-v2.html" class="project-link">
+                            <span class="project-num">01</span>
+                            <span class="project-name">Mesh Networking</span>
+                            <span class="project-leader" aria-hidden="true"></span>
+                            <span class="project-arrow" aria-hidden="true">→</span>
+                        </a>
+                    </li>
+                    <li class="project-item">
+                        <a href="example.html" class="project-link">
+                            <span class="project-num">02</span>
+                            <span class="project-name">Soil Health Sensing</span>
+                            <span class="project-leader" aria-hidden="true"></span>
+                            <span class="project-arrow" aria-hidden="true">→</span>
+                        </a>
+                    </li>
+                    <li class="project-item">
+                        <a href="climate_battery3D.html" class="project-link">
+                            <span class="project-num">03</span>
+                            <span class="project-name">Greenhouse Twins</span>
+                            <span class="project-leader" aria-hidden="true"></span>
+                            <span class="project-arrow" aria-hidden="true">→</span>
+                        </a>
+                    </li>
+                </ol>
+            </section>
 
-        // Create a simple mini node visualization in the popup (just 2 nodes as example)
-        function createPopupVisualization() {
-            const svgElement = document.getElementById('popupGraphic');
-            if (!svgElement) return;
-            
-            // Clear any existing content
-            svgElement.innerHTML = '';
-            
-            const width = 400;
-            const height = 250;
+            <section class="project-category" aria-label="Ethics">
+                <h3 class="project-category-title">Ethics</h3>
+                <ol class="project-list">
+                    <li class="project-item">
+                        <a href="designThinking.html" class="project-link">
+                            <span class="project-num">04</span>
+                            <span class="project-name">Design Thinking</span>
+                            <span class="project-leader" aria-hidden="true"></span>
+                            <span class="project-arrow" aria-hidden="true">→</span>
+                        </a>
+                    </li>
+                    <li class="project-item">
+                        <a href="mottai-nai.html" class="project-link">
+                            <span class="project-num">05</span>
+                            <span class="project-name">Mottai-nai</span>
+                            <span class="project-leader" aria-hidden="true"></span>
+                            <span class="project-arrow" aria-hidden="true">→</span>
+                        </a>
+                    </li>
+                    <li class="project-item">
+                        <a href="pbcs.html" class="project-link">
+                            <span class="project-num">06</span>
+                            <span class="project-name">PBCs</span>
+                            <span class="project-leader" aria-hidden="true"></span>
+                            <span class="project-arrow" aria-hidden="true">→</span>
+                        </a>
+                    </li>
+                </ol>
+            </section>
 
-            // Set dimensions
-            svgElement.setAttribute('width', width);
-            svgElement.setAttribute('height', height);
-            svgElement.setAttribute('viewBox', `0 0 ${width} ${height}`);
+            <section class="project-category" aria-label="Past projects">
+                <h3 class="project-category-title">Past Projects</h3>
+                <ol class="project-list">
+                    <li class="project-item">
+                        <a href="Mycomaterials.html" class="project-link">
+                            <span class="project-num">07</span>
+                            <span class="project-name">Mycomaterials</span>
+                            <span class="project-leader" aria-hidden="true"></span>
+                            <span class="project-arrow" aria-hidden="true">→</span>
+                        </a>
+                    </li>
+                    <li class="project-item">
+                        <a href="smallScaleBiochar.html" class="project-link">
+                            <span class="project-num">08</span>
+                            <span class="project-name">Small-Scale Biochar</span>
+                            <span class="project-leader" aria-hidden="true"></span>
+                            <span class="project-arrow" aria-hidden="true">→</span>
+                        </a>
+                    </li>
+                    <li class="project-item">
+                        <a href="localPlasticRecycling.html" class="project-link">
+                            <span class="project-num">09</span>
+                            <span class="project-name">Local Plastic Recycling</span>
+                            <span class="project-leader" aria-hidden="true"></span>
+                            <span class="project-arrow" aria-hidden="true">→</span>
+                        </a>
+                    </li>
+                    <li class="project-item">
+                        <a href="e-waste.html" class="project-link">
+                            <span class="project-num">10</span>
+                            <span class="project-name">Upcycling</span>
+                            <span class="project-leader" aria-hidden="true"></span>
+                            <span class="project-arrow" aria-hidden="true">→</span>
+                        </a>
+                    </li>
+                </ol>
+            </section>
+        </section>
 
-            // Simple example with just 2 nodes
-            const node1X = width/2 - 60;
-            const node2X = width/2 + 60;
-            const nodeY = height/2;
+        <div class="secondary-links">
+            <a href="about.html" class="secondary-link">About</a>
+            <a href="contact.html" class="secondary-link">Contact</a>
+            <a href="pbcs.html" class="secondary-link">Public Benefit Corporation</a>
+        </div>
 
-            // Create SVG namespace
-            const svgNS = "http://www.w3.org/2000/svg";
+        <section class="map-callout" aria-label="Knowledge map">
+            <span class="map-label">How it all connects</span>
+            <h2 class="map-heading">See the full knowledge map of projects, ideas, and relationships.</h2>
+            <a href="knowledge-map.html" class="map-link">Open knowledge map</a>
+        </section>
 
-            // Draw connecting line
-            const line = document.createElementNS(svgNS, 'line');
-            line.setAttribute('x1', node1X);
-            line.setAttribute('y1', nodeY);
-            line.setAttribute('x2', node2X);
-            line.setAttribute('y2', nodeY);
-            line.setAttribute('stroke', '#223729');
-            line.setAttribute('stroke-width', '3');
-            line.setAttribute('opacity', '0.6');
-            svgElement.appendChild(line);
-
-            // Draw first node group
-            const node1Group = document.createElementNS(svgNS, 'g');
-            node1Group.setAttribute('transform', `translate(${node1X},${nodeY})`);
-
-            const circle1 = document.createElementNS(svgNS, 'circle');
-            circle1.setAttribute('r', '12');
-            circle1.setAttribute('fill', '#223729');
-            circle1.setAttribute('stroke', '#c7cabd');
-            circle1.setAttribute('stroke-width', '3');
-            node1Group.appendChild(circle1);
-
-            const text1 = document.createElementNS(svgNS, 'text');
-            text1.setAttribute('dy', '30');
-            text1.setAttribute('text-anchor', 'middle');
-            text1.setAttribute('fill', '#1c1c1d');
-            text1.setAttribute('font-size', '13px');
-            text1.setAttribute('font-family', "'OCR_A', Arial, sans-serif");
-            text1.textContent = 'Kiau Tech';
-            node1Group.appendChild(text1);
-
-            svgElement.appendChild(node1Group);
-
-            // Draw second node group
-            const node2Group = document.createElementNS(svgNS, 'g');
-            node2Group.setAttribute('transform', `translate(${node2X},${nodeY})`);
-
-            const circle2 = document.createElementNS(svgNS, 'circle');
-            circle2.setAttribute('r', '12');
-            circle2.setAttribute('fill', '#223729');
-            circle2.setAttribute('stroke', '#c7cabd');
-            circle2.setAttribute('stroke-width', '3');
-            node2Group.appendChild(circle2);
-
-            const text2 = document.createElementNS(svgNS, 'text');
-            text2.setAttribute('dy', '30');
-            text2.setAttribute('text-anchor', 'middle');
-            text2.setAttribute('fill', '#1c1c1d');
-            text2.setAttribute('font-size', '13px');
-            text2.setAttribute('font-family', "'OCR_A', Arial, sans-serif");
-            text2.textContent = 'Projects';
-            node2Group.appendChild(text2);
-
-            svgElement.appendChild(node2Group);
-        }
-
-        function loadGraph() {
-            const scriptElement = document.createElement('script');
-            scriptElement.src = "nodes.js";
-            document.body.appendChild(scriptElement);
-        }
-
-
-        const tutorialOptions = {
-            nodeId: 'Kiau Technologies',
-            title: 'This is a node.',
-            body: 'Each node represents an important topic to Kiau Tech. Click on a node to explore more or try dragging it around!',
-            nextLabel: 'Next',
-            linkTitle: 'This is a link.',
-            linkBody: 'Links signify the connection between different important topics.',
-            pulseTitle: 'These are pulses.',
-            pulseBody: 'Pulses indicate the "activity" flow from our main focus (Kiau Technologies) to other areas.',
-            finishLabel: 'Finish'
-        };
-
-        let graphReady = false;
-        window.addEventListener('kiauGraphReady', function() {
-            graphReady = true;
-        }, { once: true });
-
-        function startTutorialWithOptions() {
-            if (graphReady && window.startNodeTutorial) {
-                window.startNodeTutorial(tutorialOptions);
-            } else {
-                window.addEventListener('kiauGraphReady', function() {
-                    if (window.startNodeTutorial) {
-                        window.startNodeTutorial(tutorialOptions);
-                    }
-                }, { once: true });
-            }
-        }
-
-        function initNodeTutorial() {
-            const TEN_MIN_MS = 10 * 60 * 1000;
-            const key = 'kiauTutorialLast';
-            let shouldShow = true;
-            try {
-                const last = parseInt(localStorage.getItem(key), 10);
-                if (last && (Date.now() - last) < TEN_MIN_MS) {
-                    shouldShow = false;
-                }
-            } catch (e) {
-                shouldShow = true;
-            }
-
-            if (!shouldShow) return;
-
-            window.addEventListener('kiauGraphReady', function() {
-                startTutorialWithOptions();
-            }, { once: true });
-        }
-
-        function resizeSVG() {
-            const svg = document.querySelector('#mainGraph');
-            if (!svg) return;
-            
-            const width = window.innerWidth;
-            const height = window.innerHeight;
-    
-            // Update SVG size
-            svg.setAttribute('width', width);
-            svg.setAttribute('height', height);
-            svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
-
-            // Adjust force simulation (distance and center)
-            if (window.simulation) {
-                const linkDistance = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--link-distance'));
-                window.simulation
-                    .force("center", d3.forceCenter(width / 2, height / 2))
-                    .force("link", d3.forceLink().distance(linkDistance))
-                    .alpha(0.3)
-                    .restart();
-            }
-        }
-
-        // Apply mode on page load
-        window.onload = function() {
-            loadGraph();
-            resizeSVG();
-            initNodeTutorial();
-
-            const replayBtn = document.getElementById('tutorialReplayBtn');
-            if (replayBtn) {
-                replayBtn.addEventListener('click', function() {
-                    startTutorialWithOptions();
-                });
-            }
-        };
-
-        // Debounced resize handler
-        let resizeTimer;
-        window.onresize = function() {
-            clearTimeout(resizeTimer);
-            resizeTimer = setTimeout(resizeSVG, 150);
-        }
-
-    </script>
-    
+        <footer>
+            <span>Kiau Technologies PBC</span>
+            <span>Technology designed in harmony with the natural world</span>
+            <span>2026</span>
+        </footer>
+    </main>
+    <script src="js/site-accessibility.js" defer></script>
 </body>
 </html>

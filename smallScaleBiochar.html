@@ -1,178 +1,516 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Biochar Reactor Scroll</title>
-  <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
-  <style>
-    @font-face {
-      font-family: 'OCR_A';
-      src: url('fonts/OCR-A.ttf') format('truetype');
-    }
-
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: 'OCR_A', monospace;
-      background: #000;
-      overflow-x: hidden;
-    }
-
-    h1 {
-      font-family: 'OCR_A', monospace;
-      color: #000;
-      text-align: left;
-      margin: 1rem;
-      font-size: 2rem;
-      z-index: 10;
-      position: fixed;
-      top: 10px;
-      left: 10px;
-    }
-
-    #zoom-img {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: url('./images/BiocharRigV1.JPG') center center no-repeat;
-      background-size: cover;
-      transform: scale(1);
-      transition: transform 0.5s ease;
-      z-index: 1;
-    }
-
-    #node-label {
-      position: fixed;
-      z-index: 2;
-      display: none;
-      transition: opacity 0.3s ease;
-      opacity: 0;
-    }
-
-    .node-dot {
-      width: 10px;
-      height: 10px;
-      background: #000;
-      border-radius: 50%;
-      border: 1.5px solid #fff;
-      position: absolute;
-      transform: translate(-50%, -50%);
-    }
-
-    .node-text {
-      background: rgba(0,0,0,0.8);
-      color: #fff;
-      font-family: 'OCR_A', monospace;
-      padding: 8px 16px;
-      border-radius: 8px;
-      position: absolute;
-      left: 20px;
-      top: -10px;
-      white-space: nowrap;
-      font-size: 1rem;
-    }
-
-    #second-img {
-      position: relative;
-      width: 100vw;
-      height: 100vh;
-      background: url('./images/BiocharRigV2.jpg') center center no-repeat;
-      background-size: cover;
-      z-index: 0;
-      opacity: 0;
-      transition: opacity 0.8s ease;
-    }
-    #second-img.visible {
-      opacity: 1;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Small-Scale Biochar Reactors | Kiau Technologies</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/kiau-inner.css">
+  <link rel="stylesheet" href="css/site-accessibility.css">
 </head>
+<!-- OLD-CSS
+      --bg-deep:    #051f18;
+      --bg-mid:     #07291f;
+      --bg-card:    #0a3328;
+      --node:       #3effa8;
+      --node-dim:   #1a7a52;
+      --accent:     #da99d6;
+      --warn:       #ffb347;
+      --text:       #c8ffe8;
+      --text-dim:   #7bbfa0;
+      --text-faint: #3d7a60;
+      --border:     rgba(62,255,168,0.13);
+      --mono:       'JetBrains Mono', monospace;
+      --sans:       'Space Grotesk', sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg-deep);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 16px;
+      line-height: 1.7;
+    }
+
+    /* BG CANVAS */
+    #bg-canvas {
+      position: fixed; inset: 0;
+      pointer-events: none; z-index: 0; opacity: 0.35;
+    }
+
+    /* NAV */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.9rem 2.5rem;
+      background: rgba(5,31,24,0.82);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-back {
+      font-family: var(--mono); font-size: 0.78rem; font-weight: 600;
+      color: var(--node); text-decoration: none; letter-spacing: 0.05em;
+      display: flex; align-items: center; gap: 0.4rem; transition: opacity 0.2s;
+    }
+    .nav-back:hover { opacity: 0.7; }
+    .nav-title {
+      font-family: var(--mono); font-size: 0.82rem; font-weight: 700;
+      color: var(--text); letter-spacing: 0.08em; text-transform: uppercase;
+    }
+    .nav-links { display: flex; gap: 1.8rem; list-style: none; }
+    .nav-links a {
+      font-family: var(--mono); font-size: 0.75rem; font-weight: 600;
+      color: var(--text-dim); text-decoration: none; letter-spacing: 0.05em;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--node); }
+
+    /* LAYOUT */
+    .page-wrap {
+      position: relative; z-index: 1;
+      max-width: 820px;
+      margin: 0 auto;
+      padding: 7rem 2rem 5rem;
+    }
+
+    /* TOC */
+    .toc {
+      position: fixed;
+      left: max(1rem, calc(50% - 600px));
+      top: 50%;
+      transform: translateY(-50%);
+      width: 160px;
+      z-index: 50;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-family: var(--mono);
+    }
+    .toc-label {
+      font-size: 0.65rem; font-weight: 700; color: var(--text-faint);
+      letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 0.6rem;
+    }
+    .toc a {
+      display: block; font-size: 0.72rem; color: var(--text-dim);
+      text-decoration: none; padding: 5px 10px;
+      border-left: 1px solid transparent;
+      transition: color 0.2s, border-left-color 0.2s;
+      line-height: 1.5;
+    }
+    .toc a:hover,
+    .toc a.active { color: var(--node); border-left-color: var(--node); }
+
+    /* HERO */
+    .hero { margin-bottom: 3.5rem; }
+    .hero-tag {
+      display: inline-flex; align-items: center; gap: 0.55rem;
+      font-family: var(--mono); font-size: 0.72rem; font-weight: 700;
+      color: var(--node); letter-spacing: 0.12em; text-transform: uppercase;
+      margin-bottom: 1.2rem;
+    }
+    .hero-tag::before {
+      content: ''; width: 7px; height: 7px; border-radius: 50%;
+      background: var(--node); box-shadow: 0 0 8px var(--node);
+      animation: pulse-dot 2.2s ease-in-out infinite;
+    }
+    @keyframes pulse-dot {
+      0%,100% { opacity: 1; transform: scale(1); }
+      50%      { opacity: 0.4; transform: scale(0.7); }
+    }
+    .hero h1 {
+      font-family: var(--mono); font-size: clamp(1.8rem, 4.5vw, 2.6rem);
+      font-weight: 700; color: var(--text); line-height: 1.15;
+      letter-spacing: -0.02em; margin-bottom: 1rem;
+    }
+    .hero h1 span { color: var(--node); }
+    .hero-lead {
+      font-size: 1.05rem; color: var(--text-dim);
+      max-width: 620px; line-height: 1.75;
+    }
+
+    /* SECTION */
+    .section { margin-bottom: 4rem; scroll-margin-top: 6rem; }
+    .section-tag {
+      display: inline-flex; align-items: center; gap: 0.6rem;
+      font-family: var(--mono); font-size: 0.68rem; font-weight: 700;
+      color: var(--text-faint); letter-spacing: 0.12em; text-transform: uppercase;
+      margin-bottom: 0.9rem;
+    }
+    .section-tag span {
+      display: inline-block; width: 22px; height: 22px; border-radius: 4px;
+      background: var(--bg-card); border: 1px solid var(--border);
+      text-align: center; line-height: 22px; color: var(--node);
+      font-size: 0.7rem; font-weight: 700;
+    }
+    .section h2 {
+      font-family: var(--mono); font-size: 1.45rem; font-weight: 700;
+      color: var(--text); margin-bottom: 1.1rem; line-height: 1.3;
+    }
+    .section p { color: var(--text-dim); margin-bottom: 1rem; }
+
+    /* DETAIL BLOCKS */
+    .detail-block {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--node);
+      border-radius: 6px;
+      padding: 1.1rem 1.3rem;
+      margin-bottom: 1rem;
+      font-size: 0.92rem;
+    }
+    .detail-block.accent { border-left-color: var(--accent); }
+    .detail-block.warn   { border-left-color: var(--warn); }
+    .detail-block strong { color: var(--text); display: block; margin-bottom: 0.3rem; font-family: var(--mono); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em; }
+    .detail-block p { margin: 0; color: var(--text-dim); }
+
+    /* PROCESS FLOW */
+    .process-flow {
+      display: flex; flex-wrap: wrap; gap: 0;
+      margin: 1.5rem 0;
+    }
+    .pf-step {
+      flex: 1; min-width: 130px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      padding: 1.1rem 1rem;
+      position: relative;
+      text-align: center;
+    }
+    .pf-step:not(:last-child)::after {
+      content: '›';
+      position: absolute; right: -12px; top: 50%; transform: translateY(-50%);
+      color: var(--node); font-size: 1.4rem; font-weight: 700; z-index: 1;
+    }
+    .pf-step:first-child { border-radius: 6px 0 0 6px; }
+    .pf-step:last-child  { border-radius: 0 6px 6px 0; }
+    .pf-num {
+      font-family: var(--mono); font-size: 0.65rem; font-weight: 700;
+      color: var(--node); letter-spacing: 0.1em; margin-bottom: 0.4rem;
+    }
+    .pf-label {
+      font-family: var(--mono); font-size: 0.78rem; font-weight: 700;
+      color: var(--text); margin-bottom: 0.3rem;
+    }
+    .pf-desc { font-size: 0.78rem; color: var(--text-dim); line-height: 1.5; }
+
+    /* RIG PHOTO */
+    .rig-figure {
+      margin: 1.5rem 0;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .rig-figure img {
+      width: 100%; display: block;
+      object-fit: cover; max-height: 420px;
+    }
+    .rig-caption {
+      background: var(--bg-card);
+      padding: 0.7rem 1.1rem;
+      font-family: var(--mono); font-size: 0.72rem;
+      color: var(--text-dim);
+    }
+    .rig-photos {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
+      margin: 1.5rem 0;
+    }
+    @media (max-width: 640px) { .rig-photos { grid-template-columns: 1fr; } }
+
+    /* COMPONENT GRID */
+    .component-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 0.75rem;
+      margin: 1.5rem 0;
+    }
+    .component-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.85rem 1rem;
+      display: flex; align-items: flex-start; gap: 0.7rem;
+    }
+    .comp-num {
+      font-family: var(--mono); font-size: 0.7rem; font-weight: 700;
+      color: var(--node); background: rgba(62,255,168,0.08);
+      border: 1px solid rgba(62,255,168,0.2);
+      border-radius: 4px; padding: 0.2rem 0.45rem;
+      flex-shrink: 0; line-height: 1;
+      margin-top: 0.15rem;
+    }
+    .comp-body { min-width: 0; }
+    .comp-name {
+      font-family: var(--mono); font-size: 0.8rem; font-weight: 700;
+      color: var(--text); margin-bottom: 0.25rem;
+    }
+    .comp-desc { font-size: 0.78rem; color: var(--text-dim); line-height: 1.5; }
+
+    /* FEED GRID */
+    .feed-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 0.75rem;
+      margin: 1.2rem 0;
+    }
+    .feed-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.9rem 1rem;
+    }
+    .feed-name {
+      font-family: var(--mono); font-size: 0.78rem; font-weight: 700;
+      color: var(--text); margin-bottom: 0.25rem;
+    }
+    .feed-note { font-size: 0.78rem; color: var(--text-dim); line-height: 1.5; }
+    .badge {
+      display: inline-block;
+      font-family: var(--mono); font-size: 0.62rem; font-weight: 700;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      border-radius: 3px; padding: 0.15rem 0.45rem; margin-bottom: 0.45rem;
+    }
+    .badge-good { background: rgba(62,255,168,0.12); color: var(--node); border: 1px solid rgba(62,255,168,0.25); }
+    .badge-ok   { background: rgba(255,179,71,0.1);  color: var(--warn); border: 1px solid rgba(255,179,71,0.25); }
+
+    /* SPECS TABLE */
+    .specs-table {
+      width: 100%; border-collapse: collapse;
+      font-size: 0.88rem; margin: 1.2rem 0;
+    }
+    .specs-table th {
+      font-family: var(--mono); font-size: 0.7rem; font-weight: 700;
+      color: var(--text-faint); letter-spacing: 0.1em; text-transform: uppercase;
+      text-align: left; padding: 0.55rem 0.9rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .specs-table td {
+      padding: 0.6rem 0.9rem;
+      border-bottom: 1px solid rgba(62,255,168,0.06);
+      color: var(--text-dim); vertical-align: top;
+    }
+    .specs-table td:first-child {
+      color: var(--text); font-weight: 600;
+      font-family: var(--mono); font-size: 0.8rem; white-space: nowrap;
+    }
+    .specs-table tr:last-child td { border-bottom: none; }
+
+    /* CTA */
+    .cta-block {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-top: 3px solid var(--node);
+      border-radius: 8px;
+      padding: 1.8rem 2rem;
+      margin-top: 3rem;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 1rem;
+    }
+    .cta-block p { color: var(--text-dim); font-size: 0.95rem; margin: 0; max-width: 480px; }
+    .cta-block a {
+      font-family: var(--mono); font-size: 0.78rem; font-weight: 700;
+      color: var(--bg-deep); background: var(--node);
+      text-decoration: none; padding: 0.65rem 1.4rem;
+      border-radius: 5px; letter-spacing: 0.06em; white-space: nowrap;
+      transition: opacity 0.2s;
+    }
+    .cta-block a:hover { opacity: 0.85; }
+
+    @media (max-width: 1249px) {
+      .toc { display: none; }
+    }
+    @media (max-width: 600px) {
+      nav { padding: 0.8rem 1rem; }
+      .nav-title { display: none; }
+      .page-wrap { padding: 6rem 1rem 4rem; }
+      .process-flow { flex-direction: column; }
+      .pf-step { border-radius: 6px !important; }
+      .pf-step:not(:last-child)::after { content: none; }
+    }
+ OLD-CSS -->
 <body>
-  <h1>Small-Scale Biochar Reactors</h1>
-  <div id="zoom-img"></div>
-  <div id="node-label">
-    <div class="node-dot"></div>
-    <div class="node-text"></div>
-  </div>
-  <div id="second-img"></div>
 
-  <script>
-    const zoomImg = document.getElementById('zoom-img');
-    const nodeLabel = document.getElementById('node-label');
-    const nodeText = nodeLabel.querySelector('.node-text');
-    const secondImg = document.getElementById('second-img');
+    <!-- ── NAV ──────────────────────────────────── -->
+    <nav class="kiau-nav">
+        <a href="index.html" class="kiau-nav-logo" aria-label="Kiau Technologies — Home"><img src="images/KiauTechLogo.svg" alt="Kiau Technologies" class="nav-logo-img"></a>
+        <ul class="kiau-nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="about.html">About</a></li>
+            <li><a href="contact.html">Contact</a></li>
+        </ul>
+    </nav>
 
-    const nodes = [
-      { x: 45, y: 75, label: "Fuel line", zoom: 1.8, cx: 45, cy: 82 },
-      { x: 48, y: 65, label: "Pyrolysis Chamber", zoom: 1.5, cx: 48, cy: 65 },
-      { x: 60, y: 35, label: "Insulation", zoom: 1.4, cx: 50, cy: 35 },
-      { x: 68, y: 60, label: "Pressure Gauge", zoom: 1.8, cx: 51, cy: 60 },
-      { x: 54.5, y: 70, label: "Tar Trap", zoom: 1.8, cx: 55.5, cy: 70 },
-      { x: 57, y: 53, label: "Valve", zoom: 1.4, cx: 65, cy: 58 },
-      { x: 58, y: 67, label: "Recirculate Syn-gas", zoom: 1.6, cx: 63.5, cy: 67 },
-      { x: 53, y: 42, label: "Exhaust", zoom: 1.2, cx: 64, cy: 40 }
-    ];
+    <!-- ── PAGE HERO ─────────────────────────────── -->
+    <header class="page-hero">
+        <span class="page-hero-label">Open-Source Hardware</span>
+        <h1 class="page-hero-title">Small-Scale Biochar Reactors</h1>
+        <p class="page-hero-sub">Pyrolysis at the community scale — converting agricultural waste into stable carbon that improves soil, sequesters carbon, and closes the loop on biomass that would otherwise burn or rot.</p>
+    </header>
 
-    // Dynamic page height based on nodes
-    const sectionHeight = window.innerHeight * 0.6;
-    document.body.style.minHeight = `${nodes.length * sectionHeight + window.innerHeight}px`;
+    <!-- ── CONTENT ───────────────────────────────── -->
+    <main class="page-content">
 
-    let lastSection = -1;
-    let typingInterval = null;
+        <section class="page-section">
+            <div class="section-header-row">
+                <span class="section-eyebrow">01</span>
+                <h2 class="section-heading">What is biochar?</h2>
+            </div>
+            <div class="prose">
+                <p>Biochar is charcoal produced by heating organic material — wood chips, husks, straw, manure — in a low-oxygen environment. The absence of oxygen prevents combustion and instead drives <em>pyrolysis</em>: thermal decomposition that locks carbon into a stable, porous structure that can persist in soil for centuries.</p>
+                <p>Unlike burning, pyrolysis captures most of the carbon that would otherwise return to the atmosphere as CO&#8322;. The char that remains improves water retention, cation exchange capacity, and microbial habitat when applied to soil.</p>
+                <p><strong>Why small-scale?</strong> Industrial biochar kilns require capital, logistics, and scale that most farms and communities cannot access. Small reactors can be built from steel pipe and repurposed hardware, operated on available biomass waste, and managed by one or two people — making the practice accessible where it is most needed.</p>
+            </div>
+        </section>
 
-    function typeText(text, element, speed = 60) {
-      if (typingInterval) clearInterval(typingInterval);
-      element.textContent = '';
-      let index = 0;
-      typingInterval = setInterval(() => {
-        if (index < text.length) {
-          element.textContent += text.charAt(index);
-          index++;
-        } else {
-          clearInterval(typingInterval);
-          typingInterval = null;
-        }
-      }, speed);
-    }
+        <section class="page-section">
+            <div class="section-header-row">
+                <span class="section-eyebrow">02</span>
+                <h2 class="section-heading">Pyrolysis Process</h2>
+            </div>
+            <div class="prose">
+                <p>The reactor runs a continuous-feed or batch pyrolysis cycle. Biomass enters the chamber, temperature climbs past 300&#176;C, volatile gases are driven off, and stable char remains. Syn-gas produced during pyrolysis can be recirculated to sustain the reaction with little or no external fuel input.</p>
+                <p><strong>Safety note:</strong> Syn-gas contains CO and flammable hydrocarbons. Operate reactors in well-ventilated outdoor conditions only. Never seal the exhaust without a pressure relief path. Monitor with a pressure gauge during the full run.</p>
+            </div>
+            <div class="step-list">
+                <div class="step-item">
+                    <span class="step-num">1</span>
+                    <div class="step-body">
+                        <strong>Feed prep</strong>
+                        <p>Size biomass to &lt;5 cm. Reduce moisture below 20% for efficient burn.</p>
+                    </div>
+                </div>
+                <div class="step-item">
+                    <span class="step-num">2</span>
+                    <div class="step-body">
+                        <strong>Pyrolysis</strong>
+                        <p>Chamber reaches 300&#8211;600&#176;C in low-oxygen atmosphere. Organics decompose to char + volatiles.</p>
+                    </div>
+                </div>
+                <div class="step-item">
+                    <span class="step-num">3</span>
+                    <div class="step-body">
+                        <strong>Gas handling</strong>
+                        <p>Syn-gas passes through tar trap, then recirculated as fuel or vented via exhaust.</p>
+                    </div>
+                </div>
+                <div class="step-item">
+                    <span class="step-num">4</span>
+                    <div class="step-body">
+                        <strong>Char out</strong>
+                        <p>Quench with water or soil to stop oxidation. Inoculate and apply, or store sealed.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-    function showSection(section) {
-      if (nodes[section]) {
-        const { x, y, cx, cy, zoom, label } = nodes[section];
-        nodeLabel.style.display = 'block';
-        nodeLabel.style.left = `${x}%`;
-        nodeLabel.style.top = `${y}%`;
-        nodeLabel.style.opacity = 1;
+        <section class="page-section">
+            <div class="section-header-row">
+                <span class="section-eyebrow">03</span>
+                <h2 class="section-heading">Reactor V1 — Design &amp; Components</h2>
+            </div>
+            <div class="prose">
+                <p>The V1 prototype was built from standard steel pipe, fittings, and salvaged hardware. The rig is designed to be replicable without CNC or specialist tooling.</p>
+                <div style="display:flex;gap:1rem;flex-wrap:wrap;margin:1rem 0;">
+                    <figure style="flex:1;min-width:240px;margin:0;">
+                        <img src="images/BiocharRigV1.JPG" alt="Biochar reactor V1 assembled" loading="lazy" style="width:100%;border-radius:8px;">
+                        <figcaption style="font-size:0.85rem;opacity:0.7;margin-top:0.4rem;">V1 reactor — full assembly</figcaption>
+                    </figure>
+                    <figure style="flex:1;min-width:240px;margin:0;">
+                        <img src="images/BiocharRigV2.JPG" alt="Biochar reactor V2 detail" loading="lazy" style="width:100%;border-radius:8px;">
+                        <figcaption style="font-size:0.85rem;opacity:0.7;margin-top:0.4rem;">V2 reactor — detail view</figcaption>
+                    </figure>
+                </div>
+            </div>
+            <div class="kiau-grid">
+                <div class="kiau-card"><span class="kiau-card-num">01</span><span class="kiau-card-title">Pyrolysis Chamber</span><p class="kiau-card-body">Sealed steel vessel where biomass undergoes thermal decomposition under restricted oxygen.</p></div>
+                <div class="kiau-card"><span class="kiau-card-num">02</span><span class="kiau-card-title">Fuel Line</span><p class="kiau-card-body">Delivers initial combustion fuel to bring the chamber to pyrolysis temperature.</p></div>
+                <div class="kiau-card"><span class="kiau-card-num">03</span><span class="kiau-card-title">Insulation</span><p class="kiau-card-body">Wraps the chamber to maintain temperature and reduce thermal losses during the run.</p></div>
+                <div class="kiau-card"><span class="kiau-card-num">04</span><span class="kiau-card-title">Pressure Gauge</span><p class="kiau-card-body">Monitors internal pressure buildup. Critical safety instrument — never run without it.</p></div>
+                <div class="kiau-card"><span class="kiau-card-num">05</span><span class="kiau-card-title">Tar Trap</span><p class="kiau-card-body">Condenses heavy tars and liquids from the syn-gas stream before recirculation or exhaust.</p></div>
+                <div class="kiau-card"><span class="kiau-card-num">06</span><span class="kiau-card-title">Valve</span><p class="kiau-card-body">Controls gas flow between the chamber, tar trap, recirculation loop, and exhaust path.</p></div>
+                <div class="kiau-card"><span class="kiau-card-num">07</span><span class="kiau-card-title">Recirculate Syn-gas</span><p class="kiau-card-body">Returns cleaned syn-gas to the burner, sustaining pyrolysis without additional fuel input.</p></div>
+                <div class="kiau-card"><span class="kiau-card-num">08</span><span class="kiau-card-title">Exhaust</span><p class="kiau-card-body">Vents remaining combustion gases away from the operator. Keep clear and unobstructed.</p></div>
+            </div>
+        </section>
 
-        typeText(label, nodeText);
+        <section class="page-section">
+            <div class="section-header-row">
+                <span class="section-eyebrow">04</span>
+                <h2 class="section-heading">Feed Materials</h2>
+            </div>
+            <div class="prose">
+                <p>Almost any dry lignocellulosic biomass can be converted. Moisture content and particle size are the main constraints — wetter or larger feed requires longer residence time and more input energy.</p>
+            </div>
+            <div class="kiau-grid">
+                <div class="kiau-card"><span class="kiau-card-num">Ideal</span><span class="kiau-card-title">Hardwood chips</span><p class="kiau-card-body">High carbon content, consistent density, low ash. Best char yield.</p></div>
+                <div class="kiau-card"><span class="kiau-card-num">Ideal</span><span class="kiau-card-title">Rice husks</span><p class="kiau-card-body">Abundant agricultural waste. High silica content increases mineral surface area in the char.</p></div>
+                <div class="kiau-card"><span class="kiau-card-num">Ideal</span><span class="kiau-card-title">Corn stover</span><p class="kiau-card-body">Widely available, burns cleanly. Shred or chip to &lt;5 cm before loading.</p></div>
+                <div class="kiau-card"><span class="kiau-card-num">Usable</span><span class="kiau-card-title">Green wood</span><p class="kiau-card-body">Works but requires pre-drying. Moisture above 30% stalls pyrolysis and reduces char yield.</p></div>
+                <div class="kiau-card"><span class="kiau-card-num">Usable</span><span class="kiau-card-title">Bamboo</span><p class="kiau-card-body">Fast-growing, good char quality. Split culms first to prevent steam pressure buildup.</p></div>
+                <div class="kiau-card"><span class="kiau-card-num">Usable</span><span class="kiau-card-title">Manure (dry)</span><p class="kiau-card-body">Higher nutrient content in char. Dry thoroughly before use — wet manure produces excess smoke.</p></div>
+            </div>
+        </section>
 
-        const tx = 50 - cx;
-        const ty = 50 - cy;
-        zoomImg.style.transform = `scale(${zoom}) translate(${tx / zoom}%, ${ty / zoom}%)`;
+        <section class="page-section">
+            <div class="section-header-row">
+                <span class="section-eyebrow">05</span>
+                <h2 class="section-heading">Output &amp; Specifications</h2>
+            </div>
+            <div class="prose">
+                <p>Char quality depends on feedstock type, peak temperature, and residence time. Higher temperatures (500&#8211;600&#176;C) produce more stable, aromatic carbon structures with greater longevity in soil. Lower temperatures retain more volatile content and nutrients.</p>
+                <p><strong>Inoculation matters:</strong> Raw char is hydrophobic and can temporarily reduce soil water availability if applied directly. Soak in compost tea, liquid fertiliser, or manure slurry for 24&#8211;48 hours before application to pre-charge the pore structure with biology and nutrients.</p>
+            </div>
+            <div style="margin-top:2rem;border:1px solid var(--rule);overflow-x:auto;">
+                <table style="width:100%;border-collapse:collapse;font-size:0.9rem;">
+                    <thead>
+                        <tr style="border-bottom:1px solid rgba(249,245,242,0.15);">
+                            <th style="text-align:left;padding:0.6rem 0.8rem;opacity:0.6;font-weight:400;">Parameter</th>
+                            <th style="text-align:left;padding:0.6rem 0.8rem;opacity:0.6;font-weight:400;">V1 Reactor</th>
+                            <th style="text-align:left;padding:0.6rem 0.8rem;opacity:0.6;font-weight:400;">Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr style="border-bottom:1px solid rgba(249,245,242,0.07);"><td style="padding:0.6rem 0.8rem;">Peak temperature</td><td style="padding:0.6rem 0.8rem;">300&#8211;600&#176;C</td><td style="padding:0.6rem 0.8rem;opacity:0.7;">Higher end produces more stable char structure</td></tr>
+                        <tr style="border-bottom:1px solid rgba(249,245,242,0.07);"><td style="padding:0.6rem 0.8rem;">Char yield</td><td style="padding:0.6rem 0.8rem;">20&#8211;35% by mass</td><td style="padding:0.6rem 0.8rem;opacity:0.7;">Varies by feedstock moisture and type</td></tr>
+                        <tr style="border-bottom:1px solid rgba(249,245,242,0.07);"><td style="padding:0.6rem 0.8rem;">Carbon stability</td><td style="padding:0.6rem 0.8rem;">&gt;100 years</td><td style="padding:0.6rem 0.8rem;opacity:0.7;">Aromatic carbon resists microbial decomposition</td></tr>
+                        <tr style="border-bottom:1px solid rgba(249,245,242,0.07);"><td style="padding:0.6rem 0.8rem;">pH (char)</td><td style="padding:0.6rem 0.8rem;">7&#8211;10</td><td style="padding:0.6rem 0.8rem;opacity:0.7;">Alkalinity benefits acidic soils; test before heavy application</td></tr>
+                        <tr style="border-bottom:1px solid rgba(249,245,242,0.07);"><td style="padding:0.6rem 0.8rem;">Application rate</td><td style="padding:0.6rem 0.8rem;">0.5&#8211;5 t/ha</td><td style="padding:0.6rem 0.8rem;opacity:0.7;">Start low; inoculate with compost tea before applying</td></tr>
+                        <tr style="border-bottom:1px solid rgba(249,245,242,0.07);"><td style="padding:0.6rem 0.8rem;">Syn-gas output</td><td style="padding:0.6rem 0.8rem;">CO, H&#8322;, CH&#8324;</td><td style="padding:0.6rem 0.8rem;opacity:0.7;">Recirculation reduces net fuel demand by 40&#8211;60%</td></tr>
+                        <tr style="border-bottom:1px solid rgba(249,245,242,0.07);"><td style="padding:0.6rem 0.8rem;">Batch cycle time</td><td style="padding:0.6rem 0.8rem;">2&#8211;4 hours</td><td style="padding:0.6rem 0.8rem;opacity:0.7;">Includes heat-up, hold, and quench phases</td></tr>
+                        <tr><td style="padding:0.6rem 0.8rem;">Build cost (est.)</td><td style="padding:0.6rem 0.8rem;">$300&#8211;800 USD</td><td style="padding:0.6rem 0.8rem;opacity:0.7;">Depends on local material costs and salvaged hardware</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
 
-        secondImg.classList.remove('visible');
-      } else {
-        nodeLabel.style.opacity = 0;
-        zoomImg.style.transform = 'scale(1) translate(0,0)';
-        secondImg.classList.add('visible');
-      }
-    }
+        <section class="page-section">
+            <div class="section-header-row">
+                <span class="section-eyebrow">06</span>
+                <h2 class="section-heading">Build Your Own</h2>
+            </div>
+            <div class="prose">
+                <p>The V1 design uses off-the-shelf steel pipe fittings available at most hardware suppliers. No welding certification is required for the basic build, though welded joints significantly improve longevity and safety over threaded connections under thermal cycling.</p>
+                <p><strong>Materials list (V1 core):</strong> Schedule 40 steel pipe (6&#8243; diameter, ~60 cm), reducing couplings, gate valve, pressure relief valve, pressure gauge (0&#8211;15 psi), weld-on end cap, steel wool or ceramic insulation wrap, stainless hose barbs for tar trap inlet/outlet, 5-gallon steel bucket with lid (tar trap body).</p>
+                <p><strong>Documentation &amp; community:</strong> Design files, build notes, and iteration history are maintained as part of the Kiau Technologies open-hardware project. Reach out via the contact page to access the latest files or discuss adaptations for your local context.</p>
+                <p>Interested in building a reactor, sourcing char for your soil programme, or contributing to the next version? <a href="contact.html">Get in touch →</a></p>
+            </div>
+        </section>
 
-    // Debounce scroll
-    let scrollTimeout;
-    window.addEventListener('scroll', () => {
-      clearTimeout(scrollTimeout);
-      scrollTimeout = setTimeout(() => {
-        const scrollY = window.scrollY;
-        const section = Math.floor(scrollY / sectionHeight);
+    </main>
 
-        if (section !== lastSection) {
-          lastSection = section;
-          showSection(section);
-        }
-      }, 100);
-    });
-  </script>
+    <!-- ── FOOTER ────────────────────────────────── -->
+    <footer class="kiau-footer">
+        <span>Kiau Technologies PBC</span>
+        <div class="kiau-footer-links">
+            <a href="about.html">About</a>
+            <a href="pbcs.html">PBCs</a>
+            <a href="contact.html">Contact</a>
+        </div>
+        <span>2026</span>
+    </footer>
+
+  <script src="js/site-accessibility.js" defer></script>
 </body>
 </html>
