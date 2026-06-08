@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
@@ -8,7 +8,8 @@
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 	<link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet">
 	<link rel="stylesheet" href="css/kiau-inner.css">
-</head>
+	<link rel="stylesheet" href="css/site-accessibility.css">
+	</head>
 		<!-- CSS REMOVED
 				var(--primary-color);
 			color: var(--background);
@@ -147,6 +148,15 @@
 			height: 180px;
 			object-fit: cover;
 			filter: saturate(0.95) contrast(1.05);
+		}
+		.issue-card-media {
+			width: 100%;
+			height: 180px;
+			background:
+				linear-gradient(rgba(20, 91, 79, 0.72), rgba(20, 91, 79, 0.82)),
+				radial-gradient(circle at top left, rgba(218, 153, 214, 0.18), transparent 50%),
+				#145b4f;
+			border-bottom: 1px solid rgba(255,255,255,0.08);
 		}
 		.issue-card .body {
 			padding: 14px 16px 18px 16px;
@@ -304,9 +314,9 @@
 
     <!-- ── NAV ──────────────────────────────────── -->
     <nav class="kiau-nav">
-        <a href="landing-a.html" class="kiau-nav-logo">Kiau Technologies</a>
+        <a href="index.html" class="kiau-nav-logo" aria-label="Kiau Technologies — Home"><img src="images/KiauTechLogo.svg" alt="Kiau Technologies" class="nav-logo-img"></a>
         <ul class="kiau-nav-links">
-            <li><a href="landing-a.html">Home</a></li>
+            <li><a href="index.html">Home</a></li>
             <li><a href="about.html">About</a></li>
             <li><a href="contact.html">Contact</a></li>
         </ul>
@@ -432,10 +442,11 @@
             <a href="pbcs.html">PBCs</a>
             <a href="contact.html">Contact</a>
         </div>
-        <span>2025</span>
+        <span>2026</span>
     </footer>
 
-</body>
+	<script src="js/site-accessibility.js" defer></script>
+	</body>
 </html>
 <!--REMOVE-TAIL
 		<section class="mottainai-hero">
@@ -461,7 +472,7 @@
 			<p>Most waste is not the result of individual behavior, but of decisions made long before a product reaches a person. Materials are extracted, processed, and assembled in ways that assume disposability. By the time something reaches the curb, the waste has already been locked in.</p>
 			<div class="issue-grid">
 				<article class="issue-card">
-					<img src="" alt="Discarded circuit boards illustrating e-waste volume">
+					<div class="issue-card-media" aria-hidden="true"></div>
 					<div class="body">
 						<div class="issue-tag">Etymology</div>
 						<h3>Waste & Garbage</h3>
@@ -469,7 +480,7 @@
 					</div>
 				</article>
 				<article class="issue-card">
-					<img src="" alt="Factory assembly line">
+					<div class="issue-card-media" aria-hidden="true"></div>
 					<div class="body">
 						<div class="issue-tag">Source</div>
 						<h3>Upstream Decisions</h3>
@@ -477,7 +488,7 @@
 					</div>
 				</article>
 				<article class="issue-card">
-					<img src="" alt="Materials lifecycle">
+					<div class="issue-card-media" aria-hidden="true"></div>
 					<div class="body">
 						<div class="issue-tag">Lifecycle</div>
 						<h3>Locked-in Loss</h3>

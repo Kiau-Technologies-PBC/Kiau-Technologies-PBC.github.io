@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
@@ -235,13 +235,14 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/kiau-inner.css">
+  <link rel="stylesheet" href="css/site-accessibility.css">
 </head>
 <body>
 
 <nav class="kiau-nav">
-    <a href="landing-a.html" class="kiau-nav-logo">Kiau Technologies</a>
+    <a href="index.html" class="kiau-nav-logo" aria-label="Kiau Technologies — Home"><img src="images/KiauTechLogo.svg" alt="Kiau Technologies" class="nav-logo-img"></a>
     <ul class="kiau-nav-links">
-        <li><a href="landing-a.html">Home</a></li>
+        <li><a href="index.html">Home</a></li>
         <li><a href="about.html">About</a></li>
         <li><a href="contact.html">Contact</a></li>
     </ul>
@@ -327,7 +328,7 @@
         <a href="pbcs.html">PBCs</a>
         <a href="contact.html">Contact</a>
     </div>
-    <span>2025</span>
+    <span>2026</span>
 </footer>
 
   <!-- GSAP + ScrollTrigger from CDN -->
@@ -625,5 +626,6 @@
   document.getElementById('track') ? { scrollWidth: document.getElementById('track').scrollWidth, rect: document.getElementById('track').getBoundingClientRect() } : null;
 })(); 
 </script>
+  <script src="js/site-accessibility.js" defer></script>
 </body>
 </html>

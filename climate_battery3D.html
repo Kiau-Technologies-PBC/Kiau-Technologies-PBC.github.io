@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -339,6 +339,7 @@ footer {
 }
 </style>
 <link rel="stylesheet" href="css/kiau-inner.css">
+<link rel="stylesheet" href="css/site-accessibility.css">
 </head>
 <body>
 
@@ -355,9 +356,9 @@ footer {
 <div id="tooltip"></div>
 
 <nav class="kiau-nav">
-    <a href="landing-a.html" class="kiau-nav-logo">Kiau Technologies</a>
+    <a href="index.html" class="kiau-nav-logo" aria-label="Kiau Technologies — Home"><img src="images/KiauTechLogo.svg" alt="Kiau Technologies" class="nav-logo-img"></a>
     <ul class="kiau-nav-links">
-        <li><a href="landing-a.html">Home</a></li>
+        <li><a href="index.html">Home</a></li>
         <li><a href="about.html">About</a></li>
         <li><a href="contact.html">Contact</a></li>
     </ul>
@@ -533,7 +534,7 @@ footer {
         <a href="pbcs.html">PBCs</a>
         <a href="contact.html">Contact</a>
     </div>
-    <span>2025</span>
+    <span>2026</span>
   </footer>
 
 </main>
@@ -596,5 +597,6 @@ document.querySelectorAll('section[id]').forEach(s =>
 </script>
 
 <script type="module" src="./build.js"></script>
+<script src="js/site-accessibility.js" defer></script>
 </body>
 </html>

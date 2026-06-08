@@ -22,6 +22,7 @@
 
 /* ── RESET ───────────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; max-width: 100%; }
 html { scroll-behavior: smooth; }
 
 body {
@@ -51,9 +52,18 @@ body {
     letter-spacing: 0.1em;
     color: var(--cream);
     text-decoration: none;
+    display: flex;
+    align-items: center;
     transition: opacity 0.2s;
 }
 .kiau-nav-logo:hover { opacity: 0.8; }
+.nav-logo-img {
+    height: 72px;
+    width: auto;
+    filter: brightness(0) invert(1);
+    opacity: 0.9;
+}
+.kiau-nav-logo:hover .nav-logo-img { opacity: 1; }
 .kiau-nav-links {
     display: flex;
     gap: 2.5rem;
@@ -363,21 +373,26 @@ body {
 
 /* ── RESPONSIVE ──────────────────────────────────────────────────────── */
 @media (max-width: 960px) {
-    .kiau-nav    { padding: 1rem 2rem; }
+    .kiau-nav    { padding: 0.8rem 2rem; }
     .kiau-nav-links { gap: 1.5rem; }
-    .page-hero   { padding: calc(70px + 3rem) 2rem 2.5rem; }
+    .nav-logo-img { height: 56px; }
+    .page-hero   { padding: calc(56px + 3.5rem) 2rem 2.5rem; }
     .page-content { padding: 3rem 2rem; }
     .highlight-row { grid-template-columns: 1fr; }
     .kiau-footer { padding: 2rem 2rem; }
 }
 @media (max-width: 600px) {
-    .kiau-nav    { padding: 0.9rem 1.2rem; }
-    .kiau-nav-links { gap: 1.2rem; }
-    .kiau-nav-links a { font-size: 0.64rem; }
-    .page-hero   { padding: calc(64px + 2rem) 1.2rem 2rem; }
+    .kiau-nav    { padding: 0.5rem 1rem; }
+    .kiau-nav-links { gap: 1rem; }
+    .kiau-nav-links a { font-size: 0.64rem; letter-spacing: 0.1em; }
+    .nav-logo-img { height: 40px; }
+    .page-hero   { padding: calc(40px + 3rem) 1.2rem 2rem; }
     .page-content { padding: 2rem 1.2rem; }
     .kiau-grid   { grid-template-columns: 1fr; }
     .step-item   { flex-direction: column; gap: 0.5rem; }
     .kiau-footer { flex-direction: column; gap: 0.6rem; text-align: center; padding: 2rem 1.2rem; }
-    .kiau-footer-links { justify-content: center; }
+    .kiau-footer-links { justify-content: center; flex-wrap: wrap; gap: 1rem; }
+    .section-header-row { flex-direction: column; gap: 0.4rem; }
+    .highlight-cell { padding: 1.5rem 1.2rem; }
+    .prose { font-size: 0.85rem; }
 }
