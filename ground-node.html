@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Ground Node sensor platform — ambient temperature, humidity, GMS resistance, and battery monitoring at root depth. Designed by Kiau Technologies PBC.">
+  <title>Ground Node — Kiau Technologies</title>
+  <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
+
+  <!-- Three.js via importmap (same version as climate_battery3D.html) -->
+  <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
+  <script type="importmap">
+  {
+    "imports": {
+      "three":         "https://unpkg.com/three@v0.163.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@v0.163.0/examples/jsm/"
+    }
+  }
+  </script>
+
+  <!-- GSAP + ScrollTrigger (local copies) -->
+  <script src="data/gsap.min.js"></script>
+  <script src="data/ScrollTrigger.min.js"></script>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet">
+
+  <!-- Kiau shared styles -->
+  <link rel="stylesheet" href="css/kiau-inner.css">
+  <link rel="stylesheet" href="css/site-accessibility.css">
+
+  <style>
+    /* ── TOKENS (extend kiau-inner) ──────────────────────────────────────── */
+    :root {
+      --cyber:      #da99d6;
+      --cyber-dk:   rgba(218, 153, 214, 0.10);
+      --cyber-glow: rgba(218, 153, 214, 0.30);
+      --neon:       #3effa8;
+      --neon-dim:   rgba(62, 255, 168, 0.45);
+      --canvas-bg:  #030f0a;
+      --chapter-w:  min(400px, 42vw);
+      --rule-bright: rgba(218, 153, 214, 0.18);
+    }
+
+    body {
+      cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><circle cx="5" cy="5" r="5" fill="%23da99d6" opacity="0.8"/></svg>') 5 5, auto;
+    }
+
+    /* ── LOADING ─────────────────────────────────────────────────────────── */
+    #loading-screen {
+      position: fixed; inset: 0;
+      background: var(--green-dk);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      font-family: 'OCR_A', monospace;
+      transition: opacity 0.6s ease;
+    }
+    #loading-screen.fade-out { opacity: 0; pointer-events: none; }
+    .loading-ring {
+      width: 46px; height: 46px;
+      border: 2px solid rgba(218, 153, 214, 0.10);
+      border-top-color: var(--cyber);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 1.5rem;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text {
+      font-size: 0.58rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--cyber);
+      opacity: 0.75;
+    }
+
+    /* ── HERO ────────────────────────────────────────────────────────────── */
+    .node-hero {
+      padding: calc(70px + 5rem) 4rem 4.5rem;
+      max-width: 1320px;
+      margin: 0 auto;
+      border-bottom: 1px solid var(--rule);
+    }
+    .node-hero-tag {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-family: 'OCR_A', monospace;
+      font-size: 0.60rem;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: var(--cyber);
+      margin-bottom: 2rem;
+    }
+    .status-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--neon);
+      box-shadow: 0 0 10px var(--neon);
+      animation: pulse-dot 2.8s ease-in-out infinite;
+      flex-shrink: 0;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1;    box-shadow: 0 0 10px var(--neon); }
+      50%       { opacity: 0.4; box-shadow: 0 0 3px var(--neon);  }
+    }
+    .node-hero-title {
+      font-family: 'OCR_A', monospace;
+      font-size: clamp(2.2rem, 5vw, 3.6rem);
+      font-weight: 400;
+      letter-spacing: 0.02em;
+      line-height: 1.08;
+      color: var(--cream);
+      margin-bottom: 1.2rem;
+    }
+    .node-hero-sub {
+      font-family: 'Roboto Mono', monospace;
+      font-size: clamp(0.82rem, 1.5vw, 0.94rem);
+      font-weight: 300;
+      font-style: italic;
+      color: var(--cream);
+      opacity: 0.68;
+      max-width: 560px;
+      line-height: 1.90;
+      margin-bottom: 2.5rem;
+    }
+    .hero-chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+    }
+    .hero-chip {
+      font-family: 'OCR_A', monospace;
+      font-size: 0.56rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--cyber);
+      border: 1px solid rgba(218, 153, 214, 0.28);
+      padding: 0.28rem 0.65rem;
+      border-radius: 2px;
+      opacity: 0.85;
+    }
+
+    /* ── SCROLL HINT ─────────────────────────────────────────────────────── */
+    .scroll-hint {
+      padding: 1.8rem 4rem;
+      max-width: 1320px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      font-family: 'OCR_A', monospace;
+      font-size: 0.58rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--cream);
+      opacity: 0.38;
+    }
+    .scroll-hint::before {
+      content: '';
+      display: block;
+      width: 24px; height: 1px;
+      background: currentColor;
+    }
+
+    /* ── SCROLLYTELL ─────────────────────────────────────────────────────── */
+    .scrollytell {
+      position: relative;
+      /* height is set by JS: N chapters × 100vh */
+    }
+
+    /* Full-viewport sticky canvas */
+    .canvas-sticky {
+      position: sticky;
+      top: 0;
+      width: 100%;
+      height: 100vh;
+      overflow: hidden;
+      z-index: 1;
+      pointer-events: none;
+    }
+    #node-canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      background: var(--canvas-bg);
+    }
+
+    /* Subtle scanline overlay — pure CSS, adds the cyber texture */
+    .canvas-sticky::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0, 0, 0, 0.06) 2px,
+        rgba(0, 0, 0, 0.06) 4px
+      );
+      z-index: 3;
+    }
+
+    /* Chapter cards column — absolutely stacked inside scrollytell */
+    .chapters-track {
+      position: absolute;
+      top: 0; left: 0;
+      width: var(--chapter-w);
+      height: 100%;
+      z-index: 2;
+      pointer-events: none;
+    }
+    .chapter-card {
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      padding: 4rem 2.5rem 4rem 4rem;
+    }
+    .chapter-inner {
+      opacity: 0;
+      transform: translateX(-16px);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+      background: rgba(3, 15, 10, 0.82);
+      border-left: 2px solid var(--rule-bright);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      padding: 1.8rem 1.6rem 1.8rem 1.8rem;
+      width: 100%;
+      max-width: 340px;
+    }
+    .chapter-inner.active {
+      opacity: 1;
+      transform: translateX(0);
+      border-left-color: rgba(218, 153, 214, 0.55);
+    }
+    .chapter-eyebrow {
+      font-family: 'OCR_A', monospace;
+      font-size: 0.56rem;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: var(--cyber);
+      opacity: 0.80;
+      margin-bottom: 0.8rem;
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+    }
+    .chapter-eyebrow-dot {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: var(--cyber);
+      box-shadow: 0 0 6px var(--cyber);
+      flex-shrink: 0;
+    }
+    .chapter-title {
+      font-family: 'OCR_A', monospace;
+      font-size: clamp(0.95rem, 2vw, 1.25rem);
+      font-weight: 400;
+      letter-spacing: 0.02em;
+      color: var(--cream);
+      line-height: 1.25;
+      margin-bottom: 1rem;
+    }
+    .chapter-body {
+      font-family: 'Roboto Mono', monospace;
+      font-size: 0.74rem;
+      font-weight: 300;
+      line-height: 1.90;
+      color: var(--cream);
+      opacity: 0.68;
+    }
+    .chapter-specs {
+      margin-top: 1.2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .spec-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-family: 'OCR_A', monospace;
+      font-size: 0.54rem;
+      letter-spacing: 0.1em;
+      border-bottom: 1px solid rgba(249, 245, 242, 0.06);
+      padding: 0.38rem 0;
+    }
+    .spec-row:first-child { border-top: 1px solid rgba(249, 245, 242, 0.06); }
+    .spec-key { color: var(--cream); opacity: 0.42; text-transform: uppercase; }
+    .spec-val { color: var(--cyber); }
+
+    /* ── 3D SPACE LABELS ─────────────────────────────────────────────────── */
+    .label-3d {
+      position: absolute;
+      pointer-events: none;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 0.45s ease 0.1s, transform 0.45s ease 0.1s;
+      z-index: 10;
+    }
+    .label-3d.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .label-3d-box {
+      position: relative;
+      font-family: 'OCR_A', monospace;
+      font-size: 0.60rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--cyber);
+      white-space: nowrap;
+      padding: 0.55rem 0.85rem;
+      background: rgba(3, 15, 10, 0.88);
+      border: 1px solid rgba(218, 153, 214, 0.38);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+    /* Cyber corner brackets */
+    .label-3d-box::before,
+    .label-3d-box::after {
+      content: '';
+      position: absolute;
+      width: 7px; height: 7px;
+      border-color: var(--cyber);
+      border-style: solid;
+    }
+    .label-3d-box::before { top: -1px; left: -1px; border-width: 2px 0 0 2px; }
+    .label-3d-box::after  { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; }
+    .label-3d-value {
+      display: block;
+      font-size: 0.68rem;
+      color: var(--neon);
+      margin-top: 0.2rem;
+      animation: data-flicker 5s ease-in-out infinite;
+    }
+    @keyframes data-flicker {
+      0%, 94%, 100% { opacity: 1; }
+      95%            { opacity: 0.25; }
+      96%            { opacity: 1; }
+      97%            { opacity: 0.55; }
+    }
+    /* Connector tick */
+    .label-3d-tick {
+      position: absolute;
+      top: 50%;
+      right: -18px;
+      width: 16px;
+      height: 1px;
+      background: linear-gradient(to right, rgba(218, 153, 214, 0.55), transparent);
+    }
+
+    /* ── PROGRESS DOTS (right edge) ──────────────────────────────────────── */
+    #scroll-progress {
+      position: fixed;
+      right: 1.8rem;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+      align-items: center;
+    }
+    .prog-dot {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      border: 1px solid rgba(218, 153, 214, 0.35);
+      transition: all 0.3s ease;
+    }
+    .prog-dot.active {
+      background: var(--cyber);
+      box-shadow: 0 0 8px var(--cyber);
+      border-color: var(--cyber);
+      transform: scale(1.4);
+    }
+
+    /* ── SPECS SECTION (below scrollytell) ───────────────────────────────── */
+    .specs-section {
+      max-width: 1320px;
+      margin: 0 auto;
+      padding: 6rem 4rem 5rem;
+      border-top: 1px solid var(--rule);
+    }
+    .specs-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 1.5px;
+      background: rgba(249, 245, 242, 0.07);
+      margin-top: 2.5rem;
+    }
+    .spec-card {
+      background: var(--green-dk);
+      padding: 2rem 1.75rem 1.8rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+    }
+    .spec-card-id {
+      font-family: 'OCR_A', monospace;
+      font-size: 0.56rem;
+      letter-spacing: 0.2em;
+      color: var(--lav);
+      opacity: 0.70;
+    }
+    .spec-card-title {
+      font-family: 'OCR_A', monospace;
+      font-size: 0.90rem;
+      letter-spacing: 0.03em;
+      color: var(--cream);
+      line-height: 1.3;
+    }
+    .spec-card-body {
+      font-family: 'Roboto Mono', monospace;
+      font-size: 0.73rem;
+      line-height: 1.80;
+      color: var(--cream);
+      opacity: 0.62;
+      font-weight: 300;
+      flex: 1;
+    }
+
+    /* ── RESPONSIVE ──────────────────────────────────────────────────────── */
+    @media (max-width: 700px) {
+      :root { --chapter-w: 90vw; }
+      .chapter-card { padding: 2rem 1.5rem; }
+      .chapter-inner { max-width: 100%; }
+      #scroll-progress { display: none; }
+      .node-hero { padding: calc(70px + 3rem) 1.5rem 3rem; }
+      .specs-section { padding: 3.5rem 1.5rem; }
+      .scroll-hint { padding: 1.2rem 1.5rem; }
+    }
+
+    /* ── NAV SIZE OVERRIDE (tighter than kiau-inner.css default) ─────────── */
+    .kiau-nav { padding: 0.65rem 2.5rem; }
+    .nav-logo-img { height: 46px; }
+  </style>
+</head>
+<body>
+
+  <!-- ── LOADING SCREEN ─────────────────────────────────────────────────── -->
+  <div id="loading-screen" role="status" aria-live="polite">
+    <div class="loading-ring" aria-hidden="true"></div>
+    <p class="loading-text" id="loading-text">Initializing node scan</p>
+  </div>
+
+  <!-- ── NAV ───────────────────────────────────────────────────────────── -->
+  <nav class="kiau-nav">
+    <a href="index.html" class="kiau-nav-logo" aria-label="Kiau Technologies — Home">
+      <img src="images/KiauTechLogo.svg" alt="Kiau Technologies" class="nav-logo-img">
+    </a>
+    <ul class="kiau-nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="contact.html">Contact</a></li>
+    </ul>
+  </nav>
+
+  <!-- ── HERO ──────────────────────────────────────────────────────────── -->
+  <header class="node-hero">
+    <div class="node-hero-tag">
+      <span class="status-dot" aria-hidden="true"></span>
+      Field Hardware · Ground Node
+    </div>
+    <h1 class="node-hero-title">Ground Node</h1>
+    <p class="node-hero-sub">A solar-powered environmental sentinel buried at root depth — measuring temperature, humidity, soil resistance, and battery state over a LoRa 915 MHz network.</p>
+    <div class="hero-chip-row" aria-label="Sensor channels">
+      <span class="hero-chip">Ambient Temp</span>
+      <span class="hero-chip">Ambient Humidity</span>
+      <span class="hero-chip">GMS Resistance ×2</span>
+      <span class="hero-chip">Battery Monitor</span>
+      <span class="hero-chip">LoRa 915 MHz</span>
+      <span class="hero-chip">Solar Charging</span>
+    </div>
+  </header>
+
+  <p class="scroll-hint" aria-label="Scroll to explore">Scroll to explore the node</p>
+
+  <!-- ── SCROLLYTELL ───────────────────────────────────────────────────── -->
+  <section class="scrollytell" id="scrollytell" aria-label="Interactive node tour">
+    <!-- Three.js canvas — sticky backdrop -->
+    <div class="canvas-sticky" id="canvas-sticky">
+      <canvas id="node-canvas" aria-label="3D model of the Ground Node sensor"></canvas>
+      <!-- Labels injected by JS -->
+    </div>
+
+    <!-- Chapter cards — scroll over the canvas -->
+    <div class="chapters-track" id="chapters-track" aria-label="Sensor chapters"></div>
+  </section>
+
+  <!-- Progress dots -->
+  <div id="scroll-progress" aria-hidden="true"></div>
+
+  <!-- ── SPECS SECTION ─────────────────────────────────────────────────── -->
+  <section class="specs-section">
+    <div class="section-header-row">
+      <span class="section-eyebrow">Specifications</span>
+      <h2 class="section-heading">Sensor Channels</h2>
+    </div>
+    <div class="specs-grid">
+      <div class="spec-card">
+        <div class="spec-card-id">SEN-001 / 002</div>
+        <div class="spec-card-title">Ambient Temp &amp; Humidity</div>
+        <p class="spec-card-body">Sensirion SHT45 behind a sintered stainless mesh. One chip captures both ambient temperature (±0.1 °C) and relative humidity (±1.5 % RH) at deployment depth over I²C.</p>
+      </div>
+      <div class="spec-card">
+        <div class="spec-card-id">SEN-003 / 004</div>
+        <div class="spec-card-title">GMS Resistance ×2</div>
+        <p class="spec-card-body">Two gypsum matrix sensor probes thread out through a PG7 cable gland and are buried at different depths. Resistance shifts with soil-water content — inferring matric potential.</p>
+      </div>
+      <div class="spec-card">
+        <div class="spec-card-id">PWR-001</div>
+        <div class="spec-card-title">Battery + Solar Charging</div>
+        <p class="spec-card-body">An on-board ADC monitors supply voltage each cycle. A Voltaic solar panel continuously recharges the battery. When voltage drops below threshold the MCU shifts to deep-sleep to extend field life.</p>
+      </div>
+      <div class="spec-card">
+        <div class="spec-card-id">COM-001</div>
+        <div class="spec-card-title">LoRa 915 MHz</div>
+        <p class="spec-card-body">SMA-mounted 915 MHz antenna links the node to a LoRa / LoRaWAN network. Kilometre-scale range at milliwatt transmit power — essential for sparse deployment across remote forest plots.</p>
+      </div>
+      <div class="spec-card">
+        <div class="spec-card-id">ENC-001</div>
+        <div class="spec-card-title">Waterproof Housing</div>
+        <p class="spec-card-body">Built around a 1-1/4" Cantex conduit body sealed with a foam gasket. IP-rated protection at commodity cost — designed to survive freeze-thaw cycles buried in forest soil.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── THREE.JS MODULE ───────────────────────────────────────────────── -->
+  <script type="module">
+    import * as THREE           from 'three';
+    import { GLTFLoader }       from 'three/addons/loaders/GLTFLoader.js';
+    import { EffectComposer }   from 'three/addons/postprocessing/EffectComposer.js';
+    import { RenderPass }       from 'three/addons/postprocessing/RenderPass.js';
+    import { OutlinePass }      from 'three/addons/postprocessing/OutlinePass.js';
+    import { ShaderPass }       from 'three/addons/postprocessing/ShaderPass.js';
+    import { GammaCorrectionShader } from 'three/addons/shaders/GammaCorrectionShader.js';
+
+    const MODEL_PATH = 'data/models/nodefile_1.gltf';
+
+    // Component names match the GLTF node names exactly (from nodefile_1.gltf).
+    // Camera positions are in world units after auto-scale (longest axis → 0.20 units).
+    // Tune camPos / camTgt / labelWorldOffset once you've seen the model in-browser.
+    const CHAPTERS = [
+      {
+        id:     'overview',
+        num:    '00',
+        title:  'Waterproof Housing',
+        body:   'An environmental sentinel buried at root depth. The node is built around a ruggedised, IP-rated waterproof housing — designed to disappear into the forest floor while continuously streaming ecosystem data.',
+        meshes: [],
+        camPos: new THREE.Vector3(0,     0.08, 0.35),
+        camTgt: new THREE.Vector3(0,     0,    0),
+        label:  null,
+        specs:  [],
+      },
+      {
+        id:     'sht45',
+        num:    '01',
+        title:  'Ambient Temperature and Humidity Sensor',
+        body:   'A Sensirion SHT45 sits behind a sintered stainless mesh port. The mesh shields the sensor from debris while allowing air to circulate freely — capturing accurate temperature and relative humidity at deployment depth in a single chip.',
+        meshes: ['SHT45 Mount', 'SHT45 Sintered Mesh'],
+        camPos: new THREE.Vector3( 0.14, -0.02, 0.22),  // zoomed onto lower sensor port
+        camTgt: new THREE.Vector3( 0.01, -0.08, 0.01),
+        label:  { text: 'SEN-001/002 · AMBIENT T+RH', value: 'Temp ±0.1 °C · RH ±1.5 %' },
+        labelWorldOffset: new THREE.Vector3(0.05, -0.05, 0),
+        specs:  [
+          { key: 'Chip',      val: 'Sensirion SHT45'  },
+          { key: 'Temp',      val: '−40 – +125 °C'    },
+          { key: 'Temp acc.', val: '±0.1 °C'          },
+          { key: 'RH range',  val: '0 – 100 %'         },
+          { key: 'RH acc.',   val: '±1.5 %'            },
+          { key: 'Protocol',  val: 'I²C'               },
+        ],
+      },
+      {
+        id:     'antenna',
+        num:    '02',
+        title:  '915 MHz LoRa Antenna',
+        body:   'An SMA-mounted 915 MHz antenna links the node to a LoRa / LoRaWAN network. Kilometre-scale range at milliwatt transmit power — essential when nodes are scattered across a remote forest stand with no infrastructure.',
+        meshes: ['Antena_915Mhz_SMA', 'Antena_915Mhz_Stick', 'Antena_915Mhz_Bottom', 'Antena_915Mhz_pin'],
+        camPos: new THREE.Vector3( 0.14,  0.04, 0.28),  // side-low angle on antenna
+        camTgt: new THREE.Vector3( 0.01,  0.06, 0),
+        label:  { text: 'COM-001 · LoRa 915 MHz', value: 'Long-range · Low-power' },
+        labelWorldOffset: new THREE.Vector3(0.05, 0.06, 0),
+        specs:  [
+          { key: 'Band',      val: '915 MHz'        },
+          { key: 'Protocol',  val: 'LoRa / LoRaWAN'  },
+          { key: 'Connector', val: 'SMA'             },
+          { key: 'Range',     val: 'km-scale LPWAN'  },
+        ],
+      },
+      {
+        id:     'solar',
+        num:    '03',
+        title:  'Variable Angle Solar Panel',
+        body:   'A Voltaic solar panel recharges the internal battery whenever light reaches the forest floor. The panel mount uses a geared hinge mechanism so the angle can be adjusted at deployment — maximising harvest under partial canopy cover.',
+        meshes: ['Voltaic Panel', 'Panel Support', 'Panel Clasp', 'Panel Side Hearth Gear', 'Conduit Box Side Hearth Gear'],
+        camPos: new THREE.Vector3( 0.34,  0.06, -0.34),  // pulled back to fit full node + panel
+        camTgt: new THREE.Vector3( 0,     0.00, -0.04),
+        label:  { text: 'PWR-001 · SOLAR', value: 'Variable angle · field-set' },
+        labelWorldOffset: new THREE.Vector3(0, 0.04, -0.06),
+        specs:  [
+          { key: 'Brand',   val: 'Voltaic Systems'    },
+          { key: 'Angle',   val: 'Field-adjustable'    },
+          { key: 'Hinge',   val: 'Geared panel mount'  },
+        ],
+      },
+      {
+        id:     'enclosure',
+        num:    '05',
+        title:  'Waterproof Housing',
+        body:   'A standard 1-1/4" electrical conduit body repurposed as a ruggedised, IP-rated field enclosure. A foam gasket beneath the top cap creates a watertight seal that keeps electronics dry through freeze-thaw cycles buried in forest soil.',
+        meshes: ['Cantex 1-1/4" Conduit Body', 'Top Cap', 'Foam Gasket'],
+        camPos: new THREE.Vector3( 0.26,  0.22, 0.26),  // isometric — equal X/Y/Z distance
+        camTgt: new THREE.Vector3( 0,     0,    0),
+        label:  { text: 'ENC-001 · WATERPROOF HOUSING', value: 'IP-rated · foam-sealed' },
+        labelWorldOffset: new THREE.Vector3(0.06, 0.01, 0),
+        specs:  [
+          { key: 'Housing', val: '1-1/4" conduit body' },
+          { key: 'Seal',    val: 'Foam gasket'          },
+          { key: 'Rating',  val: 'IP-rated'             },
+        ],
+      },
+      {
+        id:     'ground-hw',
+        num:    '06',
+        title:  'Ground Stake Hardware',
+        body:   'A 1/4-20 bolt assembly stakes the node into the soil. A knob nut allows tool-free depth and angle adjustment in the field — tighten by hand to lock the deployment position before burial.',
+        meshes: ['Panel Clasp', '1/4 - 20 Knob Nut'],
+        camPos: new THREE.Vector3( 0.26,  0.04, 0.22),  // panel side, focused on clasp/knob
+        camTgt: new THREE.Vector3( 0.04,  0.02, 0),
+        label:  { text: 'MNT-001 · PANEL CLASP', value: 'Hand-tight knob · no tools' },
+        labelWorldOffset: new THREE.Vector3(0.06, 0.02, 0),
+        specs:  [
+          { key: 'Thread',   val: '1/4 - 20 UNC'      },
+          { key: 'Fastener', val: 'Knob nut (no tool)'  },
+        ],
+      },
+      {
+        id:     'system',
+        num:    '07',
+        title:  'Complete System',
+        body:   'Temp. Humidity. Two soil resistance probes. LoRa comms. Solar charging. One buried unit. The Ground Node is the root-level data layer of the Kiau monitoring network — silent, persistent, and designed to outlast a winter in the dark.',
+        meshes: [],
+        camPos: new THREE.Vector3(-0.38,  0.08, 0),      // 90° CCW from previous front view
+        camTgt: new THREE.Vector3( 0,     0,    0),
+        label:  null,
+        specs:  [],
+      },
+    ];
+
+    // ── DOM refs ────────────────────────────────────────────────────────────
+    const canvas      = document.getElementById('node-canvas');
+    const stickyEl    = document.getElementById('canvas-sticky');
+    const trackEl     = document.getElementById('chapters-track');
+    const progressEl  = document.getElementById('scroll-progress');
+    const scrollytell = document.getElementById('scrollytell');
+    const loadingEl   = document.getElementById('loading-screen');
+    const loadingText = document.getElementById('loading-text');
+
+    // ── Renderer ────────────────────────────────────────────────────────────
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.05;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+    const scene  = new THREE.Scene();
+    scene.background = new THREE.Color(0x030f0a);
+    scene.fog = new THREE.FogExp2(0x030f0a, 1.6);
+
+    const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.001, 100);
+    camera.position.copy(CHAPTERS[0].camPos);
+
+    // camTarget is tweened by GSAP; lookAt applied every frame
+    const camTarget = new THREE.Vector3().copy(CHAPTERS[0].camTgt);
+
+    // ── Lights ──────────────────────────────────────────────────────────────
+    scene.add(new THREE.AmbientLight(0xffffff, 0.30));
+
+    const keyLight = new THREE.DirectionalLight(0xf9f5f2, 1.7);
+    keyLight.position.set(0.6, 1.2, 0.9);
+    keyLight.castShadow = true;
+    keyLight.shadow.mapSize.setScalar(1024);
+    scene.add(keyLight);
+
+    const fillLight = new THREE.DirectionalLight(0xda99d6, 0.50); // lavender fill
+    fillLight.position.set(-0.9, 0.3, -0.6);
+    scene.add(fillLight);
+
+    const rimLight = new THREE.DirectionalLight(0x3effa8, 0.22);  // green rim
+    rimLight.position.set(0, -1, -0.6);
+    scene.add(rimLight);
+
+    // ── Post-processing ─────────────────────────────────────────────────────
+    const composer = new EffectComposer(renderer);
+    composer.addPass(new RenderPass(scene, camera));
+
+    const outlinePass = new OutlinePass(
+      new THREE.Vector2(window.innerWidth, window.innerHeight),
+      scene,
+      camera
+    );
+    outlinePass.visibleEdgeColor.set('#da99d6');
+    outlinePass.hiddenEdgeColor.set('#da99d6');
+    outlinePass.edgeStrength  = 6.0;
+    outlinePass.edgeGlow      = 1.2;
+    outlinePass.edgeThickness = 2.0;
+    outlinePass.pulsePeriod   = 2.5;
+    composer.addPass(outlinePass);
+
+    const gammaPass = new ShaderPass(GammaCorrectionShader);
+    composer.addPass(gammaPass);
+
+    // ── Model state ─────────────────────────────────────────────────────────
+    const modelWrapper = new THREE.Group();
+    scene.add(modelWrapper);
+    let modelRoot       = null;
+    let prevHighlighted = [];
+
+    function storeMaterials(root) {
+      root.traverse(node => {
+        if (!node.isMesh) return;
+        node.castShadow = node.receiveShadow = true;
+      });
+    }
+
+    // ── Highlight helpers ─────────────────────────────────────────────────
+    // Touching only active part materials (10–50 meshes) avoids the cost of
+    // modifying 800+ meshes’ opacity, which was forcing a full transparent re-sort.
+    function setEmissive(meshList, hex, intensity) {
+      meshList.forEach(mesh => {
+        const apply = m => {
+          if (m.emissive)         m.emissive.setHex(hex);
+          if ('emissiveIntensity' in m) m.emissiveIntensity = intensity;
+        };
+        Array.isArray(mesh.material) ? mesh.material.forEach(apply) : apply(mesh.material);
+      });
+    }
+
+    function highlightMeshes(names) {
+      setEmissive(prevHighlighted, 0x000000, 0);
+      outlinePass.selectedObjects = [];
+      prevHighlighted = [];
+
+      if (!names || names.length === 0) return;
+
+      const targets = [];
+      names.forEach(name => {
+        const obj = scene.getObjectByName(name);
+        console.log(`[highlight] "${name}":`, obj ? 'FOUND' : 'NOT FOUND in scene');
+        if (obj) {
+          let n = 0;
+          obj.traverse(c => { if (c.isMesh) { targets.push(c); n++; } });
+          console.log(`[highlight] "${name}": ${n} meshes collected`);
+        }
+      });
+      console.log('[highlight] total targets:', targets.length);
+
+      if (targets.length === 0) return;
+
+      setEmissive(targets, 0xda99d6, 0.40);
+      outlinePass.selectedObjects = targets;
+      prevHighlighted = targets;
+    }
+
+    // ── Label management ────────────────────────────────────────────────────
+    let activeLabel     = null;
+    let activeLabelData = null; // { el, worldPos }
+
+    function showLabel(chapter) {
+      if (activeLabel) { activeLabel.remove(); activeLabel = null; activeLabelData = null; }
+      if (!chapter.label) return;
+
+      const el = document.createElement('div');
+      el.className = 'label-3d';
+      el.innerHTML = `
+        <div class="label-3d-box">
+          <span class="label-3d-tick" aria-hidden="true"></span>
+          ${chapter.label.text}
+          <span class="label-3d-value">${chapter.label.value}</span>
+        </div>`;
+      stickyEl.appendChild(el);
+
+      // World position: bounding-box centre of the first named component + offset
+      const worldPos = new THREE.Vector3();
+      const primaryName = chapter.meshes[0];
+      const primaryObj  = primaryName ? scene.getObjectByName(primaryName) : null;
+      if (primaryObj && chapter.labelWorldOffset) {
+        new THREE.Box3().setFromObject(primaryObj).getCenter(worldPos);
+        worldPos.add(chapter.labelWorldOffset);
+      } else {
+        worldPos.copy(chapter.camTgt).add(new THREE.Vector3(0.06, 0.05, 0.03));
+      }
+
+      activeLabel = el;
+      activeLabelData = { el, worldPos };
+      updateLabelScreenPos(worldPos);
+      requestAnimationFrame(() => el.classList.add('visible'));
+    }
+
+    function updateLabelScreenPos(worldPos) {
+      if (!activeLabel) return;
+      const projected = worldPos.clone().project(camera);
+      if (projected.z > 1) { activeLabel.style.visibility = 'hidden'; return; }
+      activeLabel.style.visibility = '';
+
+      const margin = 16;
+      const w = activeLabel.offsetWidth  || 180;
+      const h = activeLabel.offsetHeight || 60;
+      const rawX = (projected.x *  0.5 + 0.5) * window.innerWidth;
+      const rawY = (projected.y * -0.5 + 0.5) * window.innerHeight;
+
+      // Clamp so the label never clips outside the viewport
+      activeLabel.style.left = `${Math.max(margin, Math.min(window.innerWidth  - w - margin, rawX))}px`;
+      activeLabel.style.top  = `${Math.max(margin, Math.min(window.innerHeight - h - margin, rawY))}px`;
+    }
+
+    // ── Build UI ────────────────────────────────────────────────────────────
+    function buildUI() {
+      CHAPTERS.forEach((ch, i) => {
+        // Progress dot
+        const dot = document.createElement('div');
+        dot.className = 'prog-dot';
+        dot.dataset.idx = i;
+        progressEl.appendChild(dot);
+
+        // Chapter card
+        const card = document.createElement('div');
+        card.className = 'chapter-card';
+        card.dataset.idx = i;
+        const specsHTML = ch.specs.map(s =>
+          `<div class="spec-row"><span class="spec-key">${s.key}</span><span class="spec-val">${s.val}</span></div>`
+        ).join('');
+        card.innerHTML = `
+          <div class="chapter-inner" data-inner="${i}">
+            <div class="chapter-eyebrow">
+              <span class="chapter-eyebrow-dot" aria-hidden="true"></span>
+              ${ch.num} — ${ch.id.toUpperCase()}
+            </div>
+            <h3 class="chapter-title">${ch.title}</h3>
+            <p class="chapter-body">${ch.body}</p>
+            ${specsHTML ? `<div class="chapter-specs">${specsHTML}</div>` : ''}
+          </div>`;
+        trackEl.appendChild(card);
+      });
+    }
+
+    // ── Chapter transitions ─────────────────────────────────────────────────
+    let currentChapter = -1;
+
+    function goToChapter(idx) {
+      if (idx === currentChapter) return;
+      currentChapter = idx;
+      const ch = CHAPTERS[idx];
+
+      // Chapter card active state
+      document.querySelectorAll('[data-inner]').forEach(el =>
+        el.classList.toggle('active', +el.dataset.inner === idx)
+      );
+      // Progress dots
+      document.querySelectorAll('.prog-dot').forEach(el =>
+        el.classList.toggle('active', +el.dataset.idx === idx)
+      );
+
+      // 3D highlight
+      highlightMeshes(ch.meshes);
+
+      // Camera tween via GSAP (global from regular <script> tag)
+      gsap.to(camera.position, { ...ch.camPos, duration: 1.5, ease: 'power2.inOut' });
+      gsap.to(camTarget,       { ...ch.camTgt, duration: 1.5, ease: 'power2.inOut' });
+
+      // Label
+      showLabel(ch);
+    }
+
+    // ── GSAP ScrollTrigger setup ─────────────────────────────────────────────
+    function initScroll() {
+      scrollytell.style.height = `${CHAPTERS.length * 100}vh`;
+      gsap.registerPlugin(ScrollTrigger);
+
+      ScrollTrigger.create({
+        trigger: scrollytell,
+        start:   'top top',
+        end:     'bottom bottom',
+        onUpdate(self) {
+          const idx = Math.min(
+            CHAPTERS.length - 1,
+            Math.floor(self.progress * CHAPTERS.length)
+          );
+          goToChapter(idx);
+        },
+        onLeave:     () => goToChapter(CHAPTERS.length - 1),
+        onLeaveBack: () => goToChapter(0),
+      });
+
+      goToChapter(0);
+    }
+
+    // ── Render loop ─────────────────────────────────────────────────────────
+    const clock = new THREE.Clock();
+    function animate() {
+      requestAnimationFrame(animate);
+      const t = clock.getElapsedTime();
+      if (modelRoot) {
+        // Gentle idle sway around world Y (vertical axis)
+        modelWrapper.rotation.y = Math.sin(t * 0.18) * 0.055;
+      }
+      camera.lookAt(camTarget);
+      if (activeLabelData) updateLabelScreenPos(activeLabelData.worldPos);
+      composer.render();
+    }
+
+    // ── Resize ──────────────────────────────────────────────────────────────
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      composer.setSize(window.innerWidth, window.innerHeight);
+      outlinePass.resolution.set(window.innerWidth, window.innerHeight);
+      ScrollTrigger.refresh();
+    });
+
+    // ── Load model ──────────────────────────────────────────────────────────
+    buildUI();
+
+    new GLTFLoader().load(
+      MODEL_PATH,
+      (gltf) => {
+        const gltfScene = gltf.scene;
+
+        // OnShape exports Z-up; rotate to Three.js Y-up so the node stands upright
+        gltfScene.rotation.x = -Math.PI / 2;
+        gltfScene.updateMatrixWorld(true);
+
+        // Auto-scale to ~0.20 world-units on longest axis (measured after rotation)
+        const box1  = new THREE.Box3().setFromObject(gltfScene);
+        const size  = box1.getSize(new THREE.Vector3());
+        const scale = 0.20 / Math.max(size.x, size.y, size.z);
+        gltfScene.scale.setScalar(scale);
+        gltfScene.updateMatrixWorld(true);
+
+        // Center after scale so model sits at origin
+        const box2   = new THREE.Box3().setFromObject(gltfScene);
+        const center = box2.getCenter(new THREE.Vector3());
+        gltfScene.position.sub(center);
+
+        modelWrapper.add(gltfScene);
+        modelRoot = modelWrapper; // render loop swings modelWrapper around world Y
+        storeMaterials(gltfScene);
+
+        loadingEl.classList.add('fade-out');
+        setTimeout(() => loadingEl.remove(), 650);
+        initScroll();
+        animate();
+      },
+      (xhr) => {
+        if (xhr.total) {
+          loadingText.textContent = `Loading node scan — ${Math.round(xhr.loaded / xhr.total * 100)} %`;
+        }
+      },
+      (err) => {
+        // Fallback placeholder so the page looks correct without the model yet
+        console.warn('Ground node GLB not found — showing placeholder. Drop the file at:', MODEL_PATH, err);
+        const geo = new THREE.CapsuleGeometry(0.035, 0.11, 4, 12);
+        const mat = new THREE.MeshStandardMaterial({ color: 0x145b4f, roughness: 0.38, metalness: 0.55 });
+        const placeholder = new THREE.Mesh(geo, mat);
+        placeholder.castShadow = true;
+        modelWrapper.add(placeholder);
+        modelRoot = modelWrapper;
+
+        loadingEl.classList.add('fade-out');
+        setTimeout(() => loadingEl.remove(), 650);
+        initScroll();
+        animate();
+      }
+    );
+  </script>
+</body>
+</html>
