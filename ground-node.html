@@ -53,7 +53,6 @@
       position: fixed; inset: 0;
       background: var(--green-dk);
       display: flex;
-      flex-direction: column;
       justify-content: center;
       align-items: center;
       z-index: 9999;
@@ -61,22 +60,50 @@
       transition: opacity 0.6s ease;
     }
     #loading-screen.fade-out { opacity: 0; pointer-events: none; }
-    .loading-ring {
-      width: 46px; height: 46px;
-      border: 2px solid rgba(218, 153, 214, 0.10);
-      border-top-color: var(--cyber);
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin-bottom: 1.5rem;
+    .loading-terminal {
+      width: min(440px, calc(100vw - 3rem));
+      border: 1px solid rgba(218, 153, 214, 0.38);
+      background: rgba(3, 15, 10, 0.92);
+      box-shadow: 0 0 38px rgba(62, 255, 168, 0.09);
+      padding: 1.15rem 1.2rem 1.25rem;
     }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .loading-text {
-      font-size: 0.58rem;
-      letter-spacing: 0.3em;
+    .loading-terminal-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      padding-bottom: 0.75rem;
+      margin-bottom: 0.9rem;
+      border-bottom: 1px solid rgba(218, 153, 214, 0.18);
+      font-size: 0.52rem;
+      letter-spacing: 0.16em;
       text-transform: uppercase;
       color: var(--cyber);
-      opacity: 0.75;
     }
+    .loading-terminal-state { color: var(--neon); white-space: nowrap; }
+    .loading-log {
+      display: grid;
+      gap: 0.48rem;
+      min-height: 7.1rem;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      font-family: 'Roboto Mono', monospace;
+      font-size: 0.64rem;
+      line-height: 1.35;
+      color: rgba(249, 245, 242, 0.72);
+    }
+    .loading-log li { display: flex; gap: 0.55rem; }
+    .loading-log li::before { content: '>'; color: var(--cyber); }
+    .loading-log li.complete { color: var(--neon); }
+    .loading-log li.error { color: #ff8b8b; }
+    .loading-cursor {
+      width: 0.55em;
+      height: 1em;
+      margin-top: 0.15rem;
+      background: var(--neon);
+      animation: terminal-blink 0.8s steps(2, start) infinite;
+    }
+    @keyframes terminal-blink { 50% { opacity: 0; } }
 
     /* ── HERO ────────────────────────────────────────────────────────────── */
     .node-hero {
@@ -427,10 +454,21 @@
 
     /* ── RESPONSIVE ──────────────────────────────────────────────────────── */
     @media (max-width: 700px) {
-      :root { --chapter-w: 90vw; }
-      .chapter-card { padding: 2rem 1.5rem; }
-      .chapter-inner { max-width: 100%; }
+      :root { --chapter-w: 100%; }
+      .chapter-card { align-items: flex-end; padding: 1rem; }
+      .chapter-inner {
+        max-width: min(100%, 34rem);
+        max-height: 36vh;
+        margin: 0 auto;
+        overflow-y: auto;
+        padding: 1.15rem 1.2rem;
+        pointer-events: auto;
+        background: rgba(3, 15, 10, 0.92);
+      }
       #scroll-progress { display: none; }
+      .label-3d { max-width: calc(100vw - 48px); }
+      .label-3d-box { white-space: normal; line-height: 1.45; }
+      .label-3d-tick { display: none; }
       .node-hero { padding: calc(70px + 3rem) 1.5rem 3rem; }
       .specs-section { padding: 3.5rem 1.5rem; }
       .scroll-hint { padding: 1.2rem 1.5rem; }
@@ -445,8 +483,14 @@
 
   <!-- ── LOADING SCREEN ─────────────────────────────────────────────────── -->
   <div id="loading-screen" role="status" aria-live="polite">
-    <div class="loading-ring" aria-hidden="true"></div>
-    <p class="loading-text" id="loading-text">Initializing node scan</p>
+    <div class="loading-terminal">
+      <div class="loading-terminal-header">
+        <span>ground-node / boot</span>
+        <span class="loading-terminal-state" id="loading-state">starting</span>
+      </div>
+      <ul class="loading-log" id="loading-log" aria-label="Ground Node startup progress"></ul>
+      <div class="loading-cursor" aria-hidden="true"></div>
+    </div>
   </div>
 
   <!-- ── NAV ───────────────────────────────────────────────────────────── -->
@@ -538,8 +582,6 @@
     import { EffectComposer }   from 'three/addons/postprocessing/EffectComposer.js';
     import { RenderPass }       from 'three/addons/postprocessing/RenderPass.js';
     import { OutlinePass }      from 'three/addons/postprocessing/OutlinePass.js';
-    import { ShaderPass }       from 'three/addons/postprocessing/ShaderPass.js';
-    import { GammaCorrectionShader } from 'three/addons/shaders/GammaCorrectionShader.js';
 
     const MODEL_PATH = 'data/models/nodefile_1.gltf';
 
@@ -661,17 +703,73 @@
     const progressEl  = document.getElementById('scroll-progress');
     const scrollytell = document.getElementById('scrollytell');
     const loadingEl   = document.getElementById('loading-screen');
-    const loadingText = document.getElementById('loading-text');
+    const loadingLog  = document.getElementById('loading-log');
+    const loadingState = document.getElementById('loading-state');
+    const loaderStartedAt = performance.now();
+    let modelLoadingEntry = null;
+    let modelLoadingPercent = null;
+    let bootStagesComplete = false;
+    let pendingModelResult = null;
+    let completionScheduled = false;
+
+    function addLoadingEntry(message, state = 'complete') {
+      const entry = document.createElement('li');
+      entry.textContent = message;
+      entry.className = state;
+      loadingLog.appendChild(entry);
+      loadingState.textContent = state === 'error' ? 'fallback' : state === 'complete' ? 'connected' : 'working';
+      return entry;
+    }
+
+    function updateModelLoading(percent) {
+      modelLoadingPercent = percent;
+      if (!bootStagesComplete) return;
+      if (!modelLoadingEntry) modelLoadingEntry = addLoadingEntry('loading 3D model', 'pending');
+      modelLoadingEntry.textContent = modelLoadingPercent === null ? 'loading 3D model' : `loading 3D model ${modelLoadingPercent}%`;
+    }
+
+    function completeLoading(success) {
+      modelLoadingEntry.textContent = success ? 'loading 3D model: ready' : 'loading 3D model: unavailable; using fallback';
+      modelLoadingEntry.className = success ? 'complete' : 'error';
+      loadingState.textContent = success ? 'online' : 'fallback';
+      const remainingTime = Math.max(120, 2000 - (performance.now() - loaderStartedAt));
+      window.setTimeout(() => {
+        loadingEl.classList.add('fade-out');
+        window.setTimeout(() => loadingEl.remove(), 650);
+      }, remainingTime);
+    }
+
+    function finishLoading(success) {
+      pendingModelResult = success;
+      if (success === null || !bootStagesComplete || completionScheduled) return;
+      completionScheduled = true;
+      updateModelLoading(modelLoadingPercent);
+      window.setTimeout(() => completeLoading(pendingModelResult), 220);
+    }
+
+    const bootStages = ['connecting to server', 'connection established', 'initializing database', 'database ready', 'initializing renderer'];
+    bootStages.forEach((message, index) => {
+      window.setTimeout(() => {
+        addLoadingEntry(message);
+        if (index === bootStages.length - 1) {
+          bootStagesComplete = true;
+          finishLoading(pendingModelResult);
+        }
+      }, index * 105);
+    });
 
     // ── Renderer ────────────────────────────────────────────────────────────
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    const getRenderPixelRatio = () => Math.min(
+      window.devicePixelRatio,
+      window.matchMedia('(max-width: 700px)').matches ? 1 : 1.5
+    );
+    renderer.setPixelRatio(getRenderPixelRatio());
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.05;
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.shadowMap.enabled = false;
 
     const scene  = new THREE.Scene();
     scene.background = new THREE.Color(0x030f0a);
@@ -712,19 +810,17 @@
     outlinePass.visibleEdgeColor.set('#da99d6');
     outlinePass.hiddenEdgeColor.set('#da99d6');
     outlinePass.edgeStrength  = 6.0;
-    outlinePass.edgeGlow      = 1.2;
+    outlinePass.edgeGlow      = 0.65;
     outlinePass.edgeThickness = 2.0;
-    outlinePass.pulsePeriod   = 2.5;
+    outlinePass.pulsePeriod   = 0;
     composer.addPass(outlinePass);
-
-    const gammaPass = new ShaderPass(GammaCorrectionShader);
-    composer.addPass(gammaPass);
 
     // ── Model state ─────────────────────────────────────────────────────────
     const modelWrapper = new THREE.Group();
     scene.add(modelWrapper);
     let modelRoot       = null;
     let prevHighlighted = [];
+    let hasActiveOutline = false;
 
     function storeMaterials(root) {
       root.traverse(node => {
@@ -750,6 +846,7 @@
       setEmissive(prevHighlighted, 0x000000, 0);
       outlinePass.selectedObjects = [];
       prevHighlighted = [];
+      hasActiveOutline = false;
 
       if (!names || names.length === 0) return;
 
@@ -770,11 +867,20 @@
       setEmissive(targets, 0xda99d6, 0.40);
       outlinePass.selectedObjects = targets;
       prevHighlighted = targets;
+      hasActiveOutline = true;
     }
 
     // ── Label management ────────────────────────────────────────────────────
     let activeLabel     = null;
     let activeLabelData = null; // { el, worldPos }
+    const labelProjection = new THREE.Vector3();
+
+    function refreshActiveLabelSize() {
+      if (!activeLabelData || !activeLabel) return;
+      activeLabelData.width = activeLabel.offsetWidth || 180;
+      activeLabelData.height = activeLabel.offsetHeight || 60;
+      updateLabelScreenPos(activeLabelData);
+    }
 
     function showLabel(chapter) {
       if (activeLabel) { activeLabel.remove(); activeLabel = null; activeLabelData = null; }
@@ -802,20 +908,25 @@
       }
 
       activeLabel = el;
-      activeLabelData = { el, worldPos };
-      updateLabelScreenPos(worldPos);
-      requestAnimationFrame(() => el.classList.add('visible'));
+      activeLabelData = { el, worldPos, width: 180, height: 60 };
+      requestAnimationFrame(() => {
+        refreshActiveLabelSize();
+        el.classList.add('visible');
+      });
+      document.fonts?.ready.then(() => {
+        if (activeLabel === el) refreshActiveLabelSize();
+      });
     }
 
-    function updateLabelScreenPos(worldPos) {
+    function updateLabelScreenPos(labelData) {
       if (!activeLabel) return;
-      const projected = worldPos.clone().project(camera);
+      const projected = labelProjection.copy(labelData.worldPos).project(camera);
       if (projected.z > 1) { activeLabel.style.visibility = 'hidden'; return; }
       activeLabel.style.visibility = '';
 
-      const margin = 16;
-      const w = activeLabel.offsetWidth  || 180;
-      const h = activeLabel.offsetHeight || 60;
+      const margin = window.matchMedia('(max-width: 700px)').matches ? 24 : 16;
+      const w = labelData.width;
+      const h = labelData.height;
       const rawX = (projected.x *  0.5 + 0.5) * window.innerWidth;
       const rawY = (projected.y * -0.5 + 0.5) * window.innerHeight;
 
@@ -875,6 +986,7 @@
       highlightMeshes(ch.meshes);
 
       // Camera tween via GSAP (global from regular <script> tag)
+      gsap.killTweensOf([camera.position, camTarget]);
       gsap.to(camera.position, { ...ch.camPos, duration: 1.5, ease: 'power2.inOut' });
       gsap.to(camTarget,       { ...ch.camTgt, duration: 1.5, ease: 'power2.inOut' });
 
@@ -915,17 +1027,20 @@
         modelWrapper.rotation.y = Math.sin(t * 0.18) * 0.055;
       }
       camera.lookAt(camTarget);
-      if (activeLabelData) updateLabelScreenPos(activeLabelData.worldPos);
-      composer.render();
+      if (activeLabelData) updateLabelScreenPos(activeLabelData);
+      if (hasActiveOutline) composer.render();
+      else renderer.render(scene, camera);
     }
 
     // ── Resize ──────────────────────────────────────────────────────────────
     window.addEventListener('resize', () => {
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
+      renderer.setPixelRatio(getRenderPixelRatio());
       renderer.setSize(window.innerWidth, window.innerHeight);
       composer.setSize(window.innerWidth, window.innerHeight);
       outlinePass.resolution.set(window.innerWidth, window.innerHeight);
+      refreshActiveLabelSize();
       ScrollTrigger.refresh();
     });
 
@@ -957,14 +1072,13 @@
         modelRoot = modelWrapper; // render loop swings modelWrapper around world Y
         storeMaterials(gltfScene);
 
-        loadingEl.classList.add('fade-out');
-        setTimeout(() => loadingEl.remove(), 650);
+        finishLoading(true);
         initScroll();
         animate();
       },
       (xhr) => {
         if (xhr.total) {
-          loadingText.textContent = `Loading node scan — ${Math.round(xhr.loaded / xhr.total * 100)} %`;
+          updateModelLoading(Math.round(xhr.loaded / xhr.total * 100));
         }
       },
       (err) => {
@@ -977,8 +1091,7 @@
         modelWrapper.add(placeholder);
         modelRoot = modelWrapper;
 
-        loadingEl.classList.add('fade-out');
-        setTimeout(() => loadingEl.remove(), 650);
+        finishLoading(false);
         initScroll();
         animate();
       }
